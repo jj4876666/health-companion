@@ -6,6 +6,28 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Calculator, Scale, Droplets, Heart, Activity } from "lucide-react";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
+
+type BMICategory = {
+  label: string;
+  color: string;
+  range: string;
+  bgColor: string;
+};
+
+const bmiCategories: Record<string, BMICategory> = {
+  underweight: { label: "Underweight", color: "text-blue-600", range: "< 18.5", bgColor: "bg-blue-500" },
+  normal: { label: "Normal", color: "text-success", range: "18.5 - 24.9", bgColor: "bg-success" },
+  overweight: { label: "Overweight", color: "text-warning", range: "25 - 29.9", bgColor: "bg-warning" },
+  obese: { label: "Obese", color: "text-destructive", range: "≥ 30", bgColor: "bg-destructive" },
+};
+
+const getBMICategory = (bmi: number): string => {
+  if (bmi < 18.5) return "underweight";
+  if (bmi < 25) return "normal";
+  if (bmi < 30) return "overweight";
+  return "obese";
+};
 
 const Calculators = () => {
   const [bmrData, setBmrData] = useState({
@@ -15,6 +37,12 @@ const Calculators = () => {
     gender: "M",
   });
   const [bmrResult, setBmrResult] = useState<number | null>(null);
+
+  const [bmiData, setBmiData] = useState({
+    weight: "",
+    height: "",
+  });
+  const [bmiResult, setBmiResult] = useState<number | null>(null);
 
   const calculateBMR = () => {
     const w = parseFloat(bmrData.weight);
@@ -37,13 +65,22 @@ const Calculators = () => {
     toast.success("BMR calculated successfully!");
   };
 
+  const calculateBMI = () => {
+    const w = parseFloat(bmiData.weight);
+    const h = parseFloat(bmiData.height);
+
+    if (isNaN(w) || isNaN(h) || w <= 0 || h <= 0) {
+      toast.error("Please enter valid positive numbers for weight and height");
+      return;
+    }
+
+    const heightInMeters = h / 100;
+    const bmi = w / (heightInMeters * heightInMeters);
+    setBmiResult(Math.round(bmi * 10) / 10);
+    toast.success("BMI calculated successfully!");
+  };
+
   const otherCalculators = [
-    {
-      icon: Scale,
-      title: "BMI Calculator",
-      description: "Calculate your Body Mass Index",
-      status: "Coming Soon",
-    },
     {
       icon: Droplets,
       title: "Hydration Calculator",
@@ -58,6 +95,16 @@ const Calculators = () => {
     },
   ];
 
+  const bmiCategory = bmiResult !== null ? getBMICategory(bmiResult) : null;
+  const categoryInfo = bmiCategory ? bmiCategories[bmiCategory] : null;
+
+  // Calculate position on the BMI scale (0-100%)
+  const getBMIPosition = (bmi: number): number => {
+    if (bmi <= 15) return 0;
+    if (bmi >= 40) return 100;
+    return ((bmi - 15) / 25) * 100;
+  };
+
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-8">
@@ -70,9 +117,119 @@ const Calculators = () => {
           </p>
         </div>
 
-        <div className="grid lg:grid-cols-2 gap-8">
-          {/* BMR Calculator */}
+        <div className="grid lg:grid-cols-2 gap-8 mb-8">
+          {/* BMI Calculator */}
           <Card variant="elevated" className="animate-fade-in">
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-green-500 to-emerald-500 flex items-center justify-center">
+                  <Scale className="w-6 h-6 text-primary-foreground" />
+                </div>
+                <div>
+                  <CardTitle>BMI Calculator</CardTitle>
+                  <CardDescription>
+                    Body Mass Index - weight status indicator
+                  </CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="bmi-weight">Weight (kg)</Label>
+                  <Input
+                    id="bmi-weight"
+                    type="number"
+                    placeholder="70"
+                    value={bmiData.weight}
+                    onChange={(e) =>
+                      setBmiData({ ...bmiData, weight: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="bmi-height">Height (cm)</Label>
+                  <Input
+                    id="bmi-height"
+                    type="number"
+                    placeholder="175"
+                    value={bmiData.height}
+                    onChange={(e) =>
+                      setBmiData({ ...bmiData, height: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <Button onClick={calculateBMI} variant="hero" className="w-full">
+                <Calculator className="w-5 h-5" />
+                Calculate BMI
+              </Button>
+
+              {bmiResult !== null && categoryInfo && (
+                <div className="space-y-4 animate-scale-in">
+                  <div className="p-6 rounded-xl bg-secondary text-center">
+                    <p className="text-sm text-muted-foreground mb-1">
+                      Your Body Mass Index
+                    </p>
+                    <p className="text-4xl font-bold text-primary">
+                      {bmiResult}
+                    </p>
+                    <p className={cn("text-lg font-semibold mt-2", categoryInfo.color)}>
+                      {categoryInfo.label}
+                    </p>
+                  </div>
+
+                  {/* Visual BMI Scale */}
+                  <div className="space-y-3">
+                    <div className="relative h-4 rounded-full overflow-hidden bg-muted">
+                      {/* Gradient scale */}
+                      <div className="absolute inset-0 flex">
+                        <div className="flex-1 bg-blue-500" />
+                        <div className="flex-1 bg-success" />
+                        <div className="flex-1 bg-warning" />
+                        <div className="flex-1 bg-destructive" />
+                      </div>
+                      {/* Position indicator */}
+                      <div 
+                        className="absolute top-0 w-1 h-full bg-foreground shadow-lg transition-all duration-500"
+                        style={{ left: `${getBMIPosition(bmiResult)}%`, transform: 'translateX(-50%)' }}
+                      />
+                    </div>
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>15</span>
+                      <span>18.5</span>
+                      <span>25</span>
+                      <span>30</span>
+                      <span>40</span>
+                    </div>
+                  </div>
+
+                  {/* Category Legend */}
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(bmiCategories).map(([key, cat]) => (
+                      <div 
+                        key={key}
+                        className={cn(
+                          "flex items-center gap-2 p-2 rounded-lg transition-all",
+                          bmiCategory === key ? "bg-secondary ring-2 ring-primary" : "bg-muted/50"
+                        )}
+                      >
+                        <div className={cn("w-3 h-3 rounded-full", cat.bgColor)} />
+                        <div className="text-xs">
+                          <span className="font-medium text-foreground">{cat.label}</span>
+                          <span className="text-muted-foreground ml-1">({cat.range})</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* BMR Calculator */}
+          <Card variant="elevated" className="animate-fade-in" style={{ animationDelay: "100ms" }}>
             <CardHeader>
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
@@ -170,40 +327,40 @@ const Calculators = () => {
               )}
             </CardContent>
           </Card>
+        </div>
 
-          {/* Other Calculators */}
-          <div className="space-y-4">
-            {otherCalculators.map((calc, index) => {
-              const Icon = calc.icon;
-              return (
-                <Card 
-                  key={calc.title} 
-                  variant="default"
-                  className="animate-fade-in"
-                  style={{ animationDelay: `${(index + 1) * 100}ms` }}
-                >
-                  <CardContent className="p-6">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
-                        <Icon className="w-6 h-6 text-secondary-foreground" />
-                      </div>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-foreground">
-                          {calc.title}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          {calc.description}
-                        </p>
-                      </div>
-                      <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
-                        {calc.status}
-                      </span>
+        {/* Other Calculators */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          {otherCalculators.map((calc, index) => {
+            const Icon = calc.icon;
+            return (
+              <Card 
+                key={calc.title} 
+                variant="default"
+                className="animate-fade-in"
+                style={{ animationDelay: `${(index + 2) * 100}ms` }}
+              >
+                <CardContent className="p-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-secondary flex items-center justify-center">
+                      <Icon className="w-6 h-6 text-secondary-foreground" />
                     </div>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-foreground">
+                        {calc.title}
+                      </h3>
+                      <p className="text-sm text-muted-foreground">
+                        {calc.description}
+                      </p>
+                    </div>
+                    <span className="px-3 py-1 rounded-full bg-muted text-muted-foreground text-xs font-medium">
+                      {calc.status}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </div>
       </div>
     </PageLayout>

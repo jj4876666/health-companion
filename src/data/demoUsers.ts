@@ -1,10 +1,19 @@
-import { ChildUser, ParentUser, AdminUser, User } from '@/types/emec';
+import { ChildUser, ParentUser, AdminUser, AdultUser, User, generateEmecId } from '@/types/emec';
 
-// Demo PIN codes (would be hashed in production)
-export const DEMO_PINS = {
-  child: '1234',
-  parent: '5678',
-  admin: '9999',
+// Demo EMEC IDs (11 characters: 3 letters + 8 alphanumeric)
+export const DEMO_EMEC_IDS = {
+  child: 'KOT2025A001',
+  adult: 'AJM2025B002',
+  parent: 'GAC2025C003',
+  admin: 'ADM2025D004',
+};
+
+// Demo passwords
+export const DEMO_PASSWORDS = {
+  child: 'kevin2025',
+  adult: 'james2025',
+  parent: 'grace2025',
+  admin: 'admin2025',
 };
 
 export const demoChild: ChildUser = {
@@ -12,9 +21,12 @@ export const demoChild: ChildUser = {
   name: 'Kevin Otieno',
   email: 'kevin.demo@emec.app',
   role: 'child',
-  pin: DEMO_PINS.child,
+  emecId: DEMO_EMEC_IDS.child,
+  password: DEMO_PASSWORDS.child,
   profilePicture: '/placeholder.svg',
   createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-02T00:00:00Z',
   age: 9,
   bloodGroup: 'O+',
   allergies: ['Penicillin', 'Peanuts'],
@@ -27,14 +39,41 @@ export const demoChild: ChildUser = {
   },
 };
 
+export const demoAdult: AdultUser = {
+  id: 'adult-001',
+  name: 'James Mwangi',
+  email: 'james.demo@emec.app',
+  role: 'adult',
+  emecId: DEMO_EMEC_IDS.adult,
+  password: DEMO_PASSWORDS.adult,
+  profilePicture: '/placeholder.svg',
+  createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-03T00:00:00Z',
+  age: 32,
+  bloodGroup: 'A+',
+  allergies: ['Sulfa drugs', 'Shellfish'],
+  medicalConditions: ['Hypertension'],
+  medications: ['Amlodipine 5mg daily'],
+  emergencyContact: {
+    name: 'Mary Mwangi',
+    phone: '+254712345678',
+    relationship: 'Spouse',
+  },
+  pendingChanges: [],
+};
+
 export const demoParent: ParentUser = {
   id: 'parent-001',
   name: 'Grace Achieng',
   email: 'grace.demo@emec.app',
   role: 'parent',
-  pin: DEMO_PINS.parent,
+  emecId: DEMO_EMEC_IDS.parent,
+  password: DEMO_PASSWORDS.parent,
   profilePicture: '/placeholder.svg',
   createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-02T00:00:00Z',
   linkedChildren: ['child-001'],
   pendingApprovals: [
     {
@@ -60,24 +99,30 @@ export const demoParent: ParentUser = {
 
 export const demoAdmin: AdminUser = {
   id: 'admin-001',
-  name: 'Demo Admin',
+  name: 'Dr. Omondi Wekesa',
   email: 'admin.demo@emec.app',
   role: 'admin',
-  pin: DEMO_PINS.admin,
+  emecId: DEMO_EMEC_IDS.admin,
+  password: DEMO_PASSWORDS.admin,
   profilePicture: '/placeholder.svg',
   createdAt: '2025-01-01T00:00:00Z',
-  facilityName: 'Mbita Sub-County Hospital',
-  facilityLicense: 'SHA-001-2025',
   isVerified: true,
   verificationDate: '2025-01-02T00:00:00Z',
+  facilityName: 'Mbita Sub-County Hospital',
+  facilityLicense: 'SHA-001-2025',
+  canEditPatients: true,
+  canCreateMealPlans: true,
+  canPrescribeMedication: true,
 };
 
-export const allDemoUsers: User[] = [demoChild, demoParent, demoAdmin];
+export const allDemoUsers: User[] = [demoChild, demoAdult, demoParent, demoAdmin];
 
 export const getDemoUserByRole = (role: string): User | null => {
   switch (role) {
     case 'child':
       return demoChild;
+    case 'adult':
+      return demoAdult;
     case 'parent':
       return demoParent;
     case 'admin':
@@ -87,7 +132,26 @@ export const getDemoUserByRole = (role: string): User | null => {
   }
 };
 
+export const getUserByEmecId = (emecId: string): User | null => {
+  return allDemoUsers.find(user => user.emecId.toUpperCase() === emecId.toUpperCase()) || null;
+};
+
+export const validateEmecLogin = (emecId: string, password: string): User | null => {
+  const user = getUserByEmecId(emecId);
+  if (user && user.password === password) {
+    return user;
+  }
+  return null;
+};
+
+// Legacy PIN validation for backward compatibility
+export const DEMO_PINS = {
+  child: '1234',
+  parent: '5678',
+  admin: '9999',
+};
+
 export const validatePin = (role: string, pin: string): boolean => {
-  const user = getDemoUserByRole(role);
-  return user?.pin === pin;
+  const pins: Record<string, string> = DEMO_PINS;
+  return pins[role] === pin;
 };

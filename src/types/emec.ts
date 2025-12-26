@@ -1,15 +1,35 @@
 // EMEC App TypeScript Types
 
-export type UserRole = 'child' | 'parent' | 'admin';
+export type UserRole = 'child' | 'parent' | 'admin' | 'adult';
+
+// Generate EMEC ID (11 characters: 3 letters + 8 alphanumeric)
+export function generateEmecId(): string {
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  
+  let id = '';
+  // First 3 characters are letters
+  for (let i = 0; i < 3; i++) {
+    id += letters.charAt(Math.floor(Math.random() * letters.length));
+  }
+  // Next 8 characters are alphanumeric
+  for (let i = 0; i < 8; i++) {
+    id += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
+  }
+  return id;
+}
 
 export interface User {
   id: string;
   name: string;
   email?: string;
   role: UserRole;
-  pin: string; // Hashed in real app, plain for demo
+  emecId: string; // 11-character EMEC ID
+  password: string; // For demo - would be hashed in production
   profilePicture?: string;
   createdAt: string;
+  isVerified: boolean;
+  verificationDate?: string;
 }
 
 export interface ChildUser extends User {
@@ -26,6 +46,22 @@ export interface ChildUser extends User {
   };
 }
 
+export interface AdultUser extends User {
+  role: 'adult';
+  age: number;
+  bloodGroup: string;
+  allergies: string[];
+  medicalConditions: string[];
+  medications: string[];
+  emergencyContact: {
+    name: string;
+    phone: string;
+    relationship: string;
+  };
+  mealPlan?: MealPlan;
+  pendingChanges: PendingChange[];
+}
+
 export interface ParentUser extends User {
   role: 'parent';
   linkedChildren: string[];
@@ -36,8 +72,49 @@ export interface AdminUser extends User {
   role: 'admin';
   facilityName: string;
   facilityLicense: string;
-  isVerified: boolean;
-  verificationDate?: string;
+  canEditPatients: boolean;
+  canCreateMealPlans: boolean;
+  canPrescribeMedication: boolean;
+}
+
+export interface PendingChange {
+  id: string;
+  adminId: string;
+  adminName: string;
+  facilityName: string;
+  fieldChanged: string;
+  oldValue: string;
+  newValue: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  resolvedAt?: string;
+}
+
+export interface MealPlan {
+  id: string;
+  createdBy: string;
+  facilityName: string;
+  meals: {
+    day: string;
+    breakfast: string;
+    lunch: string;
+    dinner: string;
+    snacks: string;
+  }[];
+  notes: string;
+  createdAt: string;
+}
+
+export interface Medication {
+  id: string;
+  name: string;
+  dosage: string;
+  frequency: string;
+  prescribedBy: string;
+  facilityName: string;
+  startDate: string;
+  endDate?: string;
+  instructions: string;
 }
 
 export interface Approval {

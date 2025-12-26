@@ -11,8 +11,9 @@ import {
   Mic, Volume2
 } from 'lucide-react';
 
-// Common allergens database
+// Expanded Kenyan foods allergen database
 const allergenDatabase: Record<string, string[]> = {
+  // Western foods
   'bread': ['wheat', 'gluten', 'milk', 'eggs'],
   'cake': ['wheat', 'gluten', 'milk', 'eggs', 'soy'],
   'pasta': ['wheat', 'gluten', 'eggs'],
@@ -23,28 +24,96 @@ const allergenDatabase: Record<string, string[]> = {
   'cheese': ['milk'],
   'yogurt': ['milk'],
   'butter': ['milk'],
-  'fish': ['fish', 'shellfish'],
-  'shrimp': ['shellfish'],
-  'crab': ['shellfish'],
-  'lobster': ['shellfish'],
+  'scrambled eggs': ['eggs', 'milk'],
+  'omelette': ['eggs', 'milk'],
+  'mayonnaise': ['eggs'],
+  'salad dressing': ['eggs', 'soy'],
   'peanut butter': ['peanuts', 'nuts'],
   'almond milk': ['nuts'],
   'soy milk': ['soy'],
   'tofu': ['soy'],
   'soy sauce': ['soy', 'wheat', 'gluten'],
-  'scrambled eggs': ['eggs', 'milk'],
-  'omelette': ['eggs', 'milk'],
-  'mayonnaise': ['eggs'],
-  'salad dressing': ['eggs', 'soy'],
+  
+  // Kenyan staples
+  'ugali': [],
   'chapati': ['wheat', 'gluten'],
   'mandazi': ['wheat', 'gluten', 'eggs', 'milk'],
-  'ugali': [],
   'sukuma wiki': [],
   'nyama choma': [],
   'githeri': [],
   'mukimo': ['milk'],
   'pilau': [],
   'samosa': ['wheat', 'gluten'],
+  
+  // Kenyan fish dishes
+  'tilapia': ['fish'],
+  'omena': ['fish'],
+  'fish fry': ['fish', 'wheat', 'gluten'],
+  'samaki wa kukaanga': ['fish', 'wheat'],
+  'fish stew': ['fish'],
+  'dagaa': ['fish'],
+  
+  // Kenyan traditional dishes
+  'matoke': [],
+  'irio': ['milk'],
+  'wali': [],
+  'kachumbari': [],
+  'mchuzi wa nyama': [],
+  'mchuzi wa kuku': [],
+  'mchuzi wa samaki': ['fish'],
+  'bhajia': ['wheat', 'gluten'],
+  'viazi karai': ['wheat', 'gluten'],
+  'maharagwe': [],
+  'dengu': [],
+  'ndengu': [],
+  'mbaazi': [],
+  'kunde': [],
+  'terere': [],
+  'mrenda': [],
+  'managu': [],
+  'kienyeji vegetables': [],
+  
+  // Kenyan snacks
+  'mahamri': ['wheat', 'gluten', 'milk'],
+  'kashata': ['nuts', 'peanuts'],
+  'ndazi': ['wheat', 'gluten', 'eggs'],
+  'kaimati': ['wheat', 'gluten', 'milk'],
+  'vitumbua': ['wheat', 'milk'],
+  'mkate wa sinia': ['wheat', 'gluten', 'eggs', 'milk'],
+  'maandazi': ['wheat', 'gluten', 'eggs', 'milk'],
+  
+  // Kenyan drinks
+  'uji': ['wheat', 'sorghum'],
+  'mursik': ['milk'],
+  'chai': ['milk'],
+  'tangawizi': [],
+  'madafu': [],
+  
+  // Coastal Kenyan dishes
+  'biryani': ['milk', 'nuts'],
+  'pilau ya nyama': [],
+  'wali wa nazi': ['nuts'],
+  'mbaazi za nazi': ['nuts'],
+  'mishkaki': [],
+  'pweza': ['shellfish'],
+  'kamba': ['shellfish'],
+  
+  // Seafood
+  'fish': ['fish', 'shellfish'],
+  'shrimp': ['shellfish'],
+  'crab': ['shellfish'],
+  'lobster': ['shellfish'],
+  'prawns': ['shellfish'],
+  'calamari': ['shellfish'],
+  
+  // Nyama varieties
+  'nyama': [],
+  'kuku': [],
+  'goat meat': [],
+  'beef stew': [],
+  'liver': [],
+  'matumbo': [],
+  'mutura': [],
 };
 
 const allergenIcons: Record<string, React.ElementType> = {
@@ -244,9 +313,9 @@ export function AllergyChecker({ userAllergies }: AllergyCheckerProps) {
 
         {/* Quick Check Buttons */}
         <div className="pt-2">
-          <p className="text-sm text-muted-foreground mb-2">Quick check:</p>
+          <p className="text-sm text-muted-foreground mb-2">Quick check Kenyan foods:</p>
           <div className="flex flex-wrap gap-2">
-            {['Bread', 'Ugali', 'Mandazi', 'Chocolate', 'Fish'].map((food) => (
+            {['Ugali', 'Tilapia', 'Omena', 'Matoke', 'Mandazi', 'Chapati', 'Pilau', 'Nyama Choma'].map((food) => (
               <Button
                 key={food}
                 variant="outline"

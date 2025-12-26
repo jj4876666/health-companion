@@ -10,9 +10,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
+import { PaymentModal } from '@/components/modals/PaymentModal';
+import { EmergencyContact } from '@/components/emergency/EmergencyContact';
 import { 
   HandHeart, Heart, Gift, Users, Check, Loader2, 
-  Share2, Lock, Sparkles, Globe
+  Share2, Lock, Sparkles, Globe, MapPin
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -55,12 +57,13 @@ export default function Donations() {
   const [isPublic, setIsPublic] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
-  const handleDonate = async () => {
+  const handleDonate = () => {
     if (!selectedCharity || !amount) {
       toast({
         title: "Error",
@@ -69,15 +72,12 @@ export default function Donations() {
       });
       return;
     }
+    setShowPaymentModal(true);
+  };
 
-    setIsProcessing(true);
-
-    // Simulate payment processing
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-
-    setIsProcessing(false);
+  const handlePaymentSuccess = () => {
+    setShowPaymentModal(false);
     setIsComplete(true);
-
     toast({
       title: "Thank you! 🎉",
       description: `Your donation of KES ${amount} has been processed.`,
@@ -303,6 +303,15 @@ export default function Donations() {
             </CardContent>
           </Card>
         )}
+
+        {/* Payment Modal */}
+        <PaymentModal
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onSuccess={handlePaymentSuccess}
+          amount={amount}
+          charityName={charities.find(c => c.id === selectedCharity)?.name}
+        />
       </div>
     </DashboardLayout>
   );

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,7 +9,6 @@ import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { LoginPage } from "@/components/auth/LoginPage";
-import { OfflineChatbot, ChatButton } from "@/components/chat/OfflineChatbot";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Education from "./pages/Education";
@@ -25,7 +24,6 @@ const queryClient = new QueryClient();
 
 const App = () => {
   const [showSplash, setShowSplash] = useState(true);
-  const [showChatbot, setShowChatbot] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -53,10 +51,6 @@ const App = () => {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </BrowserRouter>
-              
-              {/* Offline Chatbot */}
-              <ChatButton onClick={() => setShowChatbot(true)} />
-              <OfflineChatbot isOpen={showChatbot} onClose={() => setShowChatbot(false)} />
             </TooltipProvider>
           </AppProvider>
         </LanguageProvider>

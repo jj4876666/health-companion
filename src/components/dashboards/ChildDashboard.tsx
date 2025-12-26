@@ -8,6 +8,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { ConsentCodeModal } from '@/components/modals/ConsentCodeModal';
+import { AllergyChecker } from '@/components/allergy/AllergyChecker';
+import { PremiumBanner } from '@/components/premium/PremiumBanner';
 import { 
   Star, Trophy, BookOpen, Heart, AlertTriangle, Gamepad2, 
   Lock, Sparkles, Gift, Droplets, Apple, Activity
@@ -16,6 +19,8 @@ import {
 export function ChildDashboard() {
   const { currentUser, getChildUser } = useAuth();
   const { t } = useLanguage();
+  const [showConsentModal, setShowConsentModal] = useState(false);
+  const [restrictedAccess, setRestrictedAccess] = useState(false);
   
   const child = (currentUser as ChildUser) || demoChild;
   const totalPoints = child.points || 250;
@@ -174,18 +179,37 @@ export function ChildDashboard() {
         </CardContent>
       </Card>
 
+      {/* Premium Banner */}
+      <PremiumBanner />
+
+      {/* Allergy Checker */}
+      <AllergyChecker userAllergies={child.allergies} />
+
       {/* Restricted Content Notice */}
-      <Card className="border-2 border-dashed border-muted-foreground/30">
+      <Card 
+        className="border-2 border-dashed border-muted-foreground/30 cursor-pointer hover:border-warning transition-all"
+        onClick={() => setShowConsentModal(true)}
+      >
         <CardContent className="p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
-            <Lock className="w-5 h-5 text-muted-foreground" />
+          <div className="w-10 h-10 rounded-lg bg-warning/20 flex items-center justify-center">
+            <Lock className="w-5 h-5 text-warning" />
           </div>
           <div className="flex-1">
-            <p className="font-medium text-muted-foreground">Some content is restricted</p>
-            <p className="text-sm text-muted-foreground">Ask your parent to unlock more features!</p>
+            <p className="font-medium">Some content is restricted</p>
+            <p className="text-sm text-muted-foreground">Tap to unlock with parent consent code</p>
           </div>
         </CardContent>
       </Card>
+
+      {/* Consent Code Modal */}
+      <ConsentCodeModal
+        isOpen={showConsentModal}
+        onClose={() => setShowConsentModal(false)}
+        onSuccess={() => {
+          setShowConsentModal(false);
+          setRestrictedAccess(true);
+        }}
+      />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Nunito:wght@400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,7 +6,8 @@
 
 @layer base {
   :root {
-    --background: 180 20% 98%;
+    /* EMEC Brand Colors - Teal #4DB6AC, Yellow #FFD54F, Orange #FFB74D */
+    --background: 165 25% 97%;
     --foreground: 200 25% 15%;
 
     --card: 0 0% 100%;
@@ -15,103 +16,129 @@
     --popover: 0 0% 100%;
     --popover-foreground: 200 25% 15%;
 
-    --primary: 174 62% 45%;
+    /* EMEC Teal Primary */
+    --primary: 174 42% 51%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 174 40% 94%;
-    --secondary-foreground: 174 62% 35%;
+    --secondary: 174 35% 92%;
+    --secondary-foreground: 174 42% 35%;
 
-    --muted: 180 15% 95%;
+    --muted: 165 20% 95%;
     --muted-foreground: 200 15% 45%;
 
-    --accent: 16 85% 60%;
-    --accent-foreground: 0 0% 100%;
+    /* EMEC Orange Accent */
+    --accent: 33 100% 65%;
+    --accent-foreground: 200 25% 15%;
 
     --destructive: 0 72% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 180 20% 90%;
-    --input: 180 20% 90%;
-    --ring: 174 62% 45%;
+    --border: 165 20% 88%;
+    --input: 165 20% 88%;
+    --ring: 174 42% 51%;
 
     --radius: 1rem;
 
-    /* Custom tokens */
+    /* Custom EMEC tokens */
     --success: 158 64% 45%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 100%;
+    --warning: 45 100% 64%;
+    --warning-foreground: 200 25% 15%;
+    
+    /* EMEC Yellow */
+    --emec-yellow: 45 100% 64%;
+    --emec-orange: 33 100% 65%;
+    --emec-teal: 174 42% 51%;
+
+    /* Child-friendly colors */
+    --child-primary: 280 60% 65%;
+    --child-secondary: 45 100% 70%;
+    --child-accent: 340 80% 65%;
 
     /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174, 62%, 45%) 0%, hsl(180, 55%, 55%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(180, 20%, 98%) 0%, hsl(174, 30%, 95%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(180, 15%, 98%) 100%);
+    --gradient-primary: linear-gradient(135deg, hsl(174, 42%, 51%) 0%, hsl(165, 50%, 60%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(165, 25%, 97%) 0%, hsl(174, 30%, 94%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(165, 20%, 98%) 100%);
     --gradient-emergency: linear-gradient(135deg, hsl(0, 72%, 55%) 0%, hsl(16, 85%, 60%) 100%);
+    --gradient-child: linear-gradient(135deg, hsl(280, 60%, 65%) 0%, hsl(340, 80%, 65%) 100%);
+    --gradient-emec: linear-gradient(135deg, hsl(174, 42%, 51%) 0%, hsl(45, 100%, 64%) 100%);
 
     /* Shadows */
     --shadow-sm: 0 2px 8px hsl(174, 40%, 50%, 0.08);
     --shadow-md: 0 4px 20px hsl(174, 40%, 50%, 0.12);
     --shadow-lg: 0 8px 40px hsl(174, 40%, 50%, 0.15);
-    --shadow-glow: 0 0 30px hsl(174, 62%, 45%, 0.25);
+    --shadow-glow: 0 0 30px hsl(174, 42%, 51%, 0.25);
+    --shadow-child: 0 4px 20px hsl(280, 60%, 50%, 0.2);
 
     --sidebar-background: 0 0% 98%;
     --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-primary: 174 42% 51%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 165 20% 95%;
+    --sidebar-accent-foreground: 200 25% 15%;
+    --sidebar-border: 165 20% 88%;
+    --sidebar-ring: 174 42% 51%;
   }
 
   .dark {
     --background: 200 25% 8%;
-    --foreground: 180 20% 95%;
+    --foreground: 165 20% 95%;
 
     --card: 200 25% 12%;
-    --card-foreground: 180 20% 95%;
+    --card-foreground: 165 20% 95%;
 
     --popover: 200 25% 12%;
-    --popover-foreground: 180 20% 95%;
+    --popover-foreground: 165 20% 95%;
 
-    --primary: 174 62% 50%;
+    --primary: 174 50% 55%;
     --primary-foreground: 200 25% 8%;
 
     --secondary: 200 25% 18%;
     --secondary-foreground: 174 50% 70%;
 
     --muted: 200 20% 18%;
-    --muted-foreground: 180 15% 60%;
+    --muted-foreground: 165 15% 60%;
 
-    --accent: 16 85% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 33 100% 60%;
+    --accent-foreground: 200 25% 8%;
 
     --destructive: 0 62% 45%;
     --destructive-foreground: 0 0% 100%;
 
     --border: 200 20% 20%;
     --input: 200 20% 20%;
-    --ring: 174 62% 50%;
+    --ring: 174 50% 55%;
 
     --success: 158 64% 40%;
-    --warning: 38 92% 45%;
+    --warning: 45 100% 55%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(174, 62%, 50%) 0%, hsl(180, 55%, 45%) 100%);
+    --emec-yellow: 45 100% 60%;
+    --emec-orange: 33 100% 60%;
+    --emec-teal: 174 50% 55%;
+
+    --child-primary: 280 55% 60%;
+    --child-secondary: 45 90% 65%;
+    --child-accent: 340 75% 60%;
+
+    --gradient-primary: linear-gradient(135deg, hsl(174, 50%, 55%) 0%, hsl(165, 50%, 50%) 100%);
     --gradient-hero: linear-gradient(180deg, hsl(200, 25%, 8%) 0%, hsl(200, 25%, 12%) 100%);
     --gradient-card: linear-gradient(145deg, hsl(200, 25%, 14%) 0%, hsl(200, 25%, 10%) 100%);
+    --gradient-child: linear-gradient(135deg, hsl(280, 55%, 60%) 0%, hsl(340, 75%, 60%) 100%);
+    --gradient-emec: linear-gradient(135deg, hsl(174, 50%, 55%) 0%, hsl(45, 100%, 60%) 100%);
 
     --shadow-sm: 0 2px 8px hsl(0, 0%, 0%, 0.3);
     --shadow-md: 0 4px 20px hsl(0, 0%, 0%, 0.4);
     --shadow-lg: 0 8px 40px hsl(0, 0%, 0%, 0.5);
+    --shadow-child: 0 4px 20px hsl(280, 50%, 40%, 0.3);
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-background: 200 25% 10%;
+    --sidebar-foreground: 165 20% 95%;
+    --sidebar-primary: 174 50% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-accent: 200 20% 15%;
+    --sidebar-accent-foreground: 165 20% 95%;
+    --sidebar-border: 200 20% 18%;
+    --sidebar-ring: 174 50% 55%;
   }
 }
 
@@ -148,12 +175,24 @@
     background: var(--gradient-emergency);
   }
 
+  .gradient-child {
+    background: var(--gradient-child);
+  }
+
+  .gradient-emec {
+    background: var(--gradient-emec);
+  }
+
   .shadow-elegant {
     box-shadow: var(--shadow-md);
   }
 
   .shadow-glow {
     box-shadow: var(--shadow-glow);
+  }
+
+  .shadow-child {
+    box-shadow: var(--shadow-child);
   }
 
   .animate-float {
@@ -164,6 +203,26 @@
     animation: pulse-soft 2s ease-in-out infinite;
   }
 
+  .animate-bounce-soft {
+    animation: bounce-soft 2s ease-in-out infinite;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s ease-out forwards;
+  }
+
+  .animate-slide-down {
+    animation: slide-down 0.3s ease-out forwards;
+  }
+
+  .animate-splash-fade {
+    animation: splash-fade 2.5s ease-in-out forwards;
+  }
+
+  .animate-logo-pop {
+    animation: logo-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  }
+
   @keyframes float {
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-10px); }
@@ -172,5 +231,71 @@
   @keyframes pulse-soft {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.7; }
+  }
+
+  @keyframes bounce-soft {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-5px); }
+  }
+
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slide-down {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes splash-fade {
+    0% { opacity: 0; transform: scale(0.9); }
+    20% { opacity: 1; transform: scale(1); }
+    80% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.05); }
+  }
+
+  @keyframes logo-pop {
+    0% { opacity: 0; transform: scale(0.5); }
+    60% { opacity: 1; transform: scale(1.1); }
+    100% { opacity: 1; transform: scale(1); }
+  }
+
+  /* Child-friendly interactive styles */
+  .child-card {
+    @apply rounded-2xl p-6 transition-all duration-300;
+    background: var(--gradient-card);
+    box-shadow: var(--shadow-md);
+  }
+
+  .child-card:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* EMEC Logo text gradient */
+  .emec-logo-text {
+    background: linear-gradient(135deg, hsl(var(--emec-teal)) 0%, hsl(var(--emec-yellow)) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Restricted content overlay */
+  .restricted-overlay {
+    @apply relative overflow-hidden;
+  }
+
+  .restricted-overlay::after {
+    content: '';
+    @apply absolute inset-0 bg-muted/80 backdrop-blur-sm;
+  }
+
+  /* Points badge animation */
+  .points-badge {
+    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-sm;
+    background: linear-gradient(135deg, hsl(var(--emec-yellow)) 0%, hsl(var(--emec-orange)) 100%);
+    color: hsl(var(--foreground));
+    animation: bounce-soft 2s ease-in-out infinite;
   }
 }

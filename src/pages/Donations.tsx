@@ -5,45 +5,37 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
-import { PaymentModal } from '@/components/modals/PaymentModal';
-import { EmergencyContact } from '@/components/emergency/EmergencyContact';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  HandHeart, Heart, Gift, Users, Check, Loader2, 
-  Share2, Lock, Sparkles, Globe, MapPin
+  HandHeart, Heart, Gift, Users, Check, Crown, Sparkles, Globe, 
+  CreditCard, Smartphone, Building2, Shield, Star, ExternalLink
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 
 const charities = [
-  {
-    id: 'charity-001',
-    name: 'Children with Special Conditions Fund',
-    description: 'Supporting children with disabilities and special needs across Kenya',
-    raised: 125000,
-    goal: 500000,
-    image: '🏥',
-  },
-  {
-    id: 'charity-002',
-    name: 'Kenya Child Nutrition Program',
-    description: 'Providing healthy meals to underprivileged children in rural areas',
-    raised: 89000,
-    goal: 200000,
-    image: '🍎',
-  },
-  {
-    id: 'charity-003',
-    name: 'Education for All Kenya',
-    description: 'Building schools and providing educational resources',
-    raised: 340000,
-    goal: 750000,
-    image: '📚',
-  },
+  { id: 'charity-001', name: 'Children with Special Conditions Fund', description: 'Supporting children with disabilities across Kenya', raised: 125000, goal: 500000, image: '🏥' },
+  { id: 'charity-002', name: 'Kenya Child Nutrition Program', description: 'Providing healthy meals to children in rural areas', raised: 89000, goal: 200000, image: '🍎' },
+  { id: 'charity-003', name: 'Education for All Kenya', description: 'Building schools and providing educational resources', raised: 340000, goal: 750000, image: '📚' },
+];
+
+const donorWall = [
+  { name: 'Anonymous', amount: 5000, charity: 'Children with Special Conditions Fund', date: '2025-01-15', isPublic: false },
+  { name: 'Sarah M.', amount: 2500, charity: 'Kenya Child Nutrition Program', date: '2025-01-14', isPublic: true },
+  { name: 'Mbita High School', amount: 10000, charity: 'Education for All Kenya', date: '2025-01-13', isPublic: true, isOrg: true },
+  { name: 'James O.', amount: 1000, charity: 'Children with Special Conditions Fund', date: '2025-01-12', isPublic: true },
+  { name: 'Anonymous', amount: 7500, charity: 'Education for All Kenya', date: '2025-01-11', isPublic: false },
+];
+
+const paymentMethods = [
+  { id: 'mpesa', name: 'M-Pesa', icon: Smartphone, color: 'bg-green-500' },
+  { id: 'card', name: 'Visa/Mastercard', icon: CreditCard, color: 'bg-blue-500' },
+  { id: 'bank', name: 'Bank Transfer', icon: Building2, color: 'bg-gray-500' },
+  { id: 'airtel', name: 'Airtel Money', icon: Smartphone, color: 'bg-red-500' },
 ];
 
 export default function Donations() {
@@ -51,13 +43,14 @@ export default function Donations() {
   const { t } = useLanguage();
   const { toast } = useToast();
 
+  const [activeTab, setActiveTab] = useState('donate');
   const [selectedCharity, setSelectedCharity] = useState<string | null>(null);
   const [amount, setAmount] = useState('500');
   const [message, setMessage] = useState('');
   const [isPublic, setIsPublic] = useState(false);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState('mpesa');
   const [isComplete, setIsComplete] = useState(false);
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showPremium, setShowPremium] = useState(false);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -65,36 +58,27 @@ export default function Donations() {
 
   const handleDonate = () => {
     if (!selectedCharity || !amount) {
-      toast({
-        title: "Error",
-        description: "Please select a charity and enter an amount",
-        variant: "destructive",
-      });
+      toast({ title: "Error", description: "Please select a charity and amount", variant: "destructive" });
       return;
     }
-    setShowPaymentModal(true);
+    toast({ title: "Processing...", description: `Simulating ${paymentMethods.find(p => p.id === paymentMethod)?.name} payment...` });
+    setTimeout(() => {
+      setIsComplete(true);
+      toast({ title: "Thank you! 🎉", description: `Your donation of KES ${amount} has been processed.` });
+    }, 1500);
   };
 
-  const handlePaymentSuccess = () => {
-    setShowPaymentModal(false);
-    setIsComplete(true);
-    toast({
-      title: "Thank you! 🎉",
-      description: `Your donation of KES ${amount} has been processed.`,
-    });
+  const handleSubscribe = (plan: string) => {
+    toast({ title: "✨ Premium Activated!", description: `${plan} subscription started (Demo)` });
   };
 
-  const resetDonation = () => {
-    setSelectedCharity(null);
-    setAmount('500');
-    setMessage('');
-    setIsPublic(false);
-    setIsComplete(false);
+  const handleFreeTrial = () => {
+    toast({ title: "🎁 Free Trial Started!", description: "Enjoy 7 days of premium features!" });
   };
 
-  // Donation Complete Screen
+  // Thank You Screen
   if (isComplete) {
-    const charity = charities.find((c) => c.id === selectedCharity);
+    const charity = charities.find(c => c.id === selectedCharity);
     return (
       <DashboardLayout>
         <div className="p-4 md:p-6 max-w-xl mx-auto">
@@ -108,63 +92,23 @@ export default function Donations() {
             </div>
             <CardContent className="p-6 space-y-4">
               <div className="text-center">
-                <p className="text-lg">
-                  You donated <strong className="text-primary">KES {amount}</strong> to
-                </p>
+                <p className="text-lg">You donated <strong className="text-primary">KES {amount}</strong> to</p>
                 <p className="font-semibold text-xl mt-1">{charity?.name}</p>
               </div>
-
-              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20">
-                <p className="text-center text-sm">
-                  <Sparkles className="w-4 h-4 inline mr-1" />
-                  Your donation helps <strong>X children</strong> in Kenya today.
-                </p>
+              <div className="p-4 rounded-xl bg-primary/10 text-center">
+                <Sparkles className="w-5 h-5 inline mr-2" />
+                Your donation helps children in Kenya today.
               </div>
-
               {isPublic && (
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Globe className="w-4 h-4" />
-                  <span>This donation will appear on the public donor wall</span>
+                  <span>Appearing on the public donor wall</span>
                 </div>
               )}
-
-              <div className="flex gap-2">
-                <Button variant="outline" className="flex-1 gap-2">
-                  <Share2 className="w-4 h-4" />
-                  Share
-                </Button>
-                <Button onClick={resetDonation} className="flex-1">
-                  Donate Again
-                </Button>
-              </div>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Demo Mode – No actual payment processed
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </DashboardLayout>
-    );
-  }
-
-  // Processing Screen
-  if (isProcessing) {
-    return (
-      <DashboardLayout>
-        <div className="p-4 md:p-6 flex items-center justify-center min-h-[60vh]">
-          <Card className="border-0 shadow-elegant w-full max-w-md">
-            <CardContent className="p-8 text-center">
-              <div className="relative w-20 h-20 mx-auto mb-6">
-                <div className="absolute inset-0 rounded-full border-4 border-primary/20" />
-                <div className="absolute inset-0 rounded-full border-4 border-primary border-t-transparent animate-spin" />
-                <Lock className="w-8 h-8 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-primary" />
-              </div>
-              <h3 className="text-xl font-semibold mb-2">{t('donation.processing')}</h3>
-              <p className="text-muted-foreground">Securely processing your donation...</p>
-              <p className="text-xs text-muted-foreground mt-4">
-                Demo Mode – Simulated payment
-              </p>
+              <Button onClick={() => { setIsComplete(false); setSelectedCharity(null); }} className="w-full">
+                Donate Again
+              </Button>
+              <p className="text-xs text-center text-muted-foreground">Demo Mode – No actual payment</p>
             </CardContent>
           </Card>
         </div>
@@ -186,132 +130,127 @@ export default function Donations() {
           </div>
         </div>
 
-        {/* Demo Label */}
         <Badge variant="outline" className="bg-warning/10 text-warning-foreground border-warning/30">
-          Demo Mode – Pre-filled donor: {currentUser?.name || 'Jacob Johnson'}
+          Demo Mode – Payments are simulated
         </Badge>
 
-        {/* Charity Selection */}
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold">Select a Charity</h2>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {charities.map((charity) => {
-              const progress = (charity.raised / charity.goal) * 100;
-              const isSelected = selectedCharity === charity.id;
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="donate"><Gift className="w-4 h-4 mr-2" />Donate</TabsTrigger>
+            <TabsTrigger value="wall"><Users className="w-4 h-4 mr-2" />Donor Wall</TabsTrigger>
+            <TabsTrigger value="premium"><Crown className="w-4 h-4 mr-2" />Premium</TabsTrigger>
+          </TabsList>
 
-              return (
-                <Card
-                  key={charity.id}
-                  className={`border-2 cursor-pointer transition-all ${
-                    isSelected
-                      ? 'border-primary shadow-md scale-[1.02]'
-                      : 'border-transparent shadow-elegant hover:border-primary/50'
-                  }`}
-                  onClick={() => setSelectedCharity(charity.id)}
-                >
+          {/* Donate Tab */}
+          <TabsContent value="donate" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              {charities.map((charity) => (
+                <Card key={charity.id} className={`cursor-pointer transition-all ${selectedCharity === charity.id ? 'ring-2 ring-primary' : ''}`} onClick={() => setSelectedCharity(charity.id)}>
                   <CardContent className="p-4">
-                    <div className="flex items-center gap-3 mb-3">
-                      <div className="w-12 h-12 rounded-xl bg-muted flex items-center justify-center text-2xl">
-                        {charity.image}
-                      </div>
-                      {isSelected && (
-                        <div className="ml-auto w-6 h-6 rounded-full bg-primary flex items-center justify-center">
-                          <Check className="w-4 h-4 text-primary-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="font-semibold">{charity.name}</h3>
-                    <p className="text-sm text-muted-foreground mt-1">{charity.description}</p>
-                    <div className="mt-3">
-                      <div className="flex justify-between text-sm mb-1">
-                        <span>KES {charity.raised.toLocaleString()}</span>
-                        <span className="text-muted-foreground">of KES {charity.goal.toLocaleString()}</span>
-                      </div>
-                      <Progress value={progress} className="h-2" />
-                    </div>
+                    <div className="text-3xl mb-2">{charity.image}</div>
+                    <h3 className="font-semibold text-sm">{charity.name}</h3>
+                    <Progress value={(charity.raised / charity.goal) * 100} className="h-2 mt-2" />
+                    <p className="text-xs text-muted-foreground mt-1">KES {charity.raised.toLocaleString()} / {charity.goal.toLocaleString()}</p>
                   </CardContent>
                 </Card>
-              );
-            })}
-          </div>
-        </div>
+              ))}
+            </div>
 
-        {/* Donation Form */}
-        {selectedCharity && (
-          <Card className="border-0 shadow-elegant animate-fade-in">
-            <CardHeader>
-              <CardTitle>Donation Details</CardTitle>
-              <CardDescription>Complete your donation</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Amount Selection */}
-              <div className="space-y-2">
-                <Label>{t('donation.amount')}</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  {['100', '500', '1000', '5000'].map((preset) => (
-                    <Button
-                      key={preset}
-                      variant={amount === preset ? 'default' : 'outline'}
-                      onClick={() => setAmount(preset)}
-                    >
-                      {preset}
-                    </Button>
-                  ))}
+            {selectedCharity && (
+              <Card className="border-0 shadow-elegant animate-fade-in">
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-4 gap-2">
+                    {['100', '500', '1000', '5000'].map((preset) => (
+                      <Button key={preset} variant={amount === preset ? 'default' : 'outline'} onClick={() => setAmount(preset)}>{preset}</Button>
+                    ))}
+                  </div>
+                  <Input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Custom amount" />
+                  
+                  <div className="grid grid-cols-4 gap-2">
+                    {paymentMethods.map((method) => (
+                      <Button key={method.id} variant={paymentMethod === method.id ? 'default' : 'outline'} className="flex-col h-auto py-3" onClick={() => setPaymentMethod(method.id)}>
+                        <method.icon className="w-5 h-5 mb-1" />
+                        <span className="text-xs">{method.name}</span>
+                      </Button>
+                    ))}
+                  </div>
+
+                  <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
+                    <span className="text-sm">Make donation public</span>
+                    <Switch checked={isPublic} onCheckedChange={setIsPublic} />
+                  </div>
+
+                  <Button onClick={handleDonate} className="w-full h-12" size="lg">
+                    <Gift className="w-5 h-5 mr-2" />Donate KES {amount}
+                  </Button>
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* Donor Wall Tab */}
+          <TabsContent value="wall" className="space-y-4">
+            <Card className="border-0 shadow-elegant">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Users className="w-5 h-5" />{t('donation.donorWall')}</CardTitle>
+                <CardDescription>Recent supporters of EMEC charities</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {donorWall.map((donor, i) => (
+                  <div key={i} className="flex items-center gap-4 p-3 rounded-xl bg-muted/50">
+                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                      {donor.isPublic ? <Heart className="w-5 h-5 text-primary" /> : <Shield className="w-5 h-5 text-muted-foreground" />}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold">{donor.name}</p>
+                      <p className="text-xs text-muted-foreground italic">{donor.charity}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">KES {donor.amount.toLocaleString()}</p>
+                      <p className="text-xs text-muted-foreground">{donor.date}</p>
+                    </div>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Premium Tab */}
+          <TabsContent value="premium" className="space-y-4">
+            <Card className="border-0 shadow-elegant overflow-hidden">
+              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
+                <Crown className="w-12 h-12 mx-auto mb-2" />
+                <h2 className="text-2xl font-bold">{t('donation.premium')}</h2>
+                <p className="text-white/80">Unlock all features and support EMEC</p>
+              </div>
+              <CardContent className="p-4 space-y-4">
+                <Button onClick={handleFreeTrial} variant="outline" className="w-full h-12 border-2 border-dashed">
+                  <Sparkles className="w-5 h-5 mr-2" />{t('donation.freeTrial')}
+                </Button>
+                
+                <div className="grid md:grid-cols-2 gap-4">
+                  <Card className="border-2 border-primary">
+                    <CardContent className="p-4 text-center">
+                      <p className="text-2xl font-bold">KES 299</p>
+                      <p className="text-muted-foreground">/month</p>
+                      <Button onClick={() => handleSubscribe('Monthly')} className="w-full mt-4">Subscribe Monthly</Button>
+                    </CardContent>
+                  </Card>
+                  <Card className="border-2 border-warning">
+                    <CardContent className="p-4 text-center">
+                      <Badge className="bg-warning text-warning-foreground mb-2">Save 20%</Badge>
+                      <p className="text-2xl font-bold">KES 2,499</p>
+                      <p className="text-muted-foreground">/year</p>
+                      <Button onClick={() => handleSubscribe('Yearly')} className="w-full mt-4 bg-warning hover:bg-warning/90">Subscribe Yearly</Button>
+                    </CardContent>
+                  </Card>
                 </div>
-                <Input
-                  type="number"
-                  value={amount}
-                  onChange={(e) => setAmount(e.target.value)}
-                  placeholder="Custom amount"
-                  className="mt-2"
-                />
-              </div>
-
-              {/* Message */}
-              <div className="space-y-2">
-                <Label>Message (optional)</Label>
-                <Textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  placeholder="Add a message of support..."
-                  rows={3}
-                />
-              </div>
-
-              {/* Public Toggle */}
-              <div className="flex items-center justify-between p-3 rounded-lg bg-muted/50">
-                <div className="flex items-center gap-2">
-                  <Globe className="w-4 h-4 text-muted-foreground" />
-                  <span className="text-sm">Make this donation public</span>
-                </div>
-                <Switch checked={isPublic} onCheckedChange={setIsPublic} />
-              </div>
-
-              {/* Donate Button */}
-              <Button
-                onClick={handleDonate}
-                className="w-full h-12 text-lg"
-                size="lg"
-              >
-                <Gift className="w-5 h-5 mr-2" />
-                Donate KES {amount}
-              </Button>
-
-              <p className="text-xs text-center text-muted-foreground">
-                Demo Mode – No actual payment will be processed
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Payment Modal */}
-        <PaymentModal
-          isOpen={showPaymentModal}
-          onClose={() => setShowPaymentModal(false)}
-          onSuccess={handlePaymentSuccess}
-          amount={amount}
-          charityName={charities.find(c => c.id === selectedCharity)?.name}
-        />
+                
+                <p className="text-xs text-center text-muted-foreground">Premium supports app development, charity, and student education</p>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </DashboardLayout>
   );

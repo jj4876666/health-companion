@@ -129,7 +129,7 @@ export default function Settings() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <Button
                 variant={language === 'en' ? 'default' : 'outline'}
                 className="h-auto py-4 flex-col gap-2"
@@ -145,6 +145,14 @@ export default function Settings() {
               >
                 <span className="text-2xl">🇰🇪</span>
                 <span>Kiswahili</span>
+              </Button>
+              <Button
+                variant={language === 'fr' ? 'default' : 'outline'}
+                className="h-auto py-4 flex-col gap-2"
+                onClick={() => setLanguage('fr')}
+              >
+                <span className="text-2xl">🇫🇷</span>
+                <span>Français</span>
               </Button>
             </div>
           </CardContent>

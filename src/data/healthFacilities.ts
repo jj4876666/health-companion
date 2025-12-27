@@ -45,6 +45,28 @@ export const demoFacilities: HealthFacility[] = [
     emergencyPhone: '+254 700 666 666',
     isVerified: true,
   },
+  {
+    id: 'facility-005',
+    name: 'Lwanda Health Centre',
+    licenseNumber: 'SHA-005-2025',
+    type: 'clinic',
+    distance: '8.2 km',
+    coordinates: { lat: -0.4123, lng: 34.1890 },
+    phone: '+254 700 567 890',
+    emergencyPhone: '+254 700 555 555',
+    isVerified: true,
+  },
+  {
+    id: 'facility-006',
+    name: 'Kisumu County Hospital',
+    licenseNumber: 'SHA-006-2025',
+    type: 'hospital',
+    distance: '120 km',
+    coordinates: { lat: -0.1022, lng: 34.7617 },
+    phone: '+254 700 678 901',
+    emergencyPhone: '+254 700 444 444',
+    isVerified: true,
+  },
 ];
 
 export const getNearestFacility = (): HealthFacility => {
@@ -53,4 +75,12 @@ export const getNearestFacility = (): HealthFacility => {
 
 export const getFacilityById = (id: string): HealthFacility | undefined => {
   return demoFacilities.find((f) => f.id === id);
+};
+
+export const getFacilitiesByType = (type: 'hospital' | 'clinic' | 'dispensary'): HealthFacility[] => {
+  return demoFacilities.filter((f) => f.type === type);
+};
+
+export const getVerifiedFacilities = (): HealthFacility[] => {
+  return demoFacilities.filter((f) => f.isVerified);
 };

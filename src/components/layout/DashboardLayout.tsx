@@ -1,16 +1,16 @@
-import { ReactNode } from 'react';
+import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useApp } from '@/contexts/AppContext';
 import { AccountSwitcher } from '@/components/auth/AccountSwitcher';
+import { VoiceAssistant, VoiceAssistantButton } from '@/components/accessibility/VoiceAssistant';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
   Heart, Home, BookOpen, Gamepad2, AlertTriangle, 
   HandHeart, Settings, LogOut, Menu, X, WifiOff, Wifi
 } from 'lucide-react';
-import { useState } from 'react';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -23,6 +23,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [voiceAssistantOpen, setVoiceAssistantOpen] = useState(false);
 
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', labelSw: 'Dashibodi', icon: Home },
@@ -190,6 +191,15 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           })}
         </div>
       </nav>
+
+      {/* Voice Assistant Button */}
+      <VoiceAssistantButton onClick={() => setVoiceAssistantOpen(true)} />
+
+      {/* Voice Assistant Modal */}
+      <VoiceAssistant 
+        isOpen={voiceAssistantOpen} 
+        onClose={() => setVoiceAssistantOpen(false)} 
+      />
 
       {/* Footer (visible on desktop) */}
       <footer className="hidden lg:block text-center py-4 text-sm text-muted-foreground border-t">

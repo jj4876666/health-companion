@@ -6,13 +6,22 @@ import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { User, Users, Shield, ArrowRightLeft, Lock } from 'lucide-react';
+import { User, Users, Shield, ArrowRightLeft, Lock, CheckCircle, AlertCircle, Baby, Stethoscope } from 'lucide-react';
+import { allDemoUsers, validateEmecLogin } from '@/data/demoUsers';
 
-const roleOptions: { role: UserRole; label: string; icon: typeof User; pin: string }[] = [
-  { role: 'child', label: 'Kevin Otieno (Child)', icon: User, pin: '1234' },
-  { role: 'parent', label: 'Grace Achieng (Parent)', icon: Users, pin: '5678' },
-  { role: 'admin', label: 'Demo Admin (Health Officer)', icon: Shield, pin: '9999' },
-];
+const roleIcons: Record<UserRole, React.ElementType> = {
+  child: Baby,
+  parent: Users,
+  adult: User,
+  admin: Shield,
+};
+
+const roleLabels: Record<UserRole, string> = {
+  child: 'Child Account',
+  parent: 'Parent Account',
+  adult: 'Adult Patient',
+  admin: 'Admin/Healthcare Provider',
+};
 
 interface AccountSwitcherProps {
   trigger?: React.ReactNode;
@@ -20,41 +29,86 @@ interface AccountSwitcherProps {
 
 export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
   const [open, setOpen] = useState(false);
-  const [selectedRole, setSelectedRole] = useState<UserRole | null>(null);
-  const [pin, setPin] = useState('');
+  const [emecId, setEmecId] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  
-  const { currentUser, switchAccount } = useAuth();
+  const [verifiedUser, setVerifiedUser] = useState<typeof allDemoUsers[0] | null>(null);
+  const [isVerifying, setIsVerifying] = useState(false);
+
+  const { currentUser, switchAccountWithEmec } = useAuth();
   const { t } = useLanguage();
 
-  const handleSwitch = () => {
-    if (!selectedRole || !pin) {
-      setError('Please select account and enter PIN');
+  const availableAccounts = allDemoUsers.filter(user => user.role !== currentUser?.role);
+
+  const handleEmecLookup = () => {
+    if (!emecId.trim()) {
+      setError('Please enter your EMEC ID');
       return;
     }
 
-    const success = switchAccount(selectedRole, pin);
+    setIsVerifying(true);
+    
+    setTimeout(() => {
+      const foundUser = allDemoUsers.find(u => u.emecId.toLowerCase() === emecId.toLowerCase());
+      
+      if (foundUser) {
+        setVerifiedUser(foundUser);
+        setError('');
+      } else {
+        setError('EMEC ID not found in system');
+        setVerifiedUser(null);
+      }
+      setIsVerifying(false);
+    }, 800);
+  };
+
+  const handleSwitch = async () => {
+    if (!verifiedUser) {
+      setError('Please verify your EMEC ID first');
+      return;
+    }
+
+    if (!password.trim()) {
+      setError('Please enter your password');
+      return;
+    }
+
+    const validatedUser = validateEmecLogin(emecId, password);
+    
+    if (!validatedUser) {
+      setError('Invalid password for this EMEC ID');
+      return;
+    }
+
+    const success = await switchAccountWithEmec(emecId, password);
     
     if (success) {
-      setOpen(false);
-      setSelectedRole(null);
-      setPin('');
-      setError('');
+      handleClose();
     } else {
-      setError(t('auth.wrongPin'));
-      setPin('');
+      setError('Failed to switch account');
     }
   };
 
   const handleClose = () => {
     setOpen(false);
-    setSelectedRole(null);
-    setPin('');
+    setEmecId('');
+    setPassword('');
+    setError('');
+    setVerifiedUser(null);
+    setIsVerifying(false);
+  };
+
+  const handleQuickSelect = (user: typeof allDemoUsers[0]) => {
+    setEmecId(user.emecId);
+    setVerifiedUser(user);
     setError('');
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={(isOpen) => {
+      if (!isOpen) handleClose();
+      else setOpen(true);
+    }}>
       <DialogTrigger asChild>
         {trigger || (
           <Button variant="outline" size="sm" className="gap-2">
@@ -63,87 +117,172 @@ export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <ArrowRightLeft className="w-5 h-5" />
-            {t('auth.switchAccount')}
+            <Shield className="h-5 w-5 text-primary" />
+            EMEC Account Verification
           </DialogTitle>
           <DialogDescription>
             Currently logged in as: <strong>{currentUser?.name}</strong>
+            <br />
+            <span className="font-mono text-xs">{currentUser?.emecId}</span>
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4">
-          {/* Account Options */}
+        <div className="space-y-4 py-2">
+          {/* Demo Accounts Quick Select */}
           <div className="space-y-2">
-            {roleOptions
-              .filter((option) => option.role !== currentUser?.role)
-              .map((option) => {
-                const Icon = option.icon;
-                const isSelected = selectedRole === option.role;
-
+            <Label className="text-sm text-muted-foreground">Demo Accounts (Click to select)</Label>
+            <div className="grid gap-2 max-h-48 overflow-y-auto pr-1">
+              {availableAccounts.map((user) => {
+                const Icon = roleIcons[user.role];
+                const isSelected = verifiedUser?.emecId === user.emecId;
+                
                 return (
                   <button
-                    key={option.role}
-                    onClick={() => {
-                      setSelectedRole(option.role);
-                      setError('');
-                    }}
-                    className={`w-full p-3 rounded-lg border-2 transition-all flex items-center gap-3 ${
-                      isSelected
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
+                    key={user.id}
+                    onClick={() => handleQuickSelect(user)}
+                    className={`flex items-center gap-3 p-3 rounded-lg border text-left transition-all ${
+                      isSelected 
+                        ? 'border-primary bg-primary/10' 
+                        : 'border-border hover:border-primary/50 hover:bg-muted/50'
                     }`}
                   >
-                    <div
-                      className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                        isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
-                      }`}
-                    >
-                      <Icon className="w-5 h-5" />
+                    <div className={`p-2 rounded-full ${
+                      isSelected ? 'bg-primary text-primary-foreground' : 'bg-muted'
+                    }`}>
+                      <Icon className="h-4 w-4" />
                     </div>
-                    <div className="text-left">
-                      <p className="font-medium">{option.label}</p>
-                      <p className="text-xs text-muted-foreground font-mono">PIN: {option.pin}</p>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{user.name}</p>
+                      <p className="text-xs text-muted-foreground">{roleLabels[user.role]}</p>
+                      <p className="text-xs font-mono text-primary">{user.emecId}</p>
                     </div>
+                    {isSelected && (
+                      <CheckCircle className="h-5 w-5 text-primary shrink-0" />
+                    )}
                   </button>
                 );
               })}
+            </div>
           </div>
 
-          {/* PIN Entry */}
-          {selectedRole && (
-            <div className="space-y-3 animate-fade-in">
-              <Label htmlFor="switch-pin" className="flex items-center gap-2">
-                <Lock className="w-4 h-4" />
-                Enter PIN
-              </Label>
-              <Input
-                id="switch-pin"
-                type="password"
-                value={pin}
-                onChange={(e) => setPin(e.target.value)}
-                placeholder="Enter 4-digit PIN"
-                maxLength={4}
-                className="text-center text-xl tracking-[0.5em] font-mono"
-                onKeyDown={(e) => e.key === 'Enter' && handleSwitch()}
-              />
-              
-              {error && (
-                <p className="text-destructive text-sm text-center">{error}</p>
-              )}
+          {/* Manual EMEC ID Entry */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-background px-2 text-muted-foreground">Or enter manually</span>
+            </div>
+          </div>
 
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <Label htmlFor="emec-id">EMEC ID</Label>
               <div className="flex gap-2">
-                <Button variant="outline" onClick={handleClose} className="flex-1">
-                  Cancel
-                </Button>
-                <Button onClick={handleSwitch} className="flex-1">
-                  Switch
+                <Input
+                  id="emec-id"
+                  placeholder="e.g., KOT2025A001"
+                  value={emecId}
+                  onChange={(e) => {
+                    setEmecId(e.target.value.toUpperCase());
+                    setVerifiedUser(null);
+                    setError('');
+                  }}
+                  className="font-mono"
+                />
+                <Button 
+                  variant="secondary" 
+                  onClick={handleEmecLookup}
+                  disabled={isVerifying}
+                  size="sm"
+                >
+                  {isVerifying ? '...' : 'Verify'}
                 </Button>
               </div>
             </div>
-          )}
+
+            {/* Verified User Display */}
+            {verifiedUser && (
+              <div className="p-3 rounded-lg bg-primary/10 border border-primary/30 space-y-2">
+                <div className="flex items-center gap-2 text-primary">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="text-sm font-medium">Account Verified</span>
+                </div>
+                <div className="grid grid-cols-2 gap-2 text-sm">
+                  <div>
+                    <span className="text-muted-foreground text-xs">Name:</span>
+                    <p className="font-medium text-sm">{verifiedUser.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground text-xs">Role:</span>
+                    <p className="font-medium text-sm capitalize">{verifiedUser.role}</p>
+                  </div>
+                  {'bloodGroup' in verifiedUser && (verifiedUser as { bloodGroup?: string }).bloodGroup && (
+                    <div>
+                      <span className="text-muted-foreground text-xs">Blood:</span>
+                      <p className="font-medium text-sm">{(verifiedUser as { bloodGroup: string }).bloodGroup}</p>
+                    </div>
+                  )}
+                  <div>
+                    <span className="text-muted-foreground text-xs">Status:</span>
+                    <p className="font-medium text-sm text-green-600">
+                      {verifiedUser.isVerified ? '✓ Verified' : 'Pending'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Password Entry */}
+            {verifiedUser && (
+              <div className="space-y-2">
+                <Label htmlFor="password" className="flex items-center gap-2">
+                  <Lock className="h-4 w-4" />
+                  Password
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value);
+                    setError('');
+                  }}
+                  onKeyDown={(e) => e.key === 'Enter' && handleSwitch()}
+                />
+                <p className="text-xs text-muted-foreground">
+                  Demo: kevin2025, grace2025, james2025, admin2025
+                </p>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="flex items-center gap-2 text-destructive text-sm">
+                <AlertCircle className="h-4 w-4" />
+                {error}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2 justify-end pt-2">
+          <Button variant="outline" onClick={handleClose}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSwitch} 
+            disabled={!verifiedUser || !password}
+            className="gap-2"
+          >
+            <Stethoscope className="h-4 w-4" />
+            Switch Account
+          </Button>
         </div>
       </DialogContent>
     </Dialog>

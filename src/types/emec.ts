@@ -223,7 +223,7 @@ export interface Allergy {
 export interface AppSettings {
   theme: 'light' | 'dark';
   backgroundColor: string;
-  language: 'en' | 'sw';
+  language: 'en' | 'sw' | 'fr';
   microphoneEnabled: boolean;
   notificationsEnabled: boolean;
 }
@@ -237,11 +237,13 @@ export interface AppState {
   settings: AppSettings;
 }
 
-// Translation type
+// Translation type - supports English, Swahili, and French
+export type Language = 'en' | 'sw' | 'fr';
 export type TranslationKey = string;
 export interface Translations {
   [key: string]: {
     en: string;
     sw: string;
+    fr?: string;
   };
 }

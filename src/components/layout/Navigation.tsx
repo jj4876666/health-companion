@@ -1,15 +1,16 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, BookOpen, Calculator, Heart, AlertTriangle, Menu, X } from "lucide-react";
+import { Home, BookOpen, Calculator, Heart, AlertTriangle, Menu, X, Video, Pill, HandHeart } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
   { name: "Home", path: "/", icon: Home },
-  { name: "Education", path: "/education", icon: BookOpen },
+  { name: "Consultation", path: "/consultation", icon: Video },
   { name: "Calculators", path: "/calculators", icon: Calculator },
   { name: "First Aid", path: "/first-aid", icon: Heart },
   { name: "Emergency", path: "/emergency", icon: AlertTriangle },
+  { name: "Donations", path: "/donations", icon: HandHeart },
 ];
 
 export function Navigation() {

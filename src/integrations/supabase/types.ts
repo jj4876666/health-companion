@@ -14,16 +14,558 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      allergies: {
+        Row: {
+          allergen: string
+          allergy_type: string
+          created_at: string
+          id: string
+          notes: string | null
+          patient_id: string
+          reactions: string[] | null
+          severity: string
+        }
+        Insert: {
+          allergen: string
+          allergy_type: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id: string
+          reactions?: string[] | null
+          severity: string
+        }
+        Update: {
+          allergen?: string
+          allergy_type?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          patient_id?: string
+          reactions?: string[] | null
+          severity?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "allergies_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      audit_logs: {
+        Row: {
+          action_description: string
+          action_type: string
+          created_at: string
+          facility_name: string | null
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          officer_name: string | null
+          patient_id: string | null
+          performed_by: string | null
+        }
+        Insert: {
+          action_description: string
+          action_type: string
+          created_at?: string
+          facility_name?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          officer_name?: string | null
+          patient_id?: string | null
+          performed_by?: string | null
+        }
+        Update: {
+          action_description?: string
+          action_type?: string
+          created_at?: string
+          facility_name?: string | null
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          officer_name?: string | null
+          patient_id?: string | null
+          performed_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "audit_logs_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "audit_logs_performed_by_fkey"
+            columns: ["performed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consent_codes: {
+        Row: {
+          code: string
+          created_at: string
+          expires_at: string
+          facility_name: string
+          id: string
+          is_approved: boolean | null
+          patient_id: string
+          requesting_officer_id: string | null
+          used_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          expires_at: string
+          facility_name: string
+          id?: string
+          is_approved?: boolean | null
+          patient_id: string
+          requesting_officer_id?: string | null
+          used_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          expires_at?: string
+          facility_name?: string
+          id?: string
+          is_approved?: boolean | null
+          patient_id?: string
+          requesting_officer_id?: string | null
+          used_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consent_codes_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "consent_codes_requesting_officer_id_fkey"
+            columns: ["requesting_officer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      donations: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string | null
+          donor_id: string | null
+          donor_name: string | null
+          id: string
+          is_public: boolean | null
+          message: string | null
+          payment_method: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string | null
+          donor_id?: string | null
+          donor_name?: string | null
+          id?: string
+          is_public?: boolean | null
+          message?: string | null
+          payment_method: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string | null
+          donor_id?: string | null
+          donor_name?: string | null
+          id?: string
+          is_public?: boolean | null
+          message?: string | null
+          payment_method?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      immunizations: {
+        Row: {
+          administered_by: string | null
+          batch_number: string | null
+          created_at: string
+          date_administered: string
+          facility_name: string | null
+          id: string
+          next_dose_date: string | null
+          notes: string | null
+          patient_id: string
+          vaccine_name: string
+        }
+        Insert: {
+          administered_by?: string | null
+          batch_number?: string | null
+          created_at?: string
+          date_administered: string
+          facility_name?: string | null
+          id?: string
+          next_dose_date?: string | null
+          notes?: string | null
+          patient_id: string
+          vaccine_name: string
+        }
+        Update: {
+          administered_by?: string | null
+          batch_number?: string | null
+          created_at?: string
+          date_administered?: string
+          facility_name?: string | null
+          id?: string
+          next_dose_date?: string | null
+          notes?: string | null
+          patient_id?: string
+          vaccine_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "immunizations_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medical_records: {
+        Row: {
+          created_at: string
+          data: Json | null
+          description: string | null
+          facility_name: string | null
+          id: string
+          officer_name: string | null
+          patient_id: string
+          record_date: string
+          record_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json | null
+          description?: string | null
+          facility_name?: string | null
+          id?: string
+          officer_name?: string | null
+          patient_id: string
+          record_date?: string
+          record_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json | null
+          description?: string | null
+          facility_name?: string | null
+          id?: string
+          officer_name?: string | null
+          patient_id?: string
+          record_date?: string
+          record_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_records_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medication_reminders: {
+        Row: {
+          created_at: string
+          id: string
+          medication_id: string
+          missed: boolean | null
+          notes: string | null
+          patient_id: string
+          scheduled_time: string
+          taken_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          medication_id: string
+          missed?: boolean | null
+          notes?: string | null
+          patient_id: string
+          scheduled_time: string
+          taken_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          medication_id?: string
+          missed?: boolean | null
+          notes?: string | null
+          patient_id?: string
+          scheduled_time?: string
+          taken_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medication_reminders_medication_id_fkey"
+            columns: ["medication_id"]
+            isOneToOne: false
+            referencedRelation: "medications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medication_reminders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medications: {
+        Row: {
+          created_at: string
+          dosage: string
+          drug_name: string
+          end_date: string | null
+          facility_name: string | null
+          frequency: string
+          id: string
+          is_active: boolean | null
+          patient_id: string
+          prescribed_by: string | null
+          schedule: Json | null
+          side_effects: string[] | null
+          start_date: string
+          updated_at: string
+          warnings: string[] | null
+        }
+        Insert: {
+          created_at?: string
+          dosage: string
+          drug_name: string
+          end_date?: string | null
+          facility_name?: string | null
+          frequency: string
+          id?: string
+          is_active?: boolean | null
+          patient_id: string
+          prescribed_by?: string | null
+          schedule?: Json | null
+          side_effects?: string[] | null
+          start_date: string
+          updated_at?: string
+          warnings?: string[] | null
+        }
+        Update: {
+          created_at?: string
+          dosage?: string
+          drug_name?: string
+          end_date?: string | null
+          facility_name?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean | null
+          patient_id?: string
+          prescribed_by?: string | null
+          schedule?: Json | null
+          side_effects?: string[] | null
+          start_date?: string
+          updated_at?: string
+          warnings?: string[] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      pharmacy_orders: {
+        Row: {
+          created_at: string
+          delivery_address: string | null
+          emec_id: string
+          id: string
+          items: Json
+          patient_id: string
+          pharmacy_name: string
+          prescription_url: string | null
+          status: string | null
+          total_amount: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          delivery_address?: string | null
+          emec_id: string
+          id?: string
+          items: Json
+          patient_id: string
+          pharmacy_name: string
+          prescription_url?: string | null
+          status?: string | null
+          total_amount: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          delivery_address?: string | null
+          emec_id?: string
+          id?: string
+          items?: Json
+          patient_id?: string
+          pharmacy_name?: string
+          prescription_url?: string | null
+          status?: string | null
+          total_amount?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pharmacy_orders_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          address: string | null
+          age_category: Database["public"]["Enums"]["age_category"] | null
+          avatar_url: string | null
+          blood_group: string | null
+          created_at: string
+          date_of_birth: string | null
+          emec_id: string
+          full_name: string
+          gender: string | null
+          id: string
+          is_premium: boolean | null
+          language: string | null
+          parent_user_id: string | null
+          phone: string | null
+          premium_expiry: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address?: string | null
+          age_category?: Database["public"]["Enums"]["age_category"] | null
+          avatar_url?: string | null
+          blood_group?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emec_id: string
+          full_name: string
+          gender?: string | null
+          id?: string
+          is_premium?: boolean | null
+          language?: string | null
+          parent_user_id?: string | null
+          phone?: string | null
+          premium_expiry?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address?: string | null
+          age_category?: Database["public"]["Enums"]["age_category"] | null
+          avatar_url?: string | null
+          blood_group?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          emec_id?: string
+          full_name?: string
+          gender?: string | null
+          id?: string
+          is_premium?: boolean | null
+          language?: string | null
+          parent_user_id?: string | null
+          phone?: string | null
+          premium_expiry?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          facility_name: string | null
+          facility_verified: boolean | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          facility_name?: string | null
+          facility_verified?: boolean | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          facility_name?: string | null
+          facility_verified?: boolean | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      generate_emec_id: { Args: never; Returns: string }
+      get_profile_id: { Args: { _user_id: string }; Returns: string }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      age_category: "infant" | "child" | "teen" | "adult"
+      app_role: "admin" | "parent" | "child" | "adult"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +692,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      age_category: ["infant", "child", "teen", "adult"],
+      app_role: ["admin", "parent", "child", "adult"],
+    },
   },
 } as const

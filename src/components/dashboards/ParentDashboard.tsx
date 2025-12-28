@@ -12,7 +12,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Users, Bell, Clock, CheckCircle, XCircle, Eye, 
   Shield, Activity, BookOpen, Trophy, AlertTriangle,
-  FileText, Heart, User
+  FileText, Heart, User, Stethoscope
 } from 'lucide-react';
 
 export function ParentDashboard() {
@@ -238,11 +238,17 @@ export function ParentDashboard() {
       </Tabs>
 
       {/* Quick Actions */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
           <Link to="/emergency">
             <AlertTriangle className="w-6 h-6 text-destructive" />
             <span>Emergency</span>
+          </Link>
+        </Button>
+        <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>
+          <Link to="/consultation">
+            <Stethoscope className="w-6 h-6 text-primary" />
+            <span>Consult</span>
           </Link>
         </Button>
         <Button variant="outline" className="h-auto py-4 flex-col gap-2" asChild>

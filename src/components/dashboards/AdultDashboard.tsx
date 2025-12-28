@@ -12,7 +12,7 @@ import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { PremiumBanner } from '@/components/premium/PremiumBanner';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
-  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard
+  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -53,6 +53,12 @@ export function AdultDashboard() {
             <Link to="/emergency">
               <Phone className="w-4 h-4 mr-2" />
               Emergency
+            </Link>
+          </Button>
+          <Button variant="outline" asChild>
+            <Link to="/consultation">
+              <Stethoscope className="w-4 h-4 mr-2" />
+              Consult
             </Link>
           </Button>
           <Button asChild>

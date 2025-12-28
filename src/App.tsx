@@ -18,6 +18,7 @@ import Quizzes from "./pages/Quizzes";
 import Donations from "./pages/Donations";
 import Settings from "./pages/Settings";
 import Consultation from "./pages/Consultation";
+import Medications from "./pages/Medications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -47,6 +48,7 @@ function AppRoutes() {
       <Route path="/quizzes" element={<ProtectedRoute><Quizzes /></ProtectedRoute>} />
       <Route path="/donations" element={<ProtectedRoute><Donations /></ProtectedRoute>} />
       <Route path="/consultation" element={<ProtectedRoute><Consultation /></ProtectedRoute>} />
+      <Route path="/medications" element={<ProtectedRoute><Medications /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>

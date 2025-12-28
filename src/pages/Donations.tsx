@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePremium } from '@/contexts/PremiumContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { SecurePaymentProcessor } from '@/components/payment/SecurePaymentProcessor';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +14,7 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   HandHeart, Heart, Gift, Users, Check, Crown, Sparkles, Globe, 
-  CreditCard, Smartphone, Building2, Shield, Star, ExternalLink
+  CreditCard, Smartphone, Building2, Shield, Star, ExternalLink, CheckCircle, Lock
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -42,6 +44,7 @@ export default function Donations() {
   const { currentUser, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { isPremium, activatePremium, daysRemaining, features } = usePremium();
 
   const [activeTab, setActiveTab] = useState('donate');
   const [selectedCharity, setSelectedCharity] = useState<string | null>(null);
@@ -50,7 +53,8 @@ export default function Donations() {
   const [isPublic, setIsPublic] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState('mpesa');
   const [isComplete, setIsComplete] = useState(false);
-  const [showPremium, setShowPremium] = useState(false);
+  const [showPaymentProcessor, setShowPaymentProcessor] = useState(false);
+  const [showPremiumPayment, setShowPremiumPayment] = useState<'monthly' | 'yearly' | null>(null);
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
@@ -61,19 +65,24 @@ export default function Donations() {
       toast({ title: "Error", description: "Please select a charity and amount", variant: "destructive" });
       return;
     }
-    toast({ title: "Processing...", description: `Simulating ${paymentMethods.find(p => p.id === paymentMethod)?.name} payment...` });
-    setTimeout(() => {
-      setIsComplete(true);
-      toast({ title: "Thank you! 🎉", description: `Your donation of KES ${amount} has been processed.` });
-    }, 1500);
+    setShowPaymentProcessor(true);
   };
 
-  const handleSubscribe = (plan: string) => {
-    toast({ title: "✨ Premium Activated!", description: `${plan} subscription started (Demo)` });
+  const handleDonationSuccess = () => {
+    setShowPaymentProcessor(false);
+    setIsComplete(true);
+    toast({ title: "Thank you! 🎉", description: `Your donation of KES ${amount} has been processed.` });
   };
 
-  const handleFreeTrial = () => {
-    toast({ title: "🎁 Free Trial Started!", description: "Enjoy 7 days of premium features!" });
+  const handlePremiumPurchase = (plan: 'monthly' | 'yearly') => {
+    setShowPremiumPayment(plan);
+  };
+
+  const handlePremiumSuccess = () => {
+    if (showPremiumPayment) {
+      activatePremium(showPremiumPayment);
+      setShowPremiumPayment(null);
+    }
   };
 
   // Thank You Screen
@@ -217,40 +226,93 @@ export default function Donations() {
 
           {/* Premium Tab */}
           <TabsContent value="premium" className="space-y-4">
-            <Card className="border-0 shadow-elegant overflow-hidden">
-              <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
-                <Crown className="w-12 h-12 mx-auto mb-2" />
-                <h2 className="text-2xl font-bold">{t('donation.premium')}</h2>
-                <p className="text-white/80">Unlock all features and support EMEC</p>
-              </div>
-              <CardContent className="p-4 space-y-4">
-                <Button onClick={handleFreeTrial} variant="outline" className="w-full h-12 border-2 border-dashed">
-                  <Sparkles className="w-5 h-5 mr-2" />{t('donation.freeTrial')}
-                </Button>
-                
-                <div className="grid md:grid-cols-2 gap-4">
-                  <Card className="border-2 border-primary">
-                    <CardContent className="p-4 text-center">
-                      <p className="text-2xl font-bold">KES 299</p>
-                      <p className="text-muted-foreground">/month</p>
-                      <Button onClick={() => handleSubscribe('Monthly')} className="w-full mt-4">Subscribe Monthly</Button>
-                    </CardContent>
-                  </Card>
-                  <Card className="border-2 border-warning">
-                    <CardContent className="p-4 text-center">
-                      <Badge className="bg-warning text-warning-foreground mb-2">Save 20%</Badge>
-                      <p className="text-2xl font-bold">KES 2,499</p>
-                      <p className="text-muted-foreground">/year</p>
-                      <Button onClick={() => handleSubscribe('Yearly')} className="w-full mt-4 bg-warning hover:bg-warning/90">Subscribe Yearly</Button>
-                    </CardContent>
-                  </Card>
+            {isPremium ? (
+              <Card className="border-0 shadow-elegant overflow-hidden">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
+                  <Crown className="w-12 h-12 mx-auto mb-2" />
+                  <h2 className="text-2xl font-bold">Premium Active! 🎉</h2>
+                  <p className="text-white/80">{daysRemaining} days remaining</p>
                 </div>
-                
-                <p className="text-xs text-center text-muted-foreground">Premium supports app development, charity, and student education</p>
-              </CardContent>
-            </Card>
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    {features.map((feature) => (
+                      <div key={feature.id} className="p-3 rounded-xl bg-primary/5 flex items-center gap-3">
+                        <span className="text-2xl">{feature.icon}</span>
+                        <div>
+                          <p className="font-medium text-sm">{feature.name}</p>
+                          <p className="text-xs text-muted-foreground">{feature.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <Card className="border-0 shadow-elegant overflow-hidden">
+                <div className="bg-gradient-to-r from-yellow-500 to-orange-500 p-6 text-white text-center">
+                  <Crown className="w-12 h-12 mx-auto mb-2" />
+                  <h2 className="text-2xl font-bold">{t('donation.premium')}</h2>
+                  <p className="text-white/80">Unlock all features and support EMEC</p>
+                </div>
+                <CardContent className="p-4 space-y-4">
+                  <div className="grid md:grid-cols-2 gap-4">
+                    <Card className="border-2 border-primary cursor-pointer hover:shadow-lg transition-all" onClick={() => handlePremiumPurchase('monthly')}>
+                      <CardContent className="p-4 text-center">
+                        <p className="text-2xl font-bold">KES 299</p>
+                        <p className="text-muted-foreground">/month</p>
+                        <Button className="w-full mt-4">Subscribe Monthly</Button>
+                      </CardContent>
+                    </Card>
+                    <Card className="border-2 border-warning cursor-pointer hover:shadow-lg transition-all" onClick={() => handlePremiumPurchase('yearly')}>
+                      <CardContent className="p-4 text-center">
+                        <Badge className="bg-warning text-warning-foreground mb-2">Save 20%</Badge>
+                        <p className="text-2xl font-bold">KES 2,499</p>
+                        <p className="text-muted-foreground">/year</p>
+                        <Button className="w-full mt-4 bg-warning hover:bg-warning/90">Subscribe Yearly</Button>
+                      </CardContent>
+                    </Card>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2 mt-4">
+                    {features.slice(0, 4).map((feature) => (
+                      <div key={feature.id} className="flex items-center gap-2 text-sm">
+                        <CheckCircle className="w-4 h-4 text-success" />
+                        <span>{feature.name}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
         </Tabs>
+
+        {/* Payment Processor Modals */}
+        {showPaymentProcessor && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+              <SecurePaymentProcessor
+                amount={parseInt(amount)}
+                description={`Donation to ${charities.find(c => c.id === selectedCharity)?.name}`}
+                onSuccess={handleDonationSuccess}
+                onCancel={() => setShowPaymentProcessor(false)}
+              />
+            </div>
+          </div>
+        )}
+
+        {showPremiumPayment && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <div className="w-full max-w-md">
+              <SecurePaymentProcessor
+                amount={showPremiumPayment === 'monthly' ? 299 : 2499}
+                description={`EMEC Premium ${showPremiumPayment === 'monthly' ? 'Monthly' : 'Yearly'} Subscription`}
+                onSuccess={handlePremiumSuccess}
+                onCancel={() => setShowPremiumPayment(null)}
+              />
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

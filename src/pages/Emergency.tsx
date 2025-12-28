@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
+import { LiveLocationMap } from "@/components/maps/LiveLocationMap";
 import { demoFacilities } from "@/data/healthFacilities";
 import { 
   Phone, 
@@ -24,7 +25,8 @@ import {
   CheckCircle,
   Wifi,
   WifiOff,
-  ExternalLink
+  ExternalLink,
+  Locate
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -151,8 +153,12 @@ const Emergency = () => {
           </div>
         </Card>
 
-        <Tabs defaultValue="contacts" className="w-full">
-          <TabsList className="grid w-full grid-cols-3 h-auto">
+        <Tabs defaultValue="location" className="w-full">
+          <TabsList className="grid w-full grid-cols-4 h-auto">
+            <TabsTrigger value="location" className="flex flex-col gap-1 py-3">
+              <Locate className="w-4 h-4" />
+              <span className="text-xs">Location</span>
+            </TabsTrigger>
             <TabsTrigger value="contacts" className="flex flex-col gap-1 py-3">
               <Phone className="w-4 h-4" />
               <span className="text-xs">Contacts</span>
@@ -166,6 +172,14 @@ const Emergency = () => {
               <span className="text-xs">Dial Pad</span>
             </TabsTrigger>
           </TabsList>
+
+          {/* Live Location Tab */}
+          <TabsContent value="location" className="space-y-4">
+            <LiveLocationMap 
+              showFacilities={true} 
+              onSelectFacility={(id) => setSelectedFacility(demoFacilities.find(f => f.id === id)?.name || null)} 
+            />
+          </TabsContent>
 
           {/* Emergency Contacts */}
           <TabsContent value="contacts" className="space-y-4">

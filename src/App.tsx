@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { PremiumProvider } from "@/contexts/PremiumContext";
+import { DemoProvider } from "@/contexts/DemoContext";
+import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { LoginPage } from "@/components/auth/LoginPage";
 import Dashboard from "./pages/Dashboard";
@@ -22,6 +24,7 @@ import Consultation from "./pages/Consultation";
 import Medications from "./pages/Medications";
 import Games from "./pages/Games";
 import Pharmacy from "./pages/Pharmacy";
+import AccessibilityPage from "./pages/Accessibility";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -55,6 +58,7 @@ function AppRoutes() {
       <Route path="/games" element={<ProtectedRoute><Games /></ProtectedRoute>} />
       <Route path="/pharmacy" element={<ProtectedRoute><Pharmacy /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+      <Route path="/accessibility" element={<ProtectedRoute><AccessibilityPage /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
@@ -69,17 +73,21 @@ const App = () => {
         <LanguageProvider>
           <AppProvider>
             <PremiumProvider>
-              <TooltipProvider>
-                <Toaster />
-                <Sonner />
-                {showSplash ? (
-                  <SplashScreen onComplete={() => setShowSplash(false)} />
-                ) : (
-                  <BrowserRouter>
-                    <AppRoutes />
-                  </BrowserRouter>
-                )}
-              </TooltipProvider>
+              <DemoProvider>
+                <AccessibilityProvider>
+                  <TooltipProvider>
+                    <Toaster />
+                    <Sonner />
+                    {showSplash ? (
+                      <SplashScreen onComplete={() => setShowSplash(false)} />
+                    ) : (
+                      <BrowserRouter>
+                        <AppRoutes />
+                      </BrowserRouter>
+                    )}
+                  </TooltipProvider>
+                </AccessibilityProvider>
+              </DemoProvider>
             </PremiumProvider>
           </AppProvider>
         </LanguageProvider>

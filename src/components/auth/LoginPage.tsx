@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, CheckCircle2, UserCircle } from 'lucide-react';
+import { Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, CheckCircle2, UserCircle, AlertTriangle, Info } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DEMO_EMEC_IDS, DEMO_PASSWORDS, allDemoUsers, getUserByEmecId } from '@/data/demoUsers';
 
@@ -131,18 +131,28 @@ export function LoginPage() {
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
+      {/* Animated Background */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-teal-500/5 rounded-full blur-3xl" />
+      </div>
+
       {/* Header */}
-      <header className="p-6 flex items-center justify-center">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl gradient-emec flex items-center justify-center">
-            <Heart className="w-6 h-6 text-white fill-white" />
+      <header className="relative p-6 flex items-center justify-center">
+        <div className="flex items-center gap-3 animate-fade-in">
+          <div className="w-14 h-14 rounded-xl gradient-emec flex items-center justify-center shadow-lg animate-bounce-soft">
+            <Heart className="w-7 h-7 text-white fill-white" />
           </div>
-          <span className="text-2xl font-bold text-foreground">EMEC</span>
+          <div>
+            <span className="text-3xl font-bold text-foreground">EMEC</span>
+            <p className="text-xs text-muted-foreground">Electronic Medical & Education Companion</p>
+          </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <main className="flex-1 flex items-center justify-center p-6">
+      <main className="relative flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-5xl">
           {/* Demo Label */}
           <div className="text-center mb-6">
@@ -317,10 +327,37 @@ export function LoginPage() {
             </Card>
           </div>
 
+          {/* Legal Disclaimer */}
+          <div className="mt-6 p-4 rounded-xl bg-warning/10 border border-warning/30">
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-warning shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-semibold text-warning-foreground mb-1">
+                  {language === 'sw' ? 'Onyo Muhimu' : 'Important Disclaimer'}
+                </p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  {language === 'sw'
+                    ? 'EMEC ni kwa elimu na uhamasishaji wa afya pekee. Programu hii haitoi utambuzi wa kimatibabu wala matibabu. Daima tembelea kituo cha afya kilicho karibu nawe kwa ushauri wa kimatibabu.'
+                    : 'EMEC is for health education and awareness only. This app does not provide medical diagnosis or treatment. Always visit your nearest health facility for medical advice.'}
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Footer */}
-          <footer className="mt-8 text-center text-sm text-muted-foreground">
-            <p>© 2025 EMEC – All rights reserved</p>
-            <p className="mt-1">Developed by Jacob Johnson & Barack Hussein, Mbita High School</p>
+          <footer className="mt-8 text-center text-sm text-muted-foreground space-y-2">
+            <p className="font-medium">© 2025 EMEC – All rights reserved</p>
+            <p>Developed by Jacob Johnson & Barack Hussein, Mbita High School</p>
+            <div className="flex items-center justify-center gap-4 pt-2">
+              <Badge variant="outline" className="text-xs">
+                <Shield className="w-3 h-3 mr-1" />
+                Secure
+              </Badge>
+              <Badge variant="outline" className="text-xs">
+                <Info className="w-3 h-3 mr-1" />
+                Demo Mode
+              </Badge>
+            </div>
           </footer>
         </div>
       </main>

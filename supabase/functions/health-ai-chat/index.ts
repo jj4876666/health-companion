@@ -26,10 +26,30 @@ Guidelines:
 - Always emphasize consulting a healthcare professional for serious concerns
 - For emergencies, always recommend calling emergency services immediately
 - Be culturally sensitive to East African context
+- Encourage visiting local health facilities for any health concerns
+- Promote preventive care: nutrition, hydration, exercise, and regular checkups
 
 Start each response with a friendly greeting if it's a new conversation.
 End important health advice with: "⚠️ Remember: This information is for educational purposes only. Please consult a healthcare professional for personalized medical advice."`;
 
+const CHILD_CONTENT_FILTER = `
+CRITICAL CHILD SAFETY RULES:
+- NEVER discuss sexual health, reproduction, or related topics
+- NEVER provide information about drugs, alcohol, or substances
+- Keep all content age-appropriate and educational
+- Focus on basic hygiene, nutrition, safety, and fun health facts
+- Use simple words and lots of friendly emojis
+- Make learning about health fun and engaging
+`;
+
+const TEEN_CONTENT_GUIDANCE = `
+TEEN-APPROPRIATE CONTENT:
+- You may discuss puberty in an educational, factual manner
+- Mental health topics like stress, anxiety, and self-esteem are okay
+- Avoid explicit sexual content but can discuss body changes during puberty
+- Discuss healthy relationships in age-appropriate terms
+- Be supportive about body image and self-care
+`;
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -43,15 +63,21 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
 
-    // Adjust system prompt based on user age
+    // Adjust system prompt based on user age with content filtering
     let ageContext = '';
+    let contentFilter = '';
     if (userAge !== undefined) {
       if (userAge < 6) {
-        ageContext = '\n\nThis user is a young child (under 6). Use very simple language, lots of emojis, and make explanations fun and visual.';
+        ageContext = '\n\nThis user is a young child (under 6). Use very simple language, lots of emojis, and make explanations fun and visual. Focus on basic hygiene, eating healthy, staying active, and being safe.';
+        contentFilter = CHILD_CONTENT_FILTER;
       } else if (userAge < 13) {
-        ageContext = '\n\nThis user is a child (6-12 years). Use kid-friendly language, fun examples, and educational tone.';
+        ageContext = '\n\nThis user is a child (6-12 years). Use kid-friendly language, fun examples, and educational tone. Explain health topics in ways they can understand.';
+        contentFilter = CHILD_CONTENT_FILTER;
       } else if (userAge < 18) {
-        ageContext = '\n\nThis user is a teenager (13-17 years). Be relatable, discuss topics like puberty and mental health appropriately.';
+        ageContext = '\n\nThis user is a teenager (13-17 years). Be relatable, discuss topics like puberty and mental health appropriately. Be supportive and non-judgmental.';
+        contentFilter = TEEN_CONTENT_GUIDANCE;
+      } else {
+        ageContext = '\n\nThis user is an adult. You can discuss all health topics including chronic diseases, preventive care, and complex medical information.';
       }
     }
 
@@ -71,7 +97,7 @@ serve(async (req) => {
       body: JSON.stringify({
         model: "google/gemini-2.5-flash",
         messages: [
-          { role: "system", content: SYSTEM_PROMPT + ageContext + langContext },
+          { role: "system", content: SYSTEM_PROMPT + contentFilter + ageContext + langContext },
           ...messages,
         ],
         stream: true,

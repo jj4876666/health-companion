@@ -49,10 +49,7 @@ export default function AccessibilityPage() {
   };
 
   return (
-    <PageLayout
-      title={getLocalizedText('Accessibility Settings', 'Mipangilio ya Ufikiaji', 'Paramètres d\'accessibilité')}
-      description={getLocalizedText('Customize your experience for better accessibility', 'Badilisha uzoefu wako kwa ufikiaji bora', 'Personnalisez votre expérience pour une meilleure accessibilité')}
-    >
+    <PageLayout>
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
           <Badge variant={settings.textToSpeechEnabled ? 'default' : 'secondary'} className="gap-1"><Volume2 className="w-3 h-3" />TTS {settings.textToSpeechEnabled ? 'ON' : 'OFF'}</Badge>

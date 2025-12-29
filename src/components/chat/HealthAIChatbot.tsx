@@ -16,10 +16,15 @@ import {
   VolumeX,
   Mic,
   MicOff,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Heart,
+  Brain,
+  Pill,
+  Stethoscope,
+  Apple
 } from 'lucide-react';
 
-// Use any for SpeechRecognition to avoid TypeScript issues
 type SpeechRecognitionType = any;
 
 interface Message {
@@ -30,7 +35,6 @@ interface Message {
   sources?: string[];
 }
 
-// WHO & MOH certified health responses database
 const healthKnowledgeBase: Record<string, { response: string; sources: string[] }> = {
   fever: {
     response: "For fever management:\n\n1. **Rest** - Allow body to recover\n2. **Hydration** - Drink plenty of fluids (water, clear broths, electrolyte solutions)\n3. **Temperature monitoring** - Check every 4 hours\n4. **Medication** - Paracetamol (as per age-appropriate dosing)\n\n⚠️ **Seek immediate medical care if:**\n- Fever exceeds 39.4°C (103°F)\n- Lasts more than 3 days\n- Accompanied by severe headache, stiff neck, or rash\n- Occurs in infants under 3 months",
@@ -77,14 +81,12 @@ const healthKnowledgeBase: Record<string, { response: string; sources: string[] 
 const getAIResponse = (userMessage: string): { response: string; sources: string[] } => {
   const lowerMessage = userMessage.toLowerCase();
   
-  // Check for keyword matches
   for (const [keyword, data] of Object.entries(healthKnowledgeBase)) {
     if (lowerMessage.includes(keyword)) {
       return data;
     }
   }
   
-  // Check for related terms
   if (lowerMessage.includes('headache') || lowerMessage.includes('pain')) {
     return {
       response: "For pain management:\n\n**General Advice:**\n- Rest in a quiet, dark room (for headaches)\n- Stay hydrated\n- Apply cold or warm compress as appropriate\n- Take age-appropriate pain relief (paracetamol)\n\n**Seek medical attention if:**\n- Pain is severe or sudden\n- Accompanied by fever, stiff neck, or vision changes\n- Persists for more than a few days\n- Interferes with daily activities\n\nWould you like more specific information about a particular type of pain?",
@@ -106,15 +108,22 @@ const getAIResponse = (userMessage: string): { response: string; sources: string
     };
   }
   
-  // Default response
   return {
     response: "Thank you for your health question. I'm here to help with evidence-based health information.\n\n**I can help you with:**\n- Fever, malaria, and common illnesses\n- Nutrition and diet advice\n- Hygiene and disease prevention\n- Vaccination information\n- First aid guidance\n- Mental health support\n- Pregnancy care\n\nPlease describe your symptoms or health concern in more detail, and I'll provide WHO and Kenya MOH-certified guidance.\n\n⚠️ **Important:** For medical emergencies, call 999 immediately.",
     sources: ['WHO Health Guidelines', 'Kenya Ministry of Health']
   };
 };
 
+const quickTopics = [
+  { icon: Heart, label: 'Fever', color: 'text-red-500', query: 'fever symptoms' },
+  { icon: Brain, label: 'Mental Health', color: 'text-purple-500', query: 'mental health tips' },
+  { icon: Pill, label: 'Medication', color: 'text-blue-500', query: 'medication safety' },
+  { icon: Apple, label: 'Nutrition', color: 'text-green-500', query: 'nutrition advice' },
+  { icon: Stethoscope, label: 'First Aid', color: 'text-orange-500', query: 'first aid basics' },
+];
+
 export function HealthAIChatbot() {
-  const { t, language } = useLanguage();
+  const { language } = useLanguage();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -135,16 +144,15 @@ export function HealthAIChatbot() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Initialize speech recognition
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
       recognitionRef.current = new SpeechRecognition();
       recognitionRef.current.continuous = false;
       recognitionRef.current.interimResults = false;
       recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognitionRef.current.onresult = (event) => {
+      recognitionRef.current.onresult = (event: any) => {
         const transcript = event.results[0][0].transcript;
         setInputMessage(transcript);
         setIsListening(false);
@@ -160,13 +168,14 @@ export function HealthAIChatbot() {
     }
   }, [language]);
 
-  const handleSendMessage = async () => {
-    if (!inputMessage.trim()) return;
+  const handleSendMessage = async (customMessage?: string) => {
+    const messageToSend = customMessage || inputMessage;
+    if (!messageToSend.trim()) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
       role: 'user',
-      content: inputMessage,
+      content: messageToSend,
       timestamp: new Date()
     };
 
@@ -174,10 +183,9 @@ export function HealthAIChatbot() {
     setInputMessage('');
     setIsTyping(true);
 
-    // Simulate AI processing time
-    await new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
+    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 800));
 
-    const { response, sources } = getAIResponse(inputMessage);
+    const { response, sources } = getAIResponse(messageToSend);
 
     const assistantMessage: Message = {
       id: (Date.now() + 1).toString(),
@@ -224,45 +232,71 @@ export function HealthAIChatbot() {
   };
 
   return (
-    <Card className="border-0 shadow-elegant h-full flex flex-col">
+    <Card className="border-0 shadow-elegant h-full flex flex-col overflow-hidden">
       {/* Header */}
-      <div className="p-4 border-b bg-gradient-to-r from-primary/10 to-accent/10">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl gradient-primary flex items-center justify-center">
-            <Bot className="w-6 h-6 text-primary-foreground" />
+      <div className="relative p-4 border-b bg-gradient-to-r from-primary/10 via-accent/10 to-primary/10">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative flex items-center gap-4">
+          <div className="relative">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center shadow-lg">
+              <Bot className="w-7 h-7 text-white" />
+            </div>
+            <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full bg-success border-2 border-background flex items-center justify-center">
+              <Sparkles className="w-3 h-3 text-white" />
+            </div>
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold flex items-center gap-2">
+            <h3 className="font-bold text-lg flex items-center gap-2">
               EMEC Health Assistant
-              <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs">
+              <Badge className="bg-success/20 text-success border-success/30 text-xs font-normal">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
                 Certified
               </Badge>
             </h3>
-            <p className="text-xs text-muted-foreground">Powered by WHO & Kenya MOH Guidelines</p>
+            <p className="text-sm text-muted-foreground">Powered by WHO & Kenya MOH Guidelines</p>
           </div>
-          <div className="flex gap-1">
-            <Badge variant="secondary" className="text-xs">
-              <Shield className="w-3 h-3 mr-1" />
-              Secure
-            </Badge>
-          </div>
+          <Badge variant="outline" className="hidden sm:flex bg-background/80 backdrop-blur-sm">
+            <Shield className="w-3 h-3 mr-1" />
+            Secure
+          </Badge>
         </div>
       </div>
+
+      {/* Quick Topics */}
+      {messages.length <= 1 && (
+        <div className="p-4 border-b bg-muted/30">
+          <p className="text-xs text-muted-foreground mb-3">Quick Topics</p>
+          <div className="flex flex-wrap gap-2">
+            {quickTopics.map((topic) => (
+              <Button
+                key={topic.label}
+                variant="outline"
+                size="sm"
+                className="gap-2 bg-background hover:bg-primary/10 hover:border-primary/30 transition-colors"
+                onClick={() => handleSendMessage(topic.query)}
+              >
+                <topic.icon className={`w-4 h-4 ${topic.color}`} />
+                {topic.label}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Messages */}
       <ScrollArea className="flex-1 p-4">
         <div className="space-y-4">
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div
               key={message.id}
-              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-in fade-in slide-in-from-bottom-2 duration-300`}
+              style={{ animationDelay: `${index * 50}ms` }}
             >
               <div className={`max-w-[85%] ${message.role === 'user' ? 'order-2' : ''}`}>
-                <div className="flex items-start gap-2">
+                <div className="flex items-start gap-3">
                   {message.role === 'assistant' && (
-                    <Avatar className="w-8 h-8">
-                      <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+                    <Avatar className="w-9 h-9 shadow-sm">
+                      <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white">
                         <Bot className="w-4 h-4" />
                       </AvatarFallback>
                     </Avatar>
@@ -270,18 +304,22 @@ export function HealthAIChatbot() {
                   <div
                     className={`rounded-2xl p-4 ${
                       message.role === 'user'
-                        ? 'bg-primary text-primary-foreground rounded-br-md'
-                        : 'bg-muted rounded-bl-md'
+                        ? 'bg-gradient-to-br from-primary to-primary/90 text-white rounded-br-md shadow-lg'
+                        : 'bg-muted/80 rounded-bl-md shadow-sm'
                     }`}
                   >
-                    <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
                     {message.sources && message.role === 'assistant' && (
-                      <div className="mt-3 pt-2 border-t border-border/30">
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Shield className="w-3 h-3" />
-                          Sources: {message.sources.join(', ')}
-                        </p>
+                      <div className="mt-3 pt-3 border-t border-border/30">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <Shield className="w-3 h-3 text-muted-foreground flex-shrink-0" />
+                          {message.sources.map((source, i) => (
+                            <Badge key={i} variant="outline" className="text-[10px] bg-background/50">
+                              {source}
+                            </Badge>
+                          ))}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -290,7 +328,7 @@ export function HealthAIChatbot() {
                     <Button
                       size="icon"
                       variant="ghost"
-                      className="h-8 w-8"
+                      className="h-9 w-9 rounded-full hover:bg-primary/10"
                       onClick={() => toggleSpeech(message.content)}
                     >
                       {isSpeaking ? (
@@ -301,7 +339,7 @@ export function HealthAIChatbot() {
                     </Button>
                   )}
                 </div>
-                <p className={`text-xs mt-1 ${message.role === 'user' ? 'text-right' : 'ml-10'} text-muted-foreground`}>
+                <p className={`text-[10px] mt-2 ${message.role === 'user' ? 'text-right' : 'ml-12'} text-muted-foreground`}>
                   {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                 </p>
               </div>
@@ -309,16 +347,20 @@ export function HealthAIChatbot() {
           ))}
           
           {isTyping && (
-            <div className="flex justify-start">
-              <div className="flex items-start gap-2">
-                <Avatar className="w-8 h-8">
-                  <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+            <div className="flex justify-start animate-in fade-in duration-200">
+              <div className="flex items-start gap-3">
+                <Avatar className="w-9 h-9 shadow-sm">
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-primary/80 text-white">
                     <Bot className="w-4 h-4" />
                   </AvatarFallback>
                 </Avatar>
-                <div className="bg-muted rounded-2xl rounded-bl-md p-4">
-                  <div className="flex items-center gap-2">
-                    <Loader2 className="w-4 h-4 animate-spin" />
+                <div className="bg-muted/80 rounded-2xl rounded-bl-md p-4 shadow-sm">
+                  <div className="flex items-center gap-3">
+                    <div className="flex gap-1">
+                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </div>
                     <span className="text-sm text-muted-foreground">Analyzing with WHO guidelines...</span>
                   </div>
                 </div>
@@ -329,50 +371,48 @@ export function HealthAIChatbot() {
         </div>
       </ScrollArea>
 
-      {/* Quick Topics */}
-      <div className="px-4 pb-2">
-        <div className="flex gap-2 overflow-x-auto pb-2">
-          {['Malaria', 'Fever', 'Nutrition', 'First Aid', 'Mental Health'].map((topic) => (
-            <Button
-              key={topic}
-              variant="outline"
-              size="sm"
-              className="whitespace-nowrap text-xs"
-              onClick={() => setInputMessage(`Tell me about ${topic.toLowerCase()}`)}
-            >
-              {topic}
-            </Button>
-          ))}
+      {/* Warning Banner */}
+      <div className="px-4 py-2 bg-amber-500/10 border-y border-amber-500/20">
+        <div className="flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          <span>For emergencies, call 999. This AI provides information only, not medical diagnosis.</span>
         </div>
       </div>
 
-      {/* Input */}
-      <div className="p-4 border-t">
-        <div className="flex gap-2">
+      {/* Input Area */}
+      <div className="p-4 bg-muted/30">
+        <div className="flex gap-2 items-center">
           <Button
+            variant={isListening ? 'destructive' : 'outline'}
             size="icon"
-            variant={isListening ? 'default' : 'outline'}
             onClick={toggleListening}
-            className={isListening ? 'animate-pulse' : ''}
+            className={`rounded-full flex-shrink-0 ${isListening ? 'animate-pulse' : ''}`}
           >
             {isListening ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
           </Button>
-          <Input
-            placeholder="Describe your symptoms or ask a health question..."
-            value={inputMessage}
-            onChange={(e) => setInputMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            disabled={isTyping}
-            className="flex-1"
-          />
-          <Button onClick={handleSendMessage} disabled={isTyping || !inputMessage.trim()}>
-            <Send className="w-4 h-4" />
+          <div className="relative flex-1">
+            <Input
+              value={inputMessage}
+              onChange={(e) => setInputMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type your health question..."
+              className="pr-12 rounded-full border-muted-foreground/20 bg-background"
+              disabled={isTyping}
+            />
+          </div>
+          <Button
+            onClick={() => handleSendMessage()}
+            disabled={!inputMessage.trim() || isTyping}
+            size="icon"
+            className="rounded-full flex-shrink-0 bg-primary hover:bg-primary/90"
+          >
+            {isTyping ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Send className="w-4 h-4" />
+            )}
           </Button>
         </div>
-        <p className="text-xs text-center text-muted-foreground mt-2 flex items-center justify-center gap-1">
-          <AlertTriangle className="w-3 h-3" />
-          For emergencies, call 999 immediately
-        </p>
       </div>
     </Card>
   );

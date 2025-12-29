@@ -1,15 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  Gamepad2, Heart, Apple, Droplets, Activity, Brain, 
-  Trophy, Star, Timer, RefreshCcw, CheckCircle, XCircle,
-  Zap, Target, Sparkles, Crown
+  Gamepad2, Heart, Brain, 
+  Trophy, Star, RefreshCcw, CheckCircle, XCircle,
+  Zap, Target, Sparkles, Crown, ArrowLeft, Timer,
+  Flame, Medal
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -57,6 +58,7 @@ export default function Games() {
 
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
+  const [streak, setStreak] = useState(0);
 
   // Memory Match State
   const [memoryCards, setMemoryCards] = useState<Array<{ id: number; emoji: string; name: string; isFlipped: boolean; isMatched: boolean }>>([]);
@@ -69,7 +71,6 @@ export default function Games() {
   const [reactionLives, setReactionLives] = useState(3);
   const [currentFact, setCurrentFact] = useState<typeof healthFacts[0] | null>(null);
   const [factIndex, setFactIndex] = useState(0);
-  const [reactionTime, setReactionTime] = useState(10);
 
   // Catch Game State
   const [catchScore, setCatchScore] = useState(0);
@@ -122,18 +123,20 @@ export default function Games() {
           setMemoryCards(matchedCards);
           setSelectedCards([]);
           setMemoryMatches(prev => prev + 1);
+          setStreak(prev => prev + 1);
 
           if (memoryMatches + 1 === healthCards.length) {
             const points = Math.max(100 - memoryMoves * 2, 20);
             setTotalPoints(prev => prev + points);
             updateChildPoints(points);
             toast({
-              title: "🎉 You Won!",
-              description: `+${points} points! Completed in ${memoryMoves + 1} moves`,
+              title: "🎉 Victory!",
+              description: `+${points} points earned!`,
             });
           }
         }, 500);
       } else {
+        setStreak(0);
         setTimeout(() => {
           const resetCards = [...newCards];
           resetCards[selectedCards[0]].isFlipped = false;
@@ -151,8 +154,8 @@ export default function Games() {
     setReactionLives(3);
     setFactIndex(0);
     setCurrentFact(healthFacts[0]);
-    setReactionTime(10);
     setActiveGame('reaction');
+    setStreak(0);
   };
 
   // Handle Reaction Answer
@@ -161,16 +164,17 @@ export default function Games() {
 
     if (answer === currentFact.isTrue) {
       setReactionScore(prev => prev + 10);
-      toast({ title: "✅ Correct!", description: "+10 points" });
+      setStreak(prev => prev + 1);
+      toast({ title: "✅ Correct!", description: `+10 points • Streak: ${streak + 1}` });
     } else {
       setReactionLives(prev => prev - 1);
+      setStreak(0);
       toast({ title: "❌ Wrong!", description: "Lost a life", variant: "destructive" });
     }
 
     if (factIndex + 1 < healthFacts.length && reactionLives > 1) {
       setFactIndex(prev => prev + 1);
       setCurrentFact(healthFacts[factIndex + 1]);
-      setReactionTime(10);
     } else {
       const points = reactionScore + (answer === currentFact.isTrue ? 10 : 0);
       setTotalPoints(prev => prev + points);
@@ -214,7 +218,6 @@ export default function Games() {
       setFallingItems(prev => {
         const updated = prev.map(item => ({ ...item, y: item.y + 5 }));
         
-        // Check catches and misses
         updated.forEach(item => {
           if (item.y >= 85 && item.y < 90) {
             const caught = Math.abs(item.x - basketPosition) < 15;
@@ -224,8 +227,6 @@ export default function Games() {
               } else {
                 setCatchLives(l => l - 1);
               }
-            } else if (item.isHealthy) {
-              // Missed healthy food
             }
           }
         });
@@ -252,7 +253,7 @@ export default function Games() {
       });
       setTimeout(() => setActiveGame(null), 2000);
     }
-  }, [catchLives]);
+  }, [catchLives, activeGame, catchScore, toast, updateChildPoints]);
 
   // Keyboard controls for catch game
   useEffect(() => {
@@ -276,24 +277,30 @@ export default function Games() {
       title: 'Health Memory Match',
       description: 'Match healthy food and activity cards!',
       icon: Brain,
-      color: 'from-purple-500 to-pink-500',
+      gradient: 'from-violet-500 to-purple-600',
+      bgGradient: 'from-violet-500/10 to-purple-600/10',
       difficulty: 'Easy',
+      points: '50-100',
     },
     {
       id: 'reaction',
       title: 'Health Fact or Fiction',
       description: 'Quick! Is this health fact true or false?',
       icon: Zap,
-      color: 'from-yellow-500 to-orange-500',
+      gradient: 'from-amber-500 to-orange-600',
+      bgGradient: 'from-amber-500/10 to-orange-600/10',
       difficulty: 'Medium',
+      points: '10-80',
     },
     {
       id: 'catch',
       title: 'Nutrition Catch',
       description: 'Catch healthy foods, avoid junk food!',
       icon: Target,
-      color: 'from-green-500 to-emerald-500',
+      gradient: 'from-emerald-500 to-green-600',
+      bgGradient: 'from-emerald-500/10 to-green-600/10',
       difficulty: 'Hard',
+      points: '100+',
     },
   ];
 
@@ -302,40 +309,57 @@ export default function Games() {
     switch (activeGame) {
       case 'memory':
         return (
-          <Card className="border-0 shadow-elegant">
-            <CardHeader>
+          <Card className="border-0 shadow-elegant overflow-hidden">
+            <div className="bg-gradient-to-r from-violet-500 to-purple-600 p-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Brain className="w-5 h-5 text-purple-500" />
-                  Health Memory Match
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setActiveGame(null)}>
-                  <XCircle className="w-5 h-5" />
+                <Button variant="ghost" size="icon" onClick={() => setActiveGame(null)} className="text-white hover:bg-white/20">
+                  <ArrowLeft className="w-5 h-5" />
                 </Button>
+                <div className="flex items-center gap-2">
+                  <Brain className="w-5 h-5 text-white" />
+                  <span className="font-bold text-white">Memory Match</span>
+                </div>
+                <div className="flex gap-2">
+                  <Badge className="bg-white/20 text-white border-0">Moves: {memoryMoves}</Badge>
+                </div>
               </div>
-              <div className="flex gap-4 text-sm">
-                <Badge variant="outline">Moves: {memoryMoves}</Badge>
-                <Badge variant="outline">Matches: {memoryMatches}/{healthCards.length}</Badge>
+            </div>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                  <span className="font-medium">{memoryMatches}/{healthCards.length} Matches</span>
+                </div>
+                {streak > 1 && (
+                  <Badge className="bg-gradient-to-r from-amber-500 to-orange-500 text-white animate-pulse">
+                    <Flame className="w-3 h-3 mr-1" />
+                    {streak} Streak!
+                  </Badge>
+                )}
               </div>
-            </CardHeader>
-            <CardContent>
+              <Progress value={(memoryMatches / healthCards.length) * 100} className="h-2 mb-6" />
+              
               <div className="grid grid-cols-4 gap-3">
                 {memoryCards.map((card, index) => (
                   <button
                     key={card.id}
                     onClick={() => handleCardClick(index)}
-                    className={`aspect-square rounded-xl text-3xl flex items-center justify-center transition-all duration-300 ${
+                    className={`aspect-square rounded-2xl text-3xl md:text-4xl flex items-center justify-center transition-all duration-300 transform ${
                       card.isFlipped || card.isMatched
-                        ? 'bg-primary/20 scale-100'
-                        : 'bg-gradient-to-br from-purple-500 to-pink-500 hover:scale-105'
-                    } ${card.isMatched ? 'opacity-50' : ''}`}
+                        ? 'bg-gradient-to-br from-violet-100 to-purple-100 dark:from-violet-900/30 dark:to-purple-900/30 scale-100 rotate-0'
+                        : 'bg-gradient-to-br from-violet-500 to-purple-600 hover:scale-105 hover:shadow-lg cursor-pointer'
+                    } ${card.isMatched ? 'opacity-60 ring-2 ring-success' : ''}`}
+                    style={{ 
+                      transform: card.isFlipped || card.isMatched ? 'rotateY(0deg)' : 'rotateY(0deg)',
+                      transition: 'all 0.3s ease'
+                    }}
                   >
                     {card.isFlipped || card.isMatched ? card.emoji : '❓'}
                   </button>
                 ))}
               </div>
-              <Button onClick={startMemoryGame} variant="outline" className="w-full mt-4">
-                <RefreshCcw className="w-4 h-4 mr-2" />
+              <Button onClick={startMemoryGame} variant="outline" className="w-full mt-6 gap-2">
+                <RefreshCcw className="w-4 h-4" />
                 Restart Game
               </Button>
             </CardContent>
@@ -344,34 +368,49 @@ export default function Games() {
 
       case 'reaction':
         return (
-          <Card className="border-0 shadow-elegant">
-            <CardHeader>
+          <Card className="border-0 shadow-elegant overflow-hidden">
+            <div className="bg-gradient-to-r from-amber-500 to-orange-600 p-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="w-5 h-5 text-yellow-500" />
-                  Health Fact or Fiction
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => setActiveGame(null)}>
-                  <XCircle className="w-5 h-5" />
+                <Button variant="ghost" size="icon" onClick={() => setActiveGame(null)} className="text-white hover:bg-white/20">
+                  <ArrowLeft className="w-5 h-5" />
                 </Button>
-              </div>
-              <div className="flex gap-4 text-sm">
-                <Badge variant="outline" className="bg-success/10">Score: {reactionScore}</Badge>
-                <Badge variant="outline" className="bg-destructive/10">
-                  Lives: {'❤️'.repeat(reactionLives)}
+                <div className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-white" />
+                  <span className="font-bold text-white">Fact or Fiction</span>
+                </div>
+                <Badge className="bg-white/20 text-white border-0">
+                  Q{factIndex + 1}/{healthFacts.length}
                 </Badge>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-6">
+            </div>
+            <CardContent className="p-6 space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-amber-500" />
+                  <span className="font-bold text-xl">{reactionScore}</span>
+                  <span className="text-muted-foreground">pts</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Heart 
+                      key={i} 
+                      className={`w-6 h-6 transition-all ${i < reactionLives ? 'text-red-500 fill-red-500' : 'text-muted-foreground/30'}`}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              <Progress value={(factIndex / healthFacts.length) * 100} className="h-2" />
+
               {currentFact && (
                 <>
-                  <div className="p-6 rounded-2xl bg-gradient-to-br from-yellow-500/10 to-orange-500/10 border-2 border-yellow-500/30 text-center">
-                    <p className="text-xl font-medium">{currentFact.text}</p>
+                  <div className="p-6 md:p-8 rounded-3xl bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 text-center min-h-[120px] flex items-center justify-center">
+                    <p className="text-lg md:text-xl font-medium">{currentFact.text}</p>
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <Button 
                       size="lg" 
-                      className="h-16 bg-success hover:bg-success/90"
+                      className="h-16 text-lg bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 shadow-lg"
                       onClick={() => handleReactionAnswer(true)}
                     >
                       <CheckCircle className="w-6 h-6 mr-2" />
@@ -379,17 +418,13 @@ export default function Games() {
                     </Button>
                     <Button 
                       size="lg" 
-                      className="h-16 bg-destructive hover:bg-destructive/90"
+                      className="h-16 text-lg bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 shadow-lg"
                       onClick={() => handleReactionAnswer(false)}
                     >
                       <XCircle className="w-6 h-6 mr-2" />
                       FALSE
                     </Button>
                   </div>
-                  <Progress value={(factIndex / healthFacts.length) * 100} className="h-2" />
-                  <p className="text-center text-sm text-muted-foreground">
-                    Question {factIndex + 1} of {healthFacts.length}
-                  </p>
                 </>
               )}
             </CardContent>
@@ -399,30 +434,50 @@ export default function Games() {
       case 'catch':
         return (
           <Card className="border-0 shadow-elegant overflow-hidden">
-            <CardHeader>
+            <div className="bg-gradient-to-r from-emerald-500 to-green-600 p-4">
               <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-green-500" />
-                  Nutrition Catch
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => { setActiveGame(null); setCatchGameActive(false); }}>
-                  <XCircle className="w-5 h-5" />
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  onClick={() => { setActiveGame(null); setCatchGameActive(false); }} 
+                  className="text-white hover:bg-white/20"
+                >
+                  <ArrowLeft className="w-5 h-5" />
                 </Button>
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-white" />
+                  <span className="font-bold text-white">Nutrition Catch</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 3 }).map((_, i) => (
+                    <Heart 
+                      key={i} 
+                      className={`w-5 h-5 transition-all ${i < catchLives ? 'text-white fill-white' : 'text-white/30'}`}
+                    />
+                  ))}
+                </div>
               </div>
-              <div className="flex gap-4 text-sm">
-                <Badge variant="outline" className="bg-success/10">Score: {catchScore}</Badge>
-                <Badge variant="outline" className="bg-destructive/10">
-                  Lives: {'❤️'.repeat(Math.max(0, catchLives))}
-                </Badge>
-              </div>
-            </CardHeader>
+            </div>
             <CardContent className="p-0">
-              <div className="relative h-80 bg-gradient-to-b from-sky-200 to-green-200 dark:from-sky-900 dark:to-green-900 overflow-hidden">
+              <div className="p-4 flex items-center justify-between border-b">
+                <div className="flex items-center gap-2">
+                  <Star className="w-5 h-5 text-amber-500" />
+                  <span className="font-bold text-xl">{catchScore}</span>
+                  <span className="text-muted-foreground">pts</span>
+                </div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span>🍎 = +10</span>
+                  <span className="text-muted-foreground/50">|</span>
+                  <span>🍔 = -❤️</span>
+                </div>
+              </div>
+              
+              <div className="relative h-72 md:h-80 bg-gradient-to-b from-sky-200 via-sky-100 to-green-200 dark:from-sky-900 dark:via-sky-800 dark:to-green-900 overflow-hidden">
                 {/* Falling Items */}
                 {fallingItems.map(item => (
                   <div
                     key={item.id}
-                    className="absolute text-3xl transition-all duration-100"
+                    className="absolute text-3xl md:text-4xl transition-all duration-100 drop-shadow-lg"
                     style={{
                       left: `${item.x}%`,
                       top: `${item.y}%`,
@@ -435,33 +490,28 @@ export default function Games() {
                 
                 {/* Basket */}
                 <div
-                  className="absolute bottom-4 text-4xl transition-all duration-100"
+                  className="absolute bottom-6 text-5xl transition-all duration-100"
                   style={{ left: `${basketPosition}%`, transform: 'translateX(-50%)' }}
                 >
                   🧺
                 </div>
-
-                {/* Instructions */}
-                <div className="absolute bottom-2 left-2 right-2 text-center text-xs text-muted-foreground bg-background/80 rounded p-1">
-                  Use ← → arrows or tap sides to move basket
-                </div>
               </div>
 
               {/* Mobile Controls */}
-              <div className="grid grid-cols-2 gap-2 p-4">
+              <div className="grid grid-cols-2 gap-2 p-4 bg-muted/30">
                 <Button 
                   variant="outline" 
-                  className="h-12"
+                  className="h-14 text-lg font-medium"
                   onClick={() => setBasketPosition(prev => Math.max(10, prev - 10))}
                 >
-                  ← Left
+                  ← Move Left
                 </Button>
                 <Button 
                   variant="outline" 
-                  className="h-12"
+                  className="h-14 text-lg font-medium"
                   onClick={() => setBasketPosition(prev => Math.min(90, prev + 10))}
                 >
-                  Right →
+                  Move Right →
                 </Button>
               </div>
             </CardContent>
@@ -477,90 +527,125 @@ export default function Games() {
     <DashboardLayout>
       <div className="p-4 md:p-6 space-y-6">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-            <Gamepad2 className="w-7 h-7 text-white" />
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-lg">
+              <Gamepad2 className="w-8 h-8 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl md:text-3xl font-bold">Health Games</h1>
+              <p className="text-muted-foreground">Learn while having fun!</p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">Health Games</h1>
-            <p className="text-muted-foreground">Play, learn, and earn points!</p>
+          
+          {/* Stats Cards */}
+          <div className="flex gap-3">
+            <Card className="border-0 shadow-elegant bg-gradient-to-br from-amber-500/10 to-orange-500/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
+                  <Trophy className="w-5 h-5 text-amber-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Total Points</p>
+                  <p className="text-xl font-bold">{totalPoints}</p>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="border-0 shadow-elegant bg-gradient-to-br from-violet-500/10 to-purple-500/10">
+              <CardContent className="p-4 flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center">
+                  <Medal className="w-5 h-5 text-violet-500" />
+                </div>
+                <div>
+                  <p className="text-xs text-muted-foreground">Best Streak</p>
+                  <p className="text-xl font-bold">{streak}</p>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
 
-        {/* Points Display */}
-        <Card className="border-0 shadow-elegant bg-gradient-to-br from-yellow-500/10 to-orange-500/10">
-          <CardContent className="p-4 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-12 h-12 rounded-xl bg-yellow-500/20 flex items-center justify-center">
-                <Trophy className="w-6 h-6 text-yellow-500" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Session Points</p>
-                <p className="text-2xl font-bold">{totalPoints}</p>
-              </div>
-            </div>
-            <Badge className="bg-yellow-500 text-white">
-              <Crown className="w-4 h-4 mr-1" />
-              Gamer
-            </Badge>
-          </CardContent>
-        </Card>
-
         {/* Active Game or Game Selection */}
         {activeGame ? (
-          renderGame()
+          <div className="animate-in fade-in slide-in-from-bottom-4 duration-300">
+            {renderGame()}
+          </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-3">
-            {games.map((game) => {
-              const Icon = game.icon;
-              return (
-                <Card 
-                  key={game.id}
-                  className="border-0 shadow-elegant hover:shadow-lg transition-all cursor-pointer hover:scale-[1.02]"
-                  onClick={() => {
-                    if (game.id === 'memory') startMemoryGame();
-                    else if (game.id === 'reaction') startReactionGame();
-                    else if (game.id === 'catch') startCatchGame();
-                  }}
-                >
-                  <CardContent className="p-6">
-                    <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${game.color} flex items-center justify-center mb-4`}>
-                      <Icon className="w-8 h-8 text-white" />
-                    </div>
-                    <h3 className="font-bold text-lg mb-1">{game.title}</h3>
-                    <p className="text-sm text-muted-foreground mb-3">{game.description}</p>
-                    <Badge variant="outline">{game.difficulty}</Badge>
-                  </CardContent>
-                </Card>
-              );
-            })}
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {games.map((game, index) => (
+              <Card 
+                key={game.id}
+                className="group border-0 shadow-elegant cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-2 overflow-hidden"
+                style={{ animationDelay: `${index * 100}ms` }}
+                onClick={() => {
+                  if (game.id === 'memory') startMemoryGame();
+                  else if (game.id === 'reaction') startReactionGame();
+                  else if (game.id === 'catch') startCatchGame();
+                }}
+              >
+                <div className={`h-2 bg-gradient-to-r ${game.gradient}`} />
+                <CardContent className="p-6">
+                  <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${game.gradient} flex items-center justify-center mb-4 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
+                    <game.icon className="w-8 h-8 text-white" />
+                  </div>
+                  <h3 className="text-xl font-bold mb-2 group-hover:text-primary transition-colors">{game.title}</h3>
+                  <p className="text-muted-foreground text-sm mb-4">{game.description}</p>
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="text-xs">
+                      {game.difficulty}
+                    </Badge>
+                    <Badge variant="secondary" className="text-xs">
+                      <Star className="w-3 h-3 mr-1" />
+                      {game.points} pts
+                    </Badge>
+                  </div>
+                </CardContent>
+                <div className={`p-4 bg-gradient-to-r ${game.bgGradient} flex items-center justify-center gap-2 group-hover:bg-opacity-100 transition-all`}>
+                  <Sparkles className="w-4 h-4" />
+                  <span className="font-medium">Play Now</span>
+                </div>
+              </Card>
+            ))}
           </div>
         )}
 
-        {/* Tips */}
+        {/* How to Earn Points */}
         {!activeGame && (
-          <Card className="border-0 shadow-elegant">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                How to Earn More Points
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <ul className="space-y-2 text-sm text-muted-foreground">
-                <li className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-yellow-500" />
-                  Complete Memory Match with fewer moves for bonus points
-                </li>
-                <li className="flex items-center gap-2">
-                  <Heart className="w-4 h-4 text-red-500" />
-                  Keep all your lives in Fact or Fiction
-                </li>
-                <li className="flex items-center gap-2">
-                  <Apple className="w-4 h-4 text-green-500" />
-                  Catch only healthy foods for maximum score
-                </li>
-              </ul>
+          <Card className="border-0 shadow-elegant bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Crown className="w-6 h-6 text-amber-500" />
+                <h3 className="font-bold text-lg">How to Earn Points</h3>
+              </div>
+              <div className="grid md:grid-cols-3 gap-4">
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                  <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                    <Brain className="w-5 h-5 text-violet-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Memory Match</p>
+                    <p className="text-sm text-muted-foreground">Fewer moves = More points</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                    <Zap className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Fact or Fiction</p>
+                    <p className="text-sm text-muted-foreground">10 points per correct answer</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <Target className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Nutrition Catch</p>
+                    <p className="text-sm text-muted-foreground">Catch healthy foods for points</p>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         )}

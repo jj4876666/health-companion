@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { PremiumBanner } from '@/components/premium/PremiumBanner';
+import { DailyTargets } from '@/components/targets/DailyTargets';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
-  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope
+  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -129,8 +130,12 @@ export function AdultDashboard() {
       )}
 
       {/* Main Content */}
-      <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+      <Tabs defaultValue="targets" className="w-full">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="targets" className="gap-2">
+            <Target className="w-4 h-4" />
+            Goals
+          </TabsTrigger>
           <TabsTrigger value="profile" className="gap-2">
             <User className="w-4 h-4" />
             Profile
@@ -141,13 +146,18 @@ export function AdultDashboard() {
           </TabsTrigger>
           <TabsTrigger value="medications" className="gap-2">
             <Pill className="w-4 h-4" />
-            Medications
+            Meds
           </TabsTrigger>
           <TabsTrigger value="allergies" className="gap-2">
             <AlertTriangle className="w-4 h-4" />
             Allergies
           </TabsTrigger>
         </TabsList>
+
+        {/* Daily Targets Tab */}
+        <TabsContent value="targets" className="space-y-4 mt-4">
+          <DailyTargets />
+        </TabsContent>
 
         {/* Profile Tab */}
         <TabsContent value="profile" className="space-y-4 mt-4">

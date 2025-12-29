@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useLanguage } from "@/contexts/LanguageContext";
-import { LiveLocationMap } from "@/components/maps/LiveLocationMap";
+import { GoogleMapsDemo } from "@/components/maps/GoogleMapsDemo";
 import { demoFacilities } from "@/data/healthFacilities";
 import { 
   Phone, 
@@ -175,8 +175,9 @@ const Emergency = () => {
 
           {/* Live Location Tab */}
           <TabsContent value="location" className="space-y-4">
-            <LiveLocationMap 
+            <GoogleMapsDemo 
               showFacilities={true} 
+              isEmergency={true}
               onSelectFacility={(id) => setSelectedFacility(demoFacilities.find(f => f.id === id)?.name || null)} 
             />
           </TabsContent>

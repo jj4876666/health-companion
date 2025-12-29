@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Nunito:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=Nunito:wght@400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -6,139 +6,152 @@
 
 @layer base {
   :root {
-    /* EMEC Brand Colors - Teal #4DB6AC, Yellow #FFD54F, Orange #FFB74D */
-    --background: 165 25% 97%;
-    --foreground: 200 25% 15%;
+    /* EMEC Brand Colors - Refined Teal Palette */
+    --background: 165 30% 98%;
+    --foreground: 200 30% 12%;
 
     --card: 0 0% 100%;
-    --card-foreground: 200 25% 15%;
+    --card-foreground: 200 30% 12%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 200 25% 15%;
+    --popover-foreground: 200 30% 12%;
 
-    /* EMEC Teal Primary */
-    --primary: 174 42% 51%;
+    /* EMEC Teal Primary - More vibrant */
+    --primary: 174 50% 45%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 174 35% 92%;
-    --secondary-foreground: 174 42% 35%;
+    --secondary: 174 40% 94%;
+    --secondary-foreground: 174 50% 30%;
 
-    --muted: 165 20% 95%;
-    --muted-foreground: 200 15% 45%;
+    --muted: 165 25% 96%;
+    --muted-foreground: 200 18% 50%;
 
-    /* EMEC Orange Accent */
-    --accent: 33 100% 65%;
-    --accent-foreground: 200 25% 15%;
+    /* EMEC Accent - Warm Orange */
+    --accent: 28 100% 58%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 72% 55%;
+    --destructive: 0 75% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 165 20% 88%;
-    --input: 165 20% 88%;
-    --ring: 174 42% 51%;
+    --border: 165 25% 90%;
+    --input: 165 25% 90%;
+    --ring: 174 50% 45%;
 
     --radius: 1rem;
 
-    /* Custom EMEC tokens */
-    --success: 158 64% 45%;
+    /* Custom EMEC tokens - Enhanced */
+    --success: 158 70% 42%;
     --success-foreground: 0 0% 100%;
-    --warning: 45 100% 64%;
-    --warning-foreground: 200 25% 15%;
+    --warning: 42 100% 58%;
+    --warning-foreground: 200 30% 12%;
     
-    /* EMEC Yellow */
-    --emec-yellow: 45 100% 64%;
-    --emec-orange: 33 100% 65%;
-    --emec-teal: 174 42% 51%;
+    /* EMEC Brand Colors - Refined */
+    --emec-yellow: 42 100% 62%;
+    --emec-orange: 28 100% 58%;
+    --emec-teal: 174 50% 45%;
 
-    /* Child-friendly colors */
-    --child-primary: 280 60% 65%;
-    --child-secondary: 45 100% 70%;
-    --child-accent: 340 80% 65%;
+    /* Child-friendly colors - More vibrant */
+    --child-primary: 275 65% 62%;
+    --child-secondary: 42 100% 68%;
+    --child-accent: 340 85% 60%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(174, 42%, 51%) 0%, hsl(165, 50%, 60%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(165, 25%, 97%) 0%, hsl(174, 30%, 94%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(165, 20%, 98%) 100%);
-    --gradient-emergency: linear-gradient(135deg, hsl(0, 72%, 55%) 0%, hsl(16, 85%, 60%) 100%);
-    --gradient-child: linear-gradient(135deg, hsl(280, 60%, 65%) 0%, hsl(340, 80%, 65%) 100%);
-    --gradient-emec: linear-gradient(135deg, hsl(174, 42%, 51%) 0%, hsl(45, 100%, 64%) 100%);
+    /* Premium Gold */
+    --premium-gold: 42 90% 55%;
+    --premium-gold-light: 42 100% 75%;
 
-    /* Shadows */
-    --shadow-sm: 0 2px 8px hsl(174, 40%, 50%, 0.08);
-    --shadow-md: 0 4px 20px hsl(174, 40%, 50%, 0.12);
-    --shadow-lg: 0 8px 40px hsl(174, 40%, 50%, 0.15);
-    --shadow-glow: 0 0 30px hsl(174, 42%, 51%, 0.25);
-    --shadow-child: 0 4px 20px hsl(280, 60%, 50%, 0.2);
+    /* Gradients - More sophisticated */
+    --gradient-primary: linear-gradient(135deg, hsl(174, 50%, 45%) 0%, hsl(158, 55%, 50%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(165, 30%, 98%) 0%, hsl(174, 35%, 96%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(0, 0%, 100%) 0%, hsl(165, 25%, 99%) 100%);
+    --gradient-emergency: linear-gradient(135deg, hsl(0, 75%, 50%) 0%, hsl(20, 90%, 55%) 100%);
+    --gradient-child: linear-gradient(135deg, hsl(275, 65%, 62%) 0%, hsl(340, 85%, 60%) 100%);
+    --gradient-emec: linear-gradient(135deg, hsl(174, 50%, 45%) 0%, hsl(42, 100%, 62%) 100%);
+    --gradient-premium: linear-gradient(135deg, hsl(42, 90%, 55%) 0%, hsl(28, 100%, 58%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.7) 100%);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 174 42% 51%;
+    /* Shadows - More refined with color */
+    --shadow-sm: 0 2px 8px hsl(174, 50%, 45%, 0.06);
+    --shadow-md: 0 4px 24px hsl(174, 50%, 45%, 0.1);
+    --shadow-lg: 0 8px 48px hsl(174, 50%, 45%, 0.12);
+    --shadow-glow: 0 0 40px hsl(174, 50%, 45%, 0.2);
+    --shadow-child: 0 6px 24px hsl(275, 65%, 50%, 0.18);
+    --shadow-premium: 0 6px 30px hsl(42, 90%, 55%, 0.25);
+
+    --sidebar-background: 0 0% 99%;
+    --sidebar-foreground: 200 30% 15%;
+    --sidebar-primary: 174 50% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 165 20% 95%;
-    --sidebar-accent-foreground: 200 25% 15%;
-    --sidebar-border: 165 20% 88%;
-    --sidebar-ring: 174 42% 51%;
+    --sidebar-accent: 165 25% 96%;
+    --sidebar-accent-foreground: 200 30% 12%;
+    --sidebar-border: 165 25% 92%;
+    --sidebar-ring: 174 50% 45%;
   }
 
   .dark {
-    --background: 200 25% 8%;
-    --foreground: 165 20% 95%;
+    --background: 200 30% 7%;
+    --foreground: 165 25% 96%;
 
-    --card: 200 25% 12%;
-    --card-foreground: 165 20% 95%;
+    --card: 200 28% 11%;
+    --card-foreground: 165 25% 96%;
 
-    --popover: 200 25% 12%;
-    --popover-foreground: 165 20% 95%;
+    --popover: 200 28% 11%;
+    --popover-foreground: 165 25% 96%;
 
-    --primary: 174 50% 55%;
-    --primary-foreground: 200 25% 8%;
+    --primary: 174 55% 52%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 200 25% 18%;
-    --secondary-foreground: 174 50% 70%;
+    --secondary: 200 28% 16%;
+    --secondary-foreground: 174 55% 72%;
 
-    --muted: 200 20% 18%;
-    --muted-foreground: 165 15% 60%;
+    --muted: 200 25% 15%;
+    --muted-foreground: 165 18% 62%;
 
-    --accent: 33 100% 60%;
-    --accent-foreground: 200 25% 8%;
+    --accent: 28 100% 58%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 62% 45%;
+    --destructive: 0 70% 48%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 200 20% 20%;
-    --input: 200 20% 20%;
-    --ring: 174 50% 55%;
+    --border: 200 25% 18%;
+    --input: 200 25% 18%;
+    --ring: 174 55% 52%;
 
-    --success: 158 64% 40%;
-    --warning: 45 100% 55%;
+    --success: 158 68% 45%;
+    --warning: 42 100% 58%;
 
-    --emec-yellow: 45 100% 60%;
-    --emec-orange: 33 100% 60%;
-    --emec-teal: 174 50% 55%;
+    --emec-yellow: 42 100% 62%;
+    --emec-orange: 28 100% 58%;
+    --emec-teal: 174 55% 52%;
 
-    --child-primary: 280 55% 60%;
-    --child-secondary: 45 90% 65%;
-    --child-accent: 340 75% 60%;
+    --child-primary: 275 60% 58%;
+    --child-secondary: 42 95% 68%;
+    --child-accent: 340 80% 58%;
 
-    --gradient-primary: linear-gradient(135deg, hsl(174, 50%, 55%) 0%, hsl(165, 50%, 50%) 100%);
-    --gradient-hero: linear-gradient(180deg, hsl(200, 25%, 8%) 0%, hsl(200, 25%, 12%) 100%);
-    --gradient-card: linear-gradient(145deg, hsl(200, 25%, 14%) 0%, hsl(200, 25%, 10%) 100%);
-    --gradient-child: linear-gradient(135deg, hsl(280, 55%, 60%) 0%, hsl(340, 75%, 60%) 100%);
-    --gradient-emec: linear-gradient(135deg, hsl(174, 50%, 55%) 0%, hsl(45, 100%, 60%) 100%);
+    --premium-gold: 42 90% 55%;
+    --premium-gold-light: 42 100% 70%;
 
-    --shadow-sm: 0 2px 8px hsl(0, 0%, 0%, 0.3);
-    --shadow-md: 0 4px 20px hsl(0, 0%, 0%, 0.4);
-    --shadow-lg: 0 8px 40px hsl(0, 0%, 0%, 0.5);
-    --shadow-child: 0 4px 20px hsl(280, 50%, 40%, 0.3);
+    --gradient-primary: linear-gradient(135deg, hsl(174, 55%, 52%) 0%, hsl(158, 60%, 48%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(200, 30%, 7%) 0%, hsl(200, 28%, 11%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(200, 28%, 13%) 0%, hsl(200, 28%, 9%) 100%);
+    --gradient-child: linear-gradient(135deg, hsl(275, 60%, 58%) 0%, hsl(340, 80%, 58%) 100%);
+    --gradient-emec: linear-gradient(135deg, hsl(174, 55%, 52%) 0%, hsl(42, 100%, 62%) 100%);
+    --gradient-premium: linear-gradient(135deg, hsl(42, 90%, 55%) 0%, hsl(28, 100%, 55%) 100%);
+    --gradient-glass: linear-gradient(135deg, rgba(30,40,50,0.9) 0%, rgba(30,40,50,0.7) 100%);
 
-    --sidebar-background: 200 25% 10%;
-    --sidebar-foreground: 165 20% 95%;
-    --sidebar-primary: 174 50% 55%;
+    --shadow-sm: 0 2px 8px hsl(0, 0%, 0%, 0.4);
+    --shadow-md: 0 4px 24px hsl(0, 0%, 0%, 0.5);
+    --shadow-lg: 0 8px 48px hsl(0, 0%, 0%, 0.6);
+    --shadow-child: 0 6px 24px hsl(275, 50%, 35%, 0.35);
+    --shadow-premium: 0 6px 30px hsl(42, 80%, 45%, 0.3);
+
+    --sidebar-background: 200 28% 9%;
+    --sidebar-foreground: 165 25% 96%;
+    --sidebar-primary: 174 55% 52%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 200 20% 15%;
-    --sidebar-accent-foreground: 165 20% 95%;
-    --sidebar-border: 200 20% 18%;
-    --sidebar-ring: 174 50% 55%;
+    --sidebar-accent: 200 25% 14%;
+    --sidebar-accent-foreground: 165 25% 96%;
+    --sidebar-border: 200 25% 16%;
+    --sidebar-ring: 174 55% 52%;
   }
 }
 
@@ -183,6 +196,16 @@
     background: var(--gradient-emec);
   }
 
+  .gradient-premium {
+    background: var(--gradient-premium);
+  }
+
+  .gradient-glass {
+    background: var(--gradient-glass);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+
   .shadow-elegant {
     box-shadow: var(--shadow-md);
   }
@@ -195,6 +218,41 @@
     box-shadow: var(--shadow-child);
   }
 
+  .shadow-premium {
+    box-shadow: var(--shadow-premium);
+  }
+
+  /* Glass morphism card */
+  .glass-card {
+    @apply rounded-2xl border border-border/50;
+    background: var(--gradient-glass);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Premium shimmer effect */
+  .shimmer {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shimmer::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    animation: shimmer 2.5s infinite;
+  }
+
+  @keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+  }
+
+  /* Animations - Enhanced */
   .animate-float {
     animation: float 3s ease-in-out infinite;
   }
@@ -208,11 +266,19 @@
   }
 
   .animate-slide-up {
-    animation: slide-up 0.5s ease-out forwards;
+    animation: slide-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .animate-slide-down {
-    animation: slide-down 0.3s ease-out forwards;
+    animation: slide-down 0.3s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .animate-fade-up {
+    animation: fade-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   }
 
   .animate-splash-fade {
@@ -223,28 +289,42 @@
     animation: logo-pop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
   }
 
+  .animate-glow-pulse {
+    animation: glow-pulse 2s ease-in-out infinite;
+  }
+
   @keyframes float {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-10px); }
+    50% { transform: translateY(-12px); }
   }
 
   @keyframes pulse-soft {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.7; }
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.85; transform: scale(0.98); }
   }
 
   @keyframes bounce-soft {
     0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-5px); }
+    50% { transform: translateY(-6px); }
   }
 
   @keyframes slide-up {
-    from { opacity: 0; transform: translateY(20px); }
+    from { opacity: 0; transform: translateY(24px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
   @keyframes slide-down {
-    from { opacity: 0; transform: translateY(-20px); }
+    from { opacity: 0; transform: translateY(-24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes scale-in {
+    from { opacity: 0; transform: scale(0.9); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
@@ -261,16 +341,43 @@
     100% { opacity: 1; transform: scale(1); }
   }
 
-  /* Child-friendly interactive styles */
+  @keyframes glow-pulse {
+    0%, 100% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+    50% { box-shadow: 0 0 40px hsl(var(--primary) / 0.5); }
+  }
+
+  /* Interactive hover states */
+  .hover-lift {
+    @apply transition-all duration-300;
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  /* Child-friendly interactive styles - Enhanced */
   .child-card {
-    @apply rounded-2xl p-6 transition-all duration-300;
+    @apply rounded-3xl p-6 transition-all duration-300 border-0;
     background: var(--gradient-card);
     box-shadow: var(--shadow-md);
   }
 
   .child-card:hover {
-    transform: translateY(-4px) scale(1.02);
+    transform: translateY(-6px) scale(1.02);
     box-shadow: var(--shadow-lg);
+  }
+
+  /* Premium card styling */
+  .premium-card {
+    @apply rounded-2xl p-6 transition-all duration-300 border-2;
+    border-color: hsl(var(--premium-gold) / 0.3);
+    background: linear-gradient(135deg, hsl(var(--premium-gold) / 0.08) 0%, hsl(var(--premium-gold) / 0.02) 100%);
+  }
+
+  .premium-card:hover {
+    border-color: hsl(var(--premium-gold) / 0.5);
+    box-shadow: var(--shadow-premium);
   }
 
   /* EMEC Logo text gradient */
@@ -291,11 +398,53 @@
     @apply absolute inset-0 bg-muted/80 backdrop-blur-sm;
   }
 
-  /* Points badge animation */
+  /* Points badge animation - Enhanced */
   .points-badge {
-    @apply inline-flex items-center gap-1 px-3 py-1 rounded-full font-bold text-sm;
+    @apply inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full font-bold text-sm;
     background: linear-gradient(135deg, hsl(var(--emec-yellow)) 0%, hsl(var(--emec-orange)) 100%);
     color: hsl(var(--foreground));
-    animation: bounce-soft 2s ease-in-out infinite;
+    box-shadow: 0 4px 12px hsl(var(--emec-orange) / 0.3);
+    animation: bounce-soft 2.5s ease-in-out infinite;
+  }
+
+  /* Interactive button glow */
+  .btn-glow {
+    @apply relative overflow-hidden;
+    box-shadow: 0 0 20px hsl(var(--primary) / 0.2);
+    transition: box-shadow 0.3s ease;
+  }
+
+  .btn-glow:hover {
+    box-shadow: 0 0 30px hsl(var(--primary) / 0.4);
+  }
+
+  /* Stat card number animation */
+  .stat-number {
+    @apply font-bold text-3xl tracking-tight;
+    font-family: 'Space Grotesk', 'DM Sans', sans-serif;
+  }
+
+  /* Smooth scrollbar */
+  .smooth-scroll {
+    scroll-behavior: smooth;
+  }
+
+  .smooth-scroll::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .smooth-scroll::-webkit-scrollbar-track {
+    background: hsl(var(--muted));
+    border-radius: 3px;
+  }
+
+  .smooth-scroll::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+
+  .smooth-scroll::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }

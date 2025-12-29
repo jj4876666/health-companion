@@ -10,9 +10,12 @@ const cardVariants = cva(
       variant: {
         default: "shadow-elegant hover:shadow-lg",
         elevated: "gradient-card shadow-lg hover:shadow-xl hover:-translate-y-1",
-        flat: "border-2",
+        flat: "border-2 shadow-none",
         interactive: "shadow-elegant hover:shadow-glow hover:-translate-y-2 cursor-pointer",
-        emergency: "border-destructive/20 bg-destructive/5",
+        emergency: "border-destructive/30 bg-destructive/5 shadow-md",
+        glass: "glass-card shadow-lg hover:shadow-xl",
+        premium: "premium-card",
+        child: "child-card border-0",
       },
     },
     defaultVariants: {
@@ -55,7 +58,7 @@ const CardTitle = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "text-2xl font-semibold leading-none tracking-tight",
+      "text-xl font-semibold leading-none tracking-tight",
       className
     )}
     {...props}

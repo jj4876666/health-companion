@@ -174,21 +174,25 @@ export function SecurePaymentProcessor({
 
   if (step === 'success') {
     return (
-      <Card className="border-0 shadow-elegant overflow-hidden">
-        <div className="bg-gradient-to-br from-green-500 to-emerald-500 p-8 text-white text-center">
-          <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+      <Card variant="elevated" className="overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-500 via-green-500 to-teal-500 p-8 text-white text-center relative overflow-hidden">
+          <div className="absolute inset-0 opacity-20">
+            <div className="absolute top-4 left-1/4 text-6xl animate-float">✨</div>
+            <div className="absolute bottom-4 right-1/4 text-4xl animate-bounce-soft">🎉</div>
+          </div>
+          <div className="w-20 h-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4 animate-scale-in">
             <CheckCircle className="w-10 h-10" />
           </div>
           <h2 className="text-2xl font-bold mb-2">Payment Successful!</h2>
           <p className="text-white/80">Transaction completed securely</p>
         </div>
         <CardContent className="p-6 text-center">
-          <div className="space-y-3">
-            <p className="text-3xl font-bold">{currency} {amount.toLocaleString()}</p>
+          <div className="space-y-4">
+            <p className="stat-number text-primary">{currency} {amount.toLocaleString()}</p>
             <p className="text-muted-foreground">{description}</p>
             <div className="flex items-center justify-center gap-2 text-sm text-success">
               <Shield className="w-4 h-4" />
-              <span>End-to-end encrypted</span>
+              <span>End-to-end encrypted transaction</span>
             </div>
           </div>
         </CardContent>
@@ -198,25 +202,31 @@ export function SecurePaymentProcessor({
 
   if (step === 'processing') {
     return (
-      <Card className="border-0 shadow-elegant">
+      <Card variant="elevated">
         <CardContent className="p-8 text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4 animate-pulse">
-            <Lock className="w-8 h-8 text-primary" />
+          <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+            <Lock className="w-10 h-10 text-primary animate-pulse-soft" />
           </div>
           <h3 className="text-xl font-semibold mb-2">Processing Payment</h3>
           <p className="text-muted-foreground mb-6">Encrypting and securing your transaction...</p>
           
           <div className="space-y-4">
-            <Progress value={progress} className="h-3" />
+            <div className="relative">
+              <Progress value={progress} className="h-3" />
+              <div className="absolute inset-0 shimmer rounded-full" />
+            </div>
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>Encrypting...</span>
-              <span>{progress}%</span>
+              <span className="flex items-center gap-1">
+                <Lock className="w-3 h-3" />
+                Encrypting...
+              </span>
+              <span className="font-mono">{progress}%</span>
             </div>
             
-            <div className="p-3 rounded-lg bg-muted/50 text-xs font-mono">
+            <div className="p-3 rounded-xl bg-muted/50 text-xs font-mono">
               <div className="flex items-center justify-center gap-2 text-primary">
                 <Key className="w-3 h-3" />
-                <span>Encryption Key: {encryptionKey}</span>
+                <span>Session: {encryptionKey}</span>
               </div>
             </div>
           </div>
@@ -227,14 +237,14 @@ export function SecurePaymentProcessor({
 
   if (step === 'verify') {
     return (
-      <Card className="border-0 shadow-elegant">
-        <CardHeader className="text-center">
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2">
-            <Fingerprint className="w-7 h-7 text-primary" />
+      <Card variant="elevated">
+        <CardHeader className="text-center pb-4">
+          <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-2">
+            <Fingerprint className="w-8 h-8 text-primary" />
           </div>
           <CardTitle>Verify Your Identity</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-5">
           <p className="text-center text-muted-foreground">
             Enter the 6-digit OTP sent to your device
           </p>
@@ -245,14 +255,13 @@ export function SecurePaymentProcessor({
                 key={i}
                 type="text"
                 maxLength={1}
-                className="w-12 h-12 text-center text-xl font-bold"
+                className="w-12 h-14 text-center text-xl font-bold rounded-xl border-2 focus:border-primary transition-colors"
                 value={otp[i] || ''}
                 onChange={(e) => {
                   const newOtp = otp.split('');
                   newOtp[i] = e.target.value;
                   setOtp(newOtp.join(''));
                   
-                  // Auto-focus next input
                   if (e.target.value && i < 5) {
                     const next = e.target.parentElement?.children[i + 1] as HTMLInputElement;
                     next?.focus();
@@ -266,11 +275,11 @@ export function SecurePaymentProcessor({
             Demo: Enter any 6 digits (e.g., 123456)
           </p>
 
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => setStep('input')} className="flex-1">
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={() => setStep('input')} className="flex-1 h-11">
               Back
             </Button>
-            <Button onClick={handleVerify} className="flex-1">
+            <Button onClick={handleVerify} className="flex-1 h-11 btn-glow">
               <Shield className="w-4 h-4 mr-2" />
               Verify & Pay
             </Button>
@@ -281,8 +290,8 @@ export function SecurePaymentProcessor({
   }
 
   return (
-    <Card className="border-0 shadow-elegant">
-      <CardHeader>
+    <Card variant="elevated">
+      <CardHeader className="pb-4">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2">
             <Lock className="w-5 h-5 text-success" />
@@ -296,9 +305,9 @@ export function SecurePaymentProcessor({
       </CardHeader>
       <CardContent className="space-y-6">
         {/* Amount Display */}
-        <div className="p-4 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 text-center">
-          <p className="text-sm text-muted-foreground">Amount to Pay</p>
-          <p className="text-3xl font-bold">{currency} {amount.toLocaleString()}</p>
+        <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 via-primary/5 to-transparent text-center border border-primary/10">
+          <p className="text-sm text-muted-foreground mb-1">Amount to Pay</p>
+          <p className="stat-number text-primary">{currency} {amount.toLocaleString()}</p>
           <p className="text-sm text-muted-foreground mt-1">{description}</p>
         </div>
 
@@ -310,14 +319,16 @@ export function SecurePaymentProcessor({
               <Button
                 key={method.id}
                 variant={selectedMethod === method.id ? 'default' : 'outline'}
-                className="flex-col h-auto py-3"
+                className={`flex-col h-auto py-4 rounded-xl transition-all ${
+                  selectedMethod === method.id ? 'ring-2 ring-primary ring-offset-2' : ''
+                }`}
                 onClick={() => {
                   setSelectedMethod(method.id);
                   setFormData({});
                 }}
               >
-                <Icon className="w-5 h-5 mb-1" />
-                <span className="text-xs">{method.name.split('/')[0]}</span>
+                <Icon className="w-5 h-5 mb-1.5" />
+                <span className="text-xs font-medium">{method.name.split('/')[0]}</span>
               </Button>
             );
           })}
@@ -325,7 +336,7 @@ export function SecurePaymentProcessor({
 
         {/* Payment Form Fields */}
         {currentMethod && (
-          <div className="space-y-3 animate-fade-in">
+          <div className="space-y-3 animate-fade-up">
             {currentMethod.fields.map((field) => (
               <div key={field.name} className="relative">
                 <Input
@@ -333,14 +344,14 @@ export function SecurePaymentProcessor({
                   placeholder={field.placeholder}
                   value={formData[field.name] || ''}
                   onChange={(e) => handleInputChange(field.name, e.target.value)}
-                  className="pr-10"
+                  className="pr-10 h-12 rounded-xl"
                 />
                 {field.masked && (
                   <Button
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className="absolute right-0 top-0 h-full"
+                    className="absolute right-1 top-1/2 -translate-y-1/2 h-9 w-9"
                     onClick={() => toggleMask(field.name)}
                   >
                     {showMasked[field.name] ? (
@@ -356,28 +367,28 @@ export function SecurePaymentProcessor({
         )}
 
         {/* Security Info */}
-        <div className="p-3 rounded-lg bg-muted/50 text-xs space-y-2">
-          <div className="flex items-center gap-2 text-success">
-            <CheckCircle className="w-3 h-3" />
+        <div className="p-4 rounded-xl bg-muted/50 space-y-2">
+          <div className="flex items-center gap-2 text-sm text-success">
+            <CheckCircle className="w-4 h-4" />
             <span>Your data is encrypted end-to-end</span>
           </div>
-          <div className="flex items-center gap-2 text-muted-foreground">
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
             <Key className="w-3 h-3" />
-            <span>Session Key: {encryptionKey}</span>
+            <span className="font-mono">Session: {encryptionKey}</span>
           </div>
         </div>
 
-        <Badge variant="outline" className="w-full justify-center py-2 bg-warning/10 text-warning-foreground border-warning/30">
+        <Badge variant="outline" className="w-full justify-center py-2.5 bg-warning/10 text-warning-foreground border-warning/30">
           <AlertCircle className="w-3 h-3 mr-2" />
           Demo Mode – No actual payment will be processed
         </Badge>
 
         {/* Action Buttons */}
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onCancel} className="flex-1">
+        <div className="flex gap-3">
+          <Button variant="outline" onClick={onCancel} className="flex-1 h-12">
             Cancel
           </Button>
-          <Button onClick={handleSubmit} className="flex-1">
+          <Button onClick={handleSubmit} className="flex-1 h-12 btn-glow">
             <Lock className="w-4 h-4 mr-2" />
             Pay {currency} {amount.toLocaleString()}
           </Button>

@@ -216,7 +216,9 @@ export function ParentDashboard() {
                         </span>
                       </div>
                       <p className="font-medium">{approval.description}</p>
-                      <p className="text-sm text-muted-foreground">For: {child.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        For: {linkedChildren.find(c => c.id === approval.childId)?.name || 'Child'}
+                      </p>
                     </div>
                   </div>
                   

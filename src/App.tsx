@@ -12,6 +12,7 @@ import { DemoProvider } from "@/contexts/DemoContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { LoginPage } from "@/components/auth/LoginPage";
+import { FloatingAIAssistant } from "@/components/chat/FloatingAIAssistant";
 import { DemoControls } from "@/components/demo/DemoControls";
 import Dashboard from "./pages/Dashboard";
 import Education from "./pages/Education";
@@ -85,6 +86,7 @@ const App = () => {
                       <BrowserRouter>
                         <AppRoutes />
                         <DemoControls />
+                        <FloatingAIAssistant />
                       </BrowserRouter>
                     )}
                   </TooltipProvider>

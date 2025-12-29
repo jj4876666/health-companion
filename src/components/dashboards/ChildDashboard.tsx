@@ -8,11 +8,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ConsentCodeModal } from '@/components/modals/ConsentCodeModal';
+import { ChildHealthRecords } from '@/components/records/ChildHealthRecords';
 import { 
   Star, Trophy, BookOpen, Heart, AlertTriangle, Gamepad2, 
   Lock, Sparkles, Gift, Droplets, Apple, Activity, Rocket,
-  Smile, Brain, Music, Palette, Sun, Moon, CloudSun, Zap
+  Smile, Brain, Music, Palette, Sun, Moon, CloudSun, Zap, FileText
 } from 'lucide-react';
 
 export function ChildDashboard() {
@@ -21,6 +23,7 @@ export function ChildDashboard() {
   const [showConsentModal, setShowConsentModal] = useState(false);
   const [restrictedAccess, setRestrictedAccess] = useState(false);
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('home');
   
   const child = (currentUser as ChildUser) || demoChild;
   const totalPoints = child.points || 250;
@@ -62,9 +65,24 @@ export function ChildDashboard() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-purple-100 via-pink-50 to-blue-100 dark:from-purple-900/20 dark:via-pink-900/10 dark:to-blue-900/20">
-      <div className="space-y-6 p-4 md:p-6">
-        {/* Animated Welcome Section */}
-        <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-2xl">
+      <div className="p-4 md:p-6">
+        {/* Tab Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2 rounded-2xl h-auto p-1 mb-6">
+            <TabsTrigger value="home" className="rounded-xl py-3 gap-2 text-base">
+              <span className="text-xl">🏠</span>
+              Home
+            </TabsTrigger>
+            <TabsTrigger value="records" className="rounded-xl py-3 gap-2 text-base">
+              <FileText className="w-5 h-5" />
+              My Health
+            </TabsTrigger>
+          </TabsList>
+
+          {/* Home Tab */}
+          <TabsContent value="home" className="space-y-6 mt-0">
+            {/* Animated Welcome Section */}
+            <div className="relative overflow-hidden rounded-3xl p-6 bg-gradient-to-r from-purple-500 via-pink-500 to-orange-400 text-white shadow-2xl">
           {/* Floating Decorations */}
           <div className="absolute top-2 right-8 text-4xl animate-bounce" style={{ animationDelay: '0s' }}>⭐</div>
           <div className="absolute top-12 right-20 text-3xl animate-bounce" style={{ animationDelay: '0.2s' }}>🌟</div>
@@ -332,6 +350,13 @@ export function ChildDashboard() {
             🌟 Keep being awesome, {child.name.split(' ')[0]}! 🌟
           </p>
         </div>
+          </TabsContent>
+
+          {/* Health Records Tab */}
+          <TabsContent value="records" className="mt-0">
+            <ChildHealthRecords />
+          </TabsContent>
+        </Tabs>
 
         {/* Consent Code Modal */}
         <ConsentCodeModal

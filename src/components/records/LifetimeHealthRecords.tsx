@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePremium } from '@/contexts/PremiumContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 import { 
   FileText, Syringe, Pill, AlertTriangle, Activity, Heart, 
   Calendar, User, Building2, Clock, Download, Share2, 
   Stethoscope, TestTube, Thermometer, Eye, Bone, Brain,
-  Shield, CheckCircle2, ChevronRight
+  Shield, CheckCircle2, ChevronRight, Crown, Lock
 } from 'lucide-react';
 
 // Demo lifetime health records
@@ -67,6 +70,9 @@ const demoHealthRecords = {
 export function LifetimeHealthRecords() {
   const { currentUser } = useAuth();
   const { t } = useLanguage();
+  const { isPremium } = usePremium();
+  const { toast } = useToast();
+  const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState('overview');
 
   const getStatusBadgeVariant = (status: string) => {
@@ -76,6 +82,42 @@ export function LifetimeHealthRecords() {
       case 'abnormal': case 'critical': return 'destructive';
       default: return 'outline';
     }
+  };
+
+  const handleExport = () => {
+    if (!isPremium) {
+      toast({
+        title: "Premium Feature",
+        description: "Upgrade to Premium to export your health records",
+      });
+      navigate('/donations');
+      return;
+    }
+    toast({
+      title: "📄 Export Started",
+      description: "Your health records PDF is being generated...",
+    });
+    setTimeout(() => {
+      toast({
+        title: "✅ Export Complete",
+        description: "Your health records have been downloaded (Demo)",
+      });
+    }, 2000);
+  };
+
+  const handleShare = () => {
+    if (!isPremium) {
+      toast({
+        title: "Premium Feature",
+        description: "Upgrade to Premium to share your health records",
+      });
+      navigate('/donations');
+      return;
+    }
+    toast({
+      title: "🔗 Sharing Link Created",
+      description: "Secure sharing link copied to clipboard (Demo)",
+    });
   };
 
   return (
@@ -90,13 +132,17 @@ export function LifetimeHealthRecords() {
           <p className="text-muted-foreground">Complete medical history from birth to present</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport} className="relative">
+            {!isPremium && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-amber-500" />}
             <Download className="w-4 h-4 mr-2" />
             Export PDF
+            {!isPremium && <Crown className="w-3 h-3 ml-1 text-amber-500" />}
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleShare} className="relative">
+            {!isPremium && <Lock className="w-3 h-3 absolute -top-1 -right-1 text-amber-500" />}
             <Share2 className="w-4 h-4 mr-2" />
             Share
+            {!isPremium && <Crown className="w-3 h-3 ml-1 text-amber-500" />}
           </Button>
         </div>
       </div>

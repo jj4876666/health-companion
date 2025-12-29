@@ -26,6 +26,7 @@ const paymentMethods: PaymentMethod[] = [
     color: 'bg-green-500',
     fields: [
       { name: 'phone', placeholder: '07XX XXX XXX', type: 'tel' },
+      { name: 'pin', placeholder: 'M-Pesa PIN (Demo: 1234)', type: 'password', masked: true },
     ],
   },
   {
@@ -48,6 +49,9 @@ const paymentMethods: PaymentMethod[] = [
     fields: [
       { name: 'accountNumber', placeholder: 'Account Number', type: 'text', masked: true },
       { name: 'bankName', placeholder: 'Bank Name', type: 'text' },
+      { name: 'cardNumber', placeholder: 'Debit Card Number', type: 'text', masked: true },
+      { name: 'expiry', placeholder: 'Card Expiry (MM/YY)', type: 'text' },
+      { name: 'cvv', placeholder: 'CVV', type: 'password', masked: true },
     ],
   },
   {
@@ -57,6 +61,7 @@ const paymentMethods: PaymentMethod[] = [
     color: 'bg-red-500',
     fields: [
       { name: 'phone', placeholder: '07XX XXX XXX', type: 'tel' },
+      { name: 'pin', placeholder: 'Airtel Money PIN (Demo: 1234)', type: 'password', masked: true },
     ],
   },
 ];

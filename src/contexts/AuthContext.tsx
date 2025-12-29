@@ -4,6 +4,61 @@ import { allDemoUsers, getDemoUserByRole, validateEmecLogin, demoChild, demoPare
 import { demoAuditLog } from '@/data/demoAuditLog';
 import { useToast } from '@/hooks/use-toast';
 
+// Extended demo children for parent-child linking
+const demoChildrenData: ChildUser[] = [
+  {
+    ...demoChild,
+    id: 'child-001',
+    name: 'Kevin Otieno',
+    age: 9,
+    emecId: 'KOT2025A001',
+  },
+  {
+    id: 'child-002',
+    name: 'Faith Achieng',
+    email: 'faith.demo@emec.app',
+    role: 'child',
+    emecId: 'FAC2025A002',
+    password: 'faith2025',
+    profilePicture: '/placeholder.svg',
+    createdAt: '2025-01-01T00:00:00Z',
+    isVerified: true,
+    verificationDate: '2025-01-02T00:00:00Z',
+    age: 14,
+    bloodGroup: 'A+',
+    allergies: ['Dust'],
+    parentId: 'parent-001',
+    points: 380,
+    completedQuizzes: ['quiz-001', 'quiz-003'],
+    restrictions: {
+      sensitiveContent: false,
+      requiresParentApproval: true,
+    },
+  },
+  {
+    id: 'child-003',
+    name: 'Brian Odhiambo',
+    email: 'brian.demo@emec.app',
+    role: 'child',
+    emecId: 'BOD2025A003',
+    password: 'brian2025',
+    profilePicture: '/placeholder.svg',
+    createdAt: '2025-01-01T00:00:00Z',
+    isVerified: true,
+    verificationDate: '2025-01-02T00:00:00Z',
+    age: 4,
+    bloodGroup: 'O-',
+    allergies: [],
+    parentId: 'parent-001',
+    points: 50,
+    completedQuizzes: [],
+    restrictions: {
+      sensitiveContent: true,
+      requiresParentApproval: true,
+    },
+  },
+];
+
 interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
@@ -12,6 +67,7 @@ interface AuthContextType {
   logout: () => void;
   switchAccount: (role: UserRole, pin: string) => boolean;
   switchAccountWithEmec: (emecId: string, password: string) => boolean;
+  switchAccountType: (role: UserRole) => void;
   auditLog: AuditLogEntry[];
   addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
   getChildUser: () => ChildUser | null;
@@ -27,6 +83,13 @@ interface AuthContextType {
   pendingChanges: PendingChange[];
   approveChange: (changeId: string) => void;
   rejectChange: (changeId: string) => void;
+  // Parent-child linking
+  linkedChildren: ChildUser[];
+  activeChildId: string | null;
+  setActiveChildId: (childId: string | null) => void;
+  getActiveChild: () => ChildUser | null;
+  viewingAsChild: boolean;
+  setViewingAsChild: (viewing: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,6 +103,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
   const [pendingChanges, setPendingChanges] = useState<PendingChange[]>([]);
+  const [linkedChildren, setLinkedChildren] = useState<ChildUser[]>(demoChildrenData);
+  const [activeChildId, setActiveChildId] = useState<string | null>(null);
+  const [viewingAsChild, setViewingAsChild] = useState(false);
   const { toast } = useToast();
 
   // Load from localStorage on mount
@@ -383,6 +449,39 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  // Quick account type switching for demo
+  const switchAccountType = (role: UserRole) => {
+    let newUser: User | null = null;
+    switch (role) {
+      case 'child':
+        newUser = demoChild;
+        break;
+      case 'adult':
+        newUser = demoAdult;
+        break;
+      case 'parent':
+        newUser = demoParent;
+        break;
+      case 'admin':
+        newUser = demoAdmin;
+        break;
+    }
+    if (newUser) {
+      setCurrentUser(newUser);
+      setActiveChildId(null);
+      setViewingAsChild(false);
+      toast({
+        title: "Account Switched",
+        description: `Now viewing as ${role}`,
+      });
+    }
+  };
+
+  const getActiveChild = (): ChildUser | null => {
+    if (!activeChildId) return null;
+    return linkedChildren.find(child => child.id === activeChildId) || null;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -393,6 +492,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         logout,
         switchAccount,
         switchAccountWithEmec,
+        switchAccountType,
         auditLog,
         addAuditEntry,
         getChildUser,
@@ -406,6 +506,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         pendingChanges,
         approveChange,
         rejectChange,
+        linkedChildren,
+        activeChildId,
+        setActiveChildId,
+        getActiveChild,
+        viewingAsChild,
+        setViewingAsChild,
       }}
     >
       {children}

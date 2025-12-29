@@ -439,7 +439,7 @@ export function FloatingAIAssistant() {
               <div className="text-center py-4">
                 <Bot className="w-10 h-10 mx-auto text-muted-foreground mb-2" />
                 <p className="text-sm text-muted-foreground">
-                  {t('askHealthQuestion', 'Ask me any health question!')}
+                  {t('askHealthQuestion') || 'Ask me any health question!'}
                 </p>
               </div>
 
@@ -522,7 +522,7 @@ export function FloatingAIAssistant() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-            placeholder={t('typeOrSpeak', 'Type or speak...')}
+            placeholder={t('typeOrSpeak') || 'Type or speak...'}
             disabled={isLoading}
             className="flex-1 text-sm"
           />

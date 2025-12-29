@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { PremiumBanner } from '@/components/premium/PremiumBanner';
 import { DailyTargets } from '@/components/targets/DailyTargets';
+import { LifetimeHealthRecords } from '@/components/records/LifetimeHealthRecords';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
   Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target
@@ -130,8 +131,12 @@ export function AdultDashboard() {
       )}
 
       {/* Main Content */}
-      <Tabs defaultValue="targets" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+      <Tabs defaultValue="records" className="w-full">
+        <TabsList className="grid w-full grid-cols-6">
+          <TabsTrigger value="records" className="gap-2">
+            <FileText className="w-4 h-4" />
+            Records
+          </TabsTrigger>
           <TabsTrigger value="targets" className="gap-2">
             <Target className="w-4 h-4" />
             Goals
@@ -153,6 +158,11 @@ export function AdultDashboard() {
             Allergies
           </TabsTrigger>
         </TabsList>
+
+        {/* Lifetime Health Records Tab */}
+        <TabsContent value="records" className="space-y-4 mt-4">
+          <LifetimeHealthRecords />
+        </TabsContent>
 
         {/* Daily Targets Tab */}
         <TabsContent value="targets" className="space-y-4 mt-4">

@@ -10,10 +10,11 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
   Settings as SettingsIcon, Moon, Sun, Globe, Mic, MicOff, 
-  Bell, RefreshCcw, LogOut, User, Shield, Palette, Volume2
+  Bell, RefreshCcw, LogOut, User, Shield, Palette, Volume2, Scale
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
+import { LegalNotices } from '@/components/legal/LegalNotices';
 
 export default function Settings() {
   const { currentUser, isAuthenticated, logout } = useAuth();
@@ -224,6 +225,9 @@ export default function Settings() {
             </p>
           </CardContent>
         </Card>
+
+        {/* Legal Notices */}
+        <LegalNotices />
 
         {/* Logout */}
         <Button

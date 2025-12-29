@@ -27,6 +27,7 @@ import Medications from "./pages/Medications";
 import Games from "./pages/Games";
 import Pharmacy from "./pages/Pharmacy";
 import AccessibilityPage from "./pages/Accessibility";
+import HelpCenter from "./pages/HelpCenter";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -61,6 +62,7 @@ function AppRoutes() {
       <Route path="/pharmacy" element={<ProtectedRoute><Pharmacy /></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
       <Route path="/accessibility" element={<ProtectedRoute><AccessibilityPage /></ProtectedRoute>} />
+      <Route path="/help" element={<ProtectedRoute><HelpCenter /></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );

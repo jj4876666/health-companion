@@ -1,29 +1,50 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemo } from '@/contexts/DemoContext';
 import { useLanguage } from '@/contexts/LanguageContext';
-import { ParentUser } from '@/types/emec';
-import { demoParent, demoChild } from '@/data/demoUsers';
+import { ParentUser, ChildUser } from '@/types/emec';
+import { demoParent } from '@/data/demoUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { 
   Users, Bell, Clock, CheckCircle, XCircle, Eye, 
   Shield, Activity, BookOpen, Trophy, AlertTriangle,
-  FileText, Heart, User, Stethoscope
+  FileText, Heart, User, Stethoscope, Pill
 } from 'lucide-react';
 
 export function ParentDashboard() {
-  const { currentUser, approveRequest, rejectRequest, auditLog } = useAuth();
+  const { currentUser, approveRequest, rejectRequest, auditLog, linkedChildren, setActiveChildId, setViewingAsChild } = useAuth();
+  const { setSelectedAgeCategory, getContentAccess } = useDemo();
   const { t } = useLanguage();
   
   const parent = (currentUser as ParentUser) || demoParent;
-  const child = demoChild;
-
   const pendingApprovals = parent.pendingApprovals?.filter(a => a.status === 'pending') || [];
   const recentAudit = auditLog.slice(0, 5);
+
+  const getAgeCategory = (age: number) => {
+    if (age <= 2) return 'infant';
+    if (age <= 12) return 'child';
+    if (age <= 17) return 'teen';
+    return 'adult';
+  };
+
+  const handleViewAsChild = (child: ChildUser) => {
+    setActiveChildId(child.id);
+    setSelectedAgeCategory(getAgeCategory(child.age) as any);
+    setViewingAsChild(true);
+  };
+
+  const getContentAccessSummary = (age: number) => {
+    const access = getContentAccess(age);
+    const total = Object.keys(access).length;
+    const unlocked = Object.values(access).filter(Boolean).length;
+    return { unlocked, total, percentage: Math.round((unlocked / total) * 100) };
+  };
 
   return (
     <div className="space-y-6 p-4 md:p-6">
@@ -87,57 +108,77 @@ export function ParentDashboard() {
 
         {/* Children Tab */}
         <TabsContent value="children" className="space-y-4 mt-4">
-          <Card className="border-0 shadow-elegant">
-            <CardContent className="p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
-                  <User className="w-8 h-8 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="text-xl font-semibold">{child.name}</h3>
-                  <p className="text-muted-foreground">Age {child.age} • Blood Group {child.bloodGroup}</p>
-                  
-                  {/* Allergies */}
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {child.allergies.map((allergy) => (
-                      <Badge key={allergy} variant="destructive" className="text-xs">
-                        {allergy}
-                      </Badge>
-                    ))}
-                  </div>
+          {linkedChildren.map((child) => {
+            const accessSummary = getContentAccessSummary(child.age);
+            const ageCategory = getAgeCategory(child.age);
+            
+            return (
+              <Card key={child.id} className="border-0 shadow-elegant">
+                <CardContent className="p-6">
+                  <div className="flex items-start gap-4">
+                    <Avatar className="w-16 h-16 border-2 border-primary/20">
+                      <AvatarFallback className="text-lg bg-gradient-to-br from-purple-500 to-pink-500 text-white">
+                        {child.name.split(' ').map(n => n[0]).join('')}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h3 className="text-xl font-semibold">{child.name}</h3>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>Age {child.age}</span>
+                            <Badge variant="secondary" className="text-xs capitalize">{ageCategory}</Badge>
+                            <span>• {child.bloodGroup}</span>
+                          </div>
+                        </div>
+                        <Badge variant="outline">{child.points} pts</Badge>
+                      </div>
+                      
+                      {/* Allergies */}
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {child.allergies.map((allergy) => (
+                          <Badge key={allergy} variant="destructive" className="text-xs">
+                            {allergy}
+                          </Badge>
+                        ))}
+                      </div>
 
-                  {/* Points & Progress */}
-                  <div className="mt-4 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm flex items-center gap-1">
-                        <Trophy className="w-4 h-4 text-yellow-500" />
-                        {child.points} points
-                      </span>
-                      <span className="text-sm text-muted-foreground">
-                        {child.completedQuizzes?.length || 2} quizzes completed
-                      </span>
+                      {/* Content Access Progress */}
+                      <div className="mt-4 space-y-2">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="flex items-center gap-1 text-muted-foreground">
+                            <BookOpen className="w-4 h-4" />
+                            Content Unlocked
+                          </span>
+                          <span className="font-medium">{accessSummary.unlocked}/{accessSummary.total}</span>
+                        </div>
+                        <Progress value={accessSummary.percentage} className="h-2" />
+                      </div>
                     </div>
-                    <Progress value={50} className="h-2" />
                   </div>
-                </div>
-              </div>
 
-              <div className="grid grid-cols-2 gap-3 mt-6">
-                <Button variant="outline" className="gap-2" asChild>
-                  <Link to="/education">
-                    <BookOpen className="w-4 h-4" />
-                    View Progress
-                  </Link>
-                </Button>
-                <Button variant="outline" className="gap-2" asChild>
-                  <Link to="/settings">
-                    <Shield className="w-4 h-4" />
-                    Manage Access
-                  </Link>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <div className="grid grid-cols-3 gap-3 mt-6">
+                    <Button variant="outline" className="gap-2" onClick={() => handleViewAsChild(child)}>
+                      <Eye className="w-4 h-4" />
+                      View as Child
+                    </Button>
+                    <Button variant="outline" className="gap-2" asChild>
+                      <Link to="/education">
+                        <BookOpen className="w-4 h-4" />
+                        Education
+                      </Link>
+                    </Button>
+                    <Button variant="outline" className="gap-2" asChild>
+                      <Link to="/medications">
+                        <Pill className="w-4 h-4" />
+                        Medications
+                      </Link>
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
         </TabsContent>
 
         {/* Approvals Tab */}

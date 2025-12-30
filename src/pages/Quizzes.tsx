@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { demoQuizzes, getDailyQuiz, getEndlessQuestions, getQuizzesByDifficulty } from '@/data/demoQuizzes';
 import { Quiz, QuizQuestion, ChildUser } from '@/types/emec';
@@ -41,6 +42,7 @@ export default function Quizzes() {
   const { currentUser, isAuthenticated, updateChildPoints } = useAuth();
   const { language, t } = useLanguage();
   const { toast } = useToast();
+  const { addPoints } = usePoints();
   
   const [activeTab, setActiveTab] = useState('daily');
   const [activeQuiz, setActiveQuiz] = useState<Quiz | null>(null);
@@ -149,13 +151,16 @@ export default function Quizzes() {
       const pointsEarned = Math.round(finalScore / activeQuiz.questions.length * activeQuiz.points);
       updateChildPoints(pointsEarned);
       
+      // Add points to the global Points system for premium unlocks
+      addPoints(pointsEarned, `Quiz completed: ${activeQuiz.title}`);
+      
       if (activeQuiz.id === dailyQuiz.id) {
         setDailyCompleted(true);
       }
       
       toast({
         title: "Quiz Complete! 🎉",
-        description: `You earned ${pointsEarned} points!`,
+        description: `You earned ${pointsEarned} points toward premium features!`,
       });
     }
   };

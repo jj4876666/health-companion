@@ -15,7 +15,8 @@ import {
   Lock,
   Unlock,
   Timer,
-  TrendingUp
+  TrendingUp,
+  Flame
 } from 'lucide-react';
 
 interface UnlockOption {
@@ -65,7 +66,7 @@ const unlockOptions: UnlockOption[] = [
 ];
 
 export function PointsUnlockCard() {
-  const { points, totalEarned, unlockPremiumTrial, isPremiumTrial, premiumTrialExpiry, pointsHistory } = usePoints();
+  const { points, totalEarned, unlockPremiumTrial, isPremiumTrial, premiumTrialExpiry, pointsHistory, streak, getStreakBonus } = usePoints();
   const { isPremium } = usePremium();
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
 
@@ -128,6 +129,28 @@ export function PointsUnlockCard() {
       </CardHeader>
 
       <CardContent className="p-6 space-y-6">
+        {/* Streak Display */}
+        {streak > 0 && (
+          <div className="p-4 rounded-xl bg-gradient-to-r from-orange-500/10 to-red-500/10 border border-orange-500/20">
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 rounded-full bg-gradient-to-br from-orange-500 to-red-500 flex items-center justify-center animate-pulse">
+                <Flame className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <p className="font-bold text-lg">{streak}-Day Streak! 🔥</p>
+                <p className="text-sm text-muted-foreground">
+                  {getStreakBonus() > 0 
+                    ? `+${getStreakBonus()}% bonus on all points earned!` 
+                    : 'Keep it up! 3-day streak unlocks bonuses!'}
+                </p>
+              </div>
+              <Badge className="bg-gradient-to-r from-orange-500 to-red-500 text-white">
+                {getStreakBonus() > 0 ? `+${getStreakBonus()}%` : 'Active'}
+              </Badge>
+            </div>
+          </div>
+        )}
+
         {/* Active Trial Status */}
         {isPremiumTrial && (
           <div className="p-4 rounded-xl bg-gradient-to-r from-success/10 to-emerald-500/10 border border-success/20">
@@ -250,8 +273,8 @@ export function PointsUnlockCard() {
             <div className="flex items-center gap-2 p-2 rounded-lg bg-background">
               <span className="text-lg">🔥</span>
               <div>
-                <p className="font-medium">Streak Bonus</p>
-                <p className="text-muted-foreground">+10 pts/day</p>
+                <p className="font-medium">Daily Streak</p>
+                <p className="text-muted-foreground">Up to +100% bonus</p>
               </div>
             </div>
             <div className="flex items-center gap-2 p-2 rounded-lg bg-background">

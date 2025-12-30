@@ -1,11 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useToast } from '@/hooks/use-toast';
 import {
   Bot,
   Send,
@@ -27,110 +28,32 @@ import {
 
 type SpeechRecognitionType = any;
 
+const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-ai-chat`;
+
 interface Message {
   id: string;
   role: 'user' | 'assistant';
   content: string;
   timestamp: Date;
-  sources?: string[];
 }
 
-const healthKnowledgeBase: Record<string, { response: string; sources: string[] }> = {
-  fever: {
-    response: "For fever management:\n\n1. **Rest** - Allow body to recover\n2. **Hydration** - Drink plenty of fluids (water, clear broths, electrolyte solutions)\n3. **Temperature monitoring** - Check every 4 hours\n4. **Medication** - Paracetamol (as per age-appropriate dosing)\n\n⚠️ **Seek immediate medical care if:**\n- Fever exceeds 39.4°C (103°F)\n- Lasts more than 3 days\n- Accompanied by severe headache, stiff neck, or rash\n- Occurs in infants under 3 months",
-    sources: ['WHO Guidelines on Fever Management', 'Kenya MOH Clinical Guidelines 2024']
-  },
-  malaria: {
-    response: "**Malaria Prevention & Recognition:**\n\n**Symptoms:**\n- High fever with chills\n- Headache and body aches\n- Nausea and vomiting\n- Fatigue and weakness\n\n**Prevention (WHO Recommended):**\n1. Sleep under insecticide-treated mosquito nets (ITNs)\n2. Use mosquito repellent containing DEET\n3. Wear long sleeves and pants at dusk/dawn\n4. Take antimalarial prophylaxis if prescribed\n\n⚠️ **Get tested immediately** if you have symptoms - early treatment saves lives!",
-    sources: ['WHO Malaria Guidelines 2023', 'Kenya National Malaria Strategy', 'CDC Malaria Prevention']
-  },
-  diarrhea: {
-    response: "**Diarrhea Management (WHO/UNICEF Protocol):**\n\n**Oral Rehydration Solution (ORS):**\n- Mix 1 packet ORS with 1 liter clean water\n- Give small, frequent sips\n- Continue breastfeeding for infants\n\n**Zinc Supplementation:**\n- Children 6+ months: 20mg zinc daily for 10-14 days\n\n**Danger Signs - Seek Care Immediately:**\n- Blood in stool\n- Unable to drink or keep fluids down\n- Severe dehydration (dry mouth, no tears, sunken eyes)\n- Diarrhea lasting more than 3 days",
-    sources: ['WHO/UNICEF Diarrhea Treatment Guidelines', 'Kenya MOH IMCI Guidelines']
-  },
-  nutrition: {
-    response: "**Balanced Nutrition Guidelines (WHO):**\n\n**Daily Requirements:**\n- Fruits & Vegetables: 5+ portions\n- Whole grains: Make half your grains whole\n- Protein: Lean meats, fish, beans, eggs\n- Dairy: Low-fat milk, yogurt\n\n**Limit:**\n- Salt: Less than 5g/day\n- Sugar: Less than 25g/day\n- Saturated fats: Less than 10% of calories\n\n**For Children:**\n- Exclusive breastfeeding for first 6 months\n- Introduce diverse foods after 6 months\n- Iron-rich foods to prevent anemia",
-    sources: ['WHO Healthy Diet Guidelines', 'Kenya National Nutrition Guidelines', 'UNICEF Infant Feeding']
-  },
-  hygiene: {
-    response: "**Hand Hygiene (WHO Recommended):**\n\n**When to Wash Hands:**\n- Before eating or preparing food\n- After using the toilet\n- After coughing, sneezing, or blowing nose\n- After touching animals\n- Before and after caring for sick persons\n\n**Proper Technique (20+ seconds):**\n1. Wet hands with clean water\n2. Apply soap and lather well\n3. Scrub all surfaces including between fingers\n4. Rinse thoroughly\n5. Dry with clean towel or air dry\n\n**No water available?** Use alcohol-based hand sanitizer (60%+ alcohol)",
-    sources: ['WHO Hand Hygiene Guidelines', 'Kenya MOH Infection Prevention']
-  },
-  vaccination: {
-    response: "**Vaccination - Kenya Immunization Schedule:**\n\n**Birth:** BCG, OPV-0\n**6 weeks:** DPT-HepB-Hib 1, OPV-1, PCV-1, Rotavirus 1\n**10 weeks:** DPT-HepB-Hib 2, OPV-2, PCV-2, Rotavirus 2\n**14 weeks:** DPT-HepB-Hib 3, OPV-3, PCV-3, IPV\n**9 months:** Measles-Rubella 1, Yellow Fever\n**18 months:** Measles-Rubella 2\n\n✅ **Vaccines are safe and effective**\n✅ **Free at all government health facilities**\n\nKeep your child's immunization card safe!",
-    sources: ['Kenya Expanded Programme on Immunization', 'WHO Immunization Guidelines', 'UNICEF']
-  },
-  covid: {
-    response: "**COVID-19 Prevention & Care:**\n\n**Prevention:**\n- Get vaccinated and boosted\n- Wear masks in crowded indoor spaces\n- Maintain physical distance\n- Practice good hand hygiene\n- Ensure good ventilation\n\n**If You Have Symptoms:**\n- Isolate from others\n- Monitor oxygen levels if available\n- Stay hydrated and rest\n- Seek care if breathing becomes difficult\n\n**Danger Signs - Seek Emergency Care:**\n- Difficulty breathing\n- Persistent chest pain\n- Confusion\n- Bluish lips or face",
-    sources: ['WHO COVID-19 Guidelines', 'Kenya MOH COVID-19 Protocols', 'CDC']
-  },
-  pregnancy: {
-    response: "**Pregnancy Care Guidelines:**\n\n**Antenatal Care Schedule:**\n- At least 8 ANC visits recommended\n- First visit before 12 weeks\n- Monthly until 28 weeks, then more frequent\n\n**Essential Care:**\n- Folic acid supplementation\n- Iron supplementation\n- Tetanus vaccination\n- HIV and other STI screening\n- Blood pressure monitoring\n\n**Danger Signs - Seek Immediate Care:**\n- Vaginal bleeding\n- Severe headache with blurred vision\n- High fever\n- Reduced baby movement\n- Water breaking before term",
-    sources: ['WHO Antenatal Care Guidelines', 'Kenya MOH Maternal Health Guidelines']
-  },
-  firstaid: {
-    response: "**Basic First Aid Principles:**\n\n**For Bleeding:**\n1. Apply direct pressure with clean cloth\n2. Elevate the injured area\n3. If bleeding doesn't stop, seek medical help\n\n**For Burns:**\n1. Cool with running water for 10-20 minutes\n2. Cover with clean, non-stick dressing\n3. Do NOT apply ice, butter, or toothpaste\n\n**For Choking (Heimlich Maneuver):**\n1. Stand behind person\n2. Make a fist above navel\n3. Give quick upward thrusts\n\n**Always call emergency (999) for serious injuries!**",
-    sources: ['Kenya Red Cross First Aid Manual', 'WHO Emergency Care Guidelines']
-  },
-  mental: {
-    response: "**Mental Health & Well-being:**\n\n**Signs to Watch For:**\n- Persistent sadness or hopelessness\n- Loss of interest in activities\n- Changes in sleep or appetite\n- Difficulty concentrating\n- Thoughts of self-harm\n\n**Self-Care Tips:**\n- Maintain regular sleep schedule\n- Stay physically active\n- Connect with friends and family\n- Limit alcohol and avoid drugs\n- Practice relaxation techniques\n\n**Get Help:**\n- Talk to a trusted person\n- Contact Kenya Red Cross: 1199\n- Mental health helpline: 0800 720 990 (toll-free)\n\nRemember: It's okay to ask for help!",
-    sources: ['WHO Mental Health Guidelines', 'Kenya Mental Health Policy', 'Africa Mental Health Foundation']
-  }
-};
-
-const getAIResponse = (userMessage: string): { response: string; sources: string[] } => {
-  const lowerMessage = userMessage.toLowerCase();
-  
-  for (const [keyword, data] of Object.entries(healthKnowledgeBase)) {
-    if (lowerMessage.includes(keyword)) {
-      return data;
-    }
-  }
-  
-  if (lowerMessage.includes('headache') || lowerMessage.includes('pain')) {
-    return {
-      response: "For pain management:\n\n**General Advice:**\n- Rest in a quiet, dark room (for headaches)\n- Stay hydrated\n- Apply cold or warm compress as appropriate\n- Take age-appropriate pain relief (paracetamol)\n\n**Seek medical attention if:**\n- Pain is severe or sudden\n- Accompanied by fever, stiff neck, or vision changes\n- Persists for more than a few days\n- Interferes with daily activities\n\nWould you like more specific information about a particular type of pain?",
-      sources: ['WHO Pain Management Guidelines', 'Kenya MOH Clinical Guidelines']
-    };
-  }
-  
-  if (lowerMessage.includes('cough') || lowerMessage.includes('cold') || lowerMessage.includes('flu')) {
-    return {
-      response: "**Common Cold & Flu Care:**\n\n**Rest and Recovery:**\n- Get plenty of sleep\n- Stay hydrated with warm fluids\n- Use honey for sore throat (not for children under 1 year)\n\n**Symptom Relief:**\n- Saline nasal drops for congestion\n- Steam inhalation (carefully)\n- Paracetamol for fever and aches\n\n**When to See a Doctor:**\n- Symptoms lasting more than 10 days\n- High fever (above 39°C)\n- Difficulty breathing\n- Symptoms that improve then worsen",
-      sources: ['WHO Respiratory Illness Guidelines', 'Kenya MOH Clinical Guidelines']
-    };
-  }
-  
-  if (lowerMessage.includes('water') || lowerMessage.includes('drink') || lowerMessage.includes('hydrat')) {
-    return {
-      response: "**Hydration Guidelines (WHO):**\n\n**Daily Water Intake:**\n- Adults: 2-3 liters per day\n- Children: Based on weight and activity\n- Increase during hot weather or physical activity\n\n**Signs of Dehydration:**\n- Dark yellow urine\n- Thirst\n- Dry mouth and lips\n- Fatigue\n- Dizziness\n\n**Healthy Hydration Tips:**\n- Carry a water bottle\n- Drink before you feel thirsty\n- Limit sugary drinks\n- Eat water-rich fruits and vegetables",
-      sources: ['WHO Hydration Guidelines', 'Kenya Nutrition Guidelines']
-    };
-  }
-  
-  return {
-    response: "Thank you for your health question. I'm here to help with evidence-based health information.\n\n**I can help you with:**\n- Fever, malaria, and common illnesses\n- Nutrition and diet advice\n- Hygiene and disease prevention\n- Vaccination information\n- First aid guidance\n- Mental health support\n- Pregnancy care\n\nPlease describe your symptoms or health concern in more detail, and I'll provide WHO and Kenya MOH-certified guidance.\n\n⚠️ **Important:** For medical emergencies, call 999 immediately.",
-    sources: ['WHO Health Guidelines', 'Kenya Ministry of Health']
-  };
-};
-
 const quickTopics = [
-  { icon: Heart, label: 'Fever', color: 'text-red-500', query: 'fever symptoms' },
-  { icon: Brain, label: 'Mental Health', color: 'text-purple-500', query: 'mental health tips' },
-  { icon: Pill, label: 'Medication', color: 'text-blue-500', query: 'medication safety' },
-  { icon: Apple, label: 'Nutrition', color: 'text-green-500', query: 'nutrition advice' },
-  { icon: Stethoscope, label: 'First Aid', color: 'text-orange-500', query: 'first aid basics' },
+  { icon: Heart, label: 'Fever', color: 'text-red-500', query: 'What should I do if I have a fever?' },
+  { icon: Brain, label: 'Mental Health', color: 'text-purple-500', query: 'How can I manage stress and anxiety?' },
+  { icon: Pill, label: 'Medication', color: 'text-blue-500', query: 'What are general medication safety tips?' },
+  { icon: Apple, label: 'Nutrition', color: 'text-green-500', query: 'What makes a balanced healthy diet?' },
+  { icon: Stethoscope, label: 'First Aid', color: 'text-orange-500', query: 'What are basic first aid steps for cuts and burns?' },
 ];
 
 export function HealthAIChatbot() {
   const { language } = useLanguage();
+  const { toast } = useToast();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
       role: 'assistant',
-      content: "Hello! I'm EMEC Health Assistant, powered by WHO and Kenya Ministry of Health certified guidelines. 🏥\n\nI can help you with:\n• Symptom information and first aid\n• Disease prevention advice\n• Nutrition and wellness tips\n• Vaccination schedules\n• Mental health support\n\nHow can I assist you today?",
-      timestamp: new Date(),
-      sources: ['WHO Guidelines', 'Kenya MOH']
+      content: "Hello! I'm EMEC Health Assistant, powered by AI with WHO and Kenya Ministry of Health guidelines. 🏥\n\nI can help you with:\n• Symptom information and first aid\n• Disease prevention advice\n• Nutrition and wellness tips\n• Vaccination schedules\n• Mental health support\n\nHow can I assist you today?",
+      timestamp: new Date()
     }
   ]);
   const [inputMessage, setInputMessage] = useState('');
@@ -170,7 +93,7 @@ export function HealthAIChatbot() {
 
   const handleSendMessage = async (customMessage?: string) => {
     const messageToSend = customMessage || inputMessage;
-    if (!messageToSend.trim()) return;
+    if (!messageToSend.trim() || isTyping) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -179,24 +102,122 @@ export function HealthAIChatbot() {
       timestamp: new Date()
     };
 
-    setMessages(prev => [...prev, userMessage]);
+    const updatedMessages = [...messages, userMessage];
+    setMessages(updatedMessages);
     setInputMessage('');
     setIsTyping(true);
 
-    await new Promise(resolve => setTimeout(resolve, 800 + Math.random() * 800));
+    // Prepare messages for API (exclude timestamps)
+    const apiMessages = updatedMessages.map(m => ({ role: m.role, content: m.content }));
 
-    const { response, sources } = getAIResponse(messageToSend);
+    const assistantId = (Date.now() + 1).toString();
 
-    const assistantMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      role: 'assistant',
-      content: response,
-      timestamp: new Date(),
-      sources
-    };
+    try {
+      const resp = await fetch(CHAT_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
+        body: JSON.stringify({ 
+          messages: apiMessages,
+          language
+        }),
+      });
 
-    setMessages(prev => [...prev, assistantMessage]);
-    setIsTyping(false);
+      if (!resp.ok) {
+        if (resp.status === 429) {
+          throw new Error('Rate limit exceeded. Please try again in a moment.');
+        }
+        if (resp.status === 402) {
+          throw new Error('AI service temporarily unavailable.');
+        }
+        throw new Error('Failed to get response');
+      }
+
+      if (!resp.body) throw new Error('No response body');
+
+      // Create initial assistant message
+      setMessages(prev => [...prev, {
+        id: assistantId,
+        role: 'assistant',
+        content: '',
+        timestamp: new Date()
+      }]);
+
+      const reader = resp.body.getReader();
+      const decoder = new TextDecoder();
+      let textBuffer = '';
+      let assistantContent = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        
+        textBuffer += decoder.decode(value, { stream: true });
+
+        let newlineIndex: number;
+        while ((newlineIndex = textBuffer.indexOf('\n')) !== -1) {
+          let line = textBuffer.slice(0, newlineIndex);
+          textBuffer = textBuffer.slice(newlineIndex + 1);
+
+          if (line.endsWith('\r')) line = line.slice(0, -1);
+          if (line.startsWith(':') || line.trim() === '') continue;
+          if (!line.startsWith('data: ')) continue;
+
+          const jsonStr = line.slice(6).trim();
+          if (jsonStr === '[DONE]') break;
+
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => 
+                prev.map(m => m.id === assistantId ? { ...m, content: assistantContent } : m)
+              );
+            }
+          } catch {
+            textBuffer = line + '\n' + textBuffer;
+            break;
+          }
+        }
+      }
+
+      // Process any remaining buffer
+      if (textBuffer.trim()) {
+        for (let raw of textBuffer.split('\n')) {
+          if (!raw) continue;
+          if (raw.endsWith('\r')) raw = raw.slice(0, -1);
+          if (raw.startsWith(':') || raw.trim() === '') continue;
+          if (!raw.startsWith('data: ')) continue;
+          const jsonStr = raw.slice(6).trim();
+          if (jsonStr === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(jsonStr);
+            const content = parsed.choices?.[0]?.delta?.content as string | undefined;
+            if (content) {
+              assistantContent += content;
+              setMessages(prev => 
+                prev.map(m => m.id === assistantId ? { ...m, content: assistantContent } : m)
+              );
+            }
+          } catch { /* ignore */ }
+        }
+      }
+
+    } catch (error) {
+      console.error('Chat error:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to get response',
+        variant: 'destructive'
+      });
+      // Remove the empty assistant message if there was an error
+      setMessages(prev => prev.filter(m => m.id !== assistantId));
+    } finally {
+      setIsTyping(false);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -250,10 +271,10 @@ export function HealthAIChatbot() {
               EMEC Health Assistant
               <Badge className="bg-success/20 text-success border-success/30 text-xs font-normal">
                 <CheckCircle2 className="w-3 h-3 mr-1" />
-                Certified
+                AI Powered
               </Badge>
             </h3>
-            <p className="text-sm text-muted-foreground">Powered by WHO & Kenya MOH Guidelines</p>
+            <p className="text-sm text-muted-foreground">Powered by AI with WHO & Kenya MOH Guidelines</p>
           </div>
           <Badge variant="outline" className="hidden sm:flex bg-background/80 backdrop-blur-sm">
             <Shield className="w-3 h-3 mr-1" />
@@ -310,21 +331,22 @@ export function HealthAIChatbot() {
                   >
                     <p className="text-sm whitespace-pre-wrap leading-relaxed">{message.content}</p>
                     
-                    {message.sources && message.role === 'assistant' && (
+                    {message.role === 'assistant' && message.content && (
                       <div className="mt-3 pt-3 border-t border-border/30">
                         <div className="flex items-center gap-2 flex-wrap">
                           <Shield className="w-3 h-3 text-muted-foreground flex-shrink-0" />
-                          {message.sources.map((source, i) => (
-                            <Badge key={i} variant="outline" className="text-[10px] bg-background/50">
-                              {source}
-                            </Badge>
-                          ))}
+                          <Badge variant="outline" className="text-[10px] bg-background/50">
+                            WHO Guidelines
+                          </Badge>
+                          <Badge variant="outline" className="text-[10px] bg-background/50">
+                            Kenya MOH
+                          </Badge>
                         </div>
                       </div>
                     )}
                   </div>
                   
-                  {message.role === 'assistant' && (
+                  {message.role === 'assistant' && message.content && (
                     <Button
                       size="icon"
                       variant="ghost"
@@ -361,7 +383,7 @@ export function HealthAIChatbot() {
                       <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '150ms' }} />
                       <span className="w-2 h-2 rounded-full bg-primary/60 animate-bounce" style={{ animationDelay: '300ms' }} />
                     </div>
-                    <span className="text-sm text-muted-foreground">Analyzing with WHO guidelines...</span>
+                    <span className="text-sm text-muted-foreground">AI is thinking...</span>
                   </div>
                 </div>
               </div>

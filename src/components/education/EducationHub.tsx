@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDemo } from '@/contexts/DemoContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,12 +11,14 @@ import { Progress } from '@/components/ui/progress';
 import { 
   BookOpen, ChevronRight, ChevronDown, AlertTriangle,
   Sparkles, GraduationCap, Heart, Baby, User, Users,
-  CheckCircle, Clock, Star, Bookmark, Play, Trophy
+  CheckCircle, Clock, Star, Bookmark, Play, Trophy, Gift
 } from 'lucide-react';
 import { 
   getEducationContent, 
   EducationTopic,
 } from '@/data/educationContent';
+
+const EDUCATION_STORAGE_KEY = 'emec_education_progress';
 
 interface EducationHubProps {
   ageCategory?: string;
@@ -24,6 +27,7 @@ interface EducationHubProps {
 export function EducationHub({ ageCategory }: EducationHubProps) {
   const { language } = useLanguage();
   const { selectedAgeCategory, getAgeTheme } = useDemo();
+  const { addPoints } = usePoints();
   const [selectedTopic, setSelectedTopic] = useState<EducationTopic | null>(null);
   const [expandedSections, setExpandedSections] = useState<string[]>([]);
   const [completedSections, setCompletedSections] = useState<string[]>([]);
@@ -34,6 +38,28 @@ export function EducationHub({ ageCategory }: EducationHubProps) {
   const lang = (language || 'en') as 'en' | 'sw' | 'fr';
 
   const content = getEducationContent(currentAgeCategory, lang);
+
+  // Load progress from localStorage
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(EDUCATION_STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        setCompletedSections(parsed.completedSections || []);
+        setBookmarkedTopics(parsed.bookmarkedTopics || []);
+      }
+    } catch (e) {
+      console.error('Failed to load education progress:', e);
+    }
+  }, []);
+
+  // Save progress to localStorage
+  useEffect(() => {
+    localStorage.setItem(EDUCATION_STORAGE_KEY, JSON.stringify({
+      completedSections,
+      bookmarkedTopics
+    }));
+  }, [completedSections, bookmarkedTopics]);
 
   const toggleSection = (sectionId: string) => {
     setExpandedSections(prev => 
@@ -46,6 +72,8 @@ export function EducationHub({ ageCategory }: EducationHubProps) {
   const markSectionComplete = (sectionId: string) => {
     if (!completedSections.includes(sectionId)) {
       setCompletedSections(prev => [...prev, sectionId]);
+      // Award points for completing a section
+      addPoints(10, 'Education Section Complete');
     }
   };
 

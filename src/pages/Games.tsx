@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { usePoints } from '@/contexts/PointsContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { PointsUnlockCard } from '@/components/premium/PointsUnlockCard';
 import { 
   Gamepad2, Heart, Brain, 
   Trophy, Star, RefreshCcw, CheckCircle, XCircle,
@@ -55,6 +57,7 @@ export default function Games() {
   const { currentUser, isAuthenticated, updateChildPoints } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { points, addPoints } = usePoints();
 
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -126,13 +129,10 @@ export default function Games() {
           setStreak(prev => prev + 1);
 
           if (memoryMatches + 1 === healthCards.length) {
-            const points = Math.max(100 - memoryMoves * 2, 20);
-            setTotalPoints(prev => prev + points);
-            updateChildPoints(points);
-            toast({
-              title: "🎉 Victory!",
-              description: `+${points} points earned!`,
-            });
+            const gamePoints = Math.max(100 - memoryMoves * 2, 20);
+            setTotalPoints(prev => prev + gamePoints);
+            updateChildPoints(gamePoints);
+            addPoints(gamePoints, 'Memory Match Game');
           }
         }, 500);
       } else {
@@ -176,13 +176,10 @@ export default function Games() {
       setFactIndex(prev => prev + 1);
       setCurrentFact(healthFacts[factIndex + 1]);
     } else {
-      const points = reactionScore + (answer === currentFact.isTrue ? 10 : 0);
-      setTotalPoints(prev => prev + points);
-      updateChildPoints(points);
-      toast({
-        title: reactionLives <= 1 && answer !== currentFact.isTrue ? "Game Over!" : "🎉 Well Done!",
-        description: `Total: +${points} points`,
-      });
+      const gamePoints = reactionScore + (answer === currentFact.isTrue ? 10 : 0);
+      setTotalPoints(prev => prev + gamePoints);
+      updateChildPoints(gamePoints);
+      addPoints(gamePoints, 'Fact or Fiction Quiz');
       setActiveGame(null);
     }
   };
@@ -247,13 +244,10 @@ export default function Games() {
       setCatchGameActive(false);
       setTotalPoints(prev => prev + catchScore);
       updateChildPoints(catchScore);
-      toast({
-        title: "Game Over!",
-        description: `Total: +${catchScore} points`,
-      });
+      addPoints(catchScore, 'Nutrition Catch Game');
       setTimeout(() => setActiveGame(null), 2000);
     }
-  }, [catchLives, activeGame, catchScore, toast, updateChildPoints]);
+  }, [catchLives, activeGame, catchScore, updateChildPoints, addPoints]);
 
   // Keyboard controls for catch game
   useEffect(() => {
@@ -609,45 +603,55 @@ export default function Games() {
           </div>
         )}
 
-        {/* How to Earn Points */}
+        {/* Points Unlock Card & How to Earn Points */}
         {!activeGame && (
-          <Card className="border-0 shadow-elegant bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-3 mb-4">
-                <Crown className="w-6 h-6 text-amber-500" />
-                <h3 className="font-bold text-lg">How to Earn Points</h3>
-              </div>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
-                  <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
-                    <Brain className="w-5 h-5 text-violet-500" />
+          <div className="grid lg:grid-cols-2 gap-6">
+            <PointsUnlockCard />
+            
+            <Card className="border-0 shadow-elegant bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5">
+              <CardContent className="p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <Crown className="w-6 h-6 text-amber-500" />
+                  <h3 className="font-bold text-lg">How to Earn Points</h3>
+                </div>
+                <div className="space-y-4">
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                    <div className="w-10 h-10 rounded-full bg-violet-500/20 flex items-center justify-center flex-shrink-0">
+                      <Brain className="w-5 h-5 text-violet-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Memory Match</p>
+                      <p className="text-sm text-muted-foreground">Fewer moves = More points (20-100 pts)</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium">Memory Match</p>
-                    <p className="text-sm text-muted-foreground">Fewer moves = More points</p>
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                    <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
+                      <Zap className="w-5 h-5 text-amber-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Fact or Fiction</p>
+                      <p className="text-sm text-muted-foreground">10 points per correct answer (up to 80 pts)</p>
+                    </div>
+                  </div>
+                  <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
+                    <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <Target className="w-5 h-5 text-emerald-500" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Nutrition Catch</p>
+                      <p className="text-sm text-muted-foreground">10 points per healthy food caught</p>
+                    </div>
                   </div>
                 </div>
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
-                  <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                    <Zap className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Fact or Fiction</p>
-                    <p className="text-sm text-muted-foreground">10 points per correct answer</p>
-                  </div>
+                
+                <div className="mt-6 p-4 rounded-xl bg-gradient-to-r from-amber-500/10 to-orange-500/10 border border-amber-500/20">
+                  <p className="text-sm text-center">
+                    <span className="font-semibold">💡 Tip:</span> Complete quizzes and education modules to earn even more points!
+                  </p>
                 </div>
-                <div className="flex items-start gap-3 p-4 rounded-xl bg-background/80">
-                  <div className="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
-                    <Target className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <div>
-                    <p className="font-medium">Nutrition Catch</p>
-                    <p className="text-sm text-muted-foreground">Catch healthy foods for points</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+          </div>
         )}
       </div>
     </DashboardLayout>

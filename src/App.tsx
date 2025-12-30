@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import { AppProvider } from "@/contexts/AppContext";
 import { PremiumProvider } from "@/contexts/PremiumContext";
+import { PointsProvider } from "@/contexts/PointsContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { SplashScreen } from "@/components/splash/SplashScreen";
@@ -77,23 +78,25 @@ const App = () => {
         <LanguageProvider>
           <AppProvider>
             <PremiumProvider>
-              <DemoProvider>
-                <AccessibilityProvider>
-                  <TooltipProvider>
-                    <Toaster />
-                    <Sonner />
-                    {showSplash ? (
-                      <SplashScreen onComplete={() => setShowSplash(false)} />
-                    ) : (
-                      <BrowserRouter>
-                        <AppRoutes />
-                        <DemoControls />
-                        <FloatingAIAssistant />
-                      </BrowserRouter>
-                    )}
-                  </TooltipProvider>
-                </AccessibilityProvider>
-              </DemoProvider>
+              <PointsProvider>
+                <DemoProvider>
+                  <AccessibilityProvider>
+                    <TooltipProvider>
+                      <Toaster />
+                      <Sonner />
+                      {showSplash ? (
+                        <SplashScreen onComplete={() => setShowSplash(false)} />
+                      ) : (
+                        <BrowserRouter>
+                          <AppRoutes />
+                          <DemoControls />
+                          <FloatingAIAssistant />
+                        </BrowserRouter>
+                      )}
+                    </TooltipProvider>
+                  </AccessibilityProvider>
+                </DemoProvider>
+              </PointsProvider>
             </PremiumProvider>
           </AppProvider>
         </LanguageProvider>

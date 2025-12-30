@@ -23,7 +23,8 @@ import {
   Brain,
   Pill,
   Stethoscope,
-  Apple
+  Apple,
+  Trash2
 } from 'lucide-react';
 
 type SpeechRecognitionType = any;
@@ -45,23 +46,57 @@ const quickTopics = [
   { icon: Stethoscope, label: 'First Aid', color: 'text-orange-500', query: 'What are basic first aid steps for cuts and burns?' },
 ];
 
+const CHAT_STORAGE_KEY = 'emec_chat_history';
+
+const getInitialMessage = (): Message => ({
+  id: '1',
+  role: 'assistant',
+  content: "Hello! I'm EMEC Health Assistant, powered by AI with WHO and Kenya Ministry of Health guidelines. 🏥\n\nI can help you with:\n• Symptom information and first aid\n• Disease prevention advice\n• Nutrition and wellness tips\n• Vaccination schedules\n• Mental health support\n\nHow can I assist you today?",
+  timestamp: new Date()
+});
+
+const loadMessages = (): Message[] => {
+  try {
+    const saved = localStorage.getItem(CHAT_STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return parsed.map((m: any) => ({
+        ...m,
+        timestamp: new Date(m.timestamp)
+      }));
+    }
+  } catch (e) {
+    console.error('Failed to load chat history:', e);
+  }
+  return [getInitialMessage()];
+};
+
 export function HealthAIChatbot() {
   const { language } = useLanguage();
   const { toast } = useToast();
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      role: 'assistant',
-      content: "Hello! I'm EMEC Health Assistant, powered by AI with WHO and Kenya Ministry of Health guidelines. 🏥\n\nI can help you with:\n• Symptom information and first aid\n• Disease prevention advice\n• Nutrition and wellness tips\n• Vaccination schedules\n• Mental health support\n\nHow can I assist you today?",
-      timestamp: new Date()
-    }
-  ]);
+  const [messages, setMessages] = useState<Message[]>(loadMessages);
   const [inputMessage, setInputMessage] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognitionType | null>(null);
+
+  // Save messages to localStorage
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  const clearChat = () => {
+    setMessages([getInitialMessage()]);
+    localStorage.removeItem(CHAT_STORAGE_KEY);
+    toast({
+      title: 'Chat cleared',
+      description: 'Your conversation history has been cleared.'
+    });
+  };
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -276,6 +311,16 @@ export function HealthAIChatbot() {
             </h3>
             <p className="text-sm text-muted-foreground">Powered by AI with WHO & Kenya MOH Guidelines</p>
           </div>
+          {messages.length > 1 && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={clearChat}
+              className="h-8 w-8 text-muted-foreground hover:text-destructive"
+            >
+              <Trash2 className="w-4 h-4" />
+            </Button>
+          )}
           <Badge variant="outline" className="hidden sm:flex bg-background/80 backdrop-blur-sm">
             <Shield className="w-3 h-3 mr-1" />
             Secure

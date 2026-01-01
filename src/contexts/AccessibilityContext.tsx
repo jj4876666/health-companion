@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 
 export interface AccessibilitySettings {
   largeText: boolean;
@@ -9,12 +9,28 @@ export interface AccessibilitySettings {
   screenReaderOptimized: boolean;
   textToSpeechEnabled: boolean;
   speechToTextEnabled: boolean;
-  fontScale: number; // 1.0 = normal, 1.25, 1.5, 1.75, 2.0
-  backgroundColor: string; // 'default' | 'cream' | 'sepia' | 'dark' | 'blue'
+  fontScale: number;
+  backgroundColor: string;
   contrastLevel: 'normal' | 'high' | 'highest';
   cursorSize: 'normal' | 'large' | 'larger';
   lineSpacing: 'normal' | 'wide' | 'wider';
   autoReadContent: boolean;
+  // Enhanced accessibility features
+  dyslexiaFont: boolean;
+  readingGuide: boolean;
+  colorBlindMode: 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia' | 'monochrome';
+  focusIndicator: 'default' | 'enhanced' | 'high-visibility';
+  keyboardNavigation: boolean;
+  speechRate: number;
+  speechPitch: number;
+  linkHighlight: boolean;
+  imageDescriptions: boolean;
+  simplifiedUI: boolean;
+  buttonSize: 'normal' | 'large' | 'extra-large';
+  wordSpacing: 'normal' | 'wide' | 'wider';
+  letterSpacing: 'normal' | 'wide' | 'wider';
+  readingMask: boolean;
+  saturationLevel: number;
 }
 
 interface AccessibilityContextType {
@@ -22,10 +38,12 @@ interface AccessibilityContextType {
   updateSetting: <K extends keyof AccessibilitySettings>(key: K, value: AccessibilitySettings[K]) => void;
   resetSettings: () => void;
   getFontScale: () => number;
-  announceToScreenReader: (message: string) => void;
+  announceToScreenReader: (message: string, priority?: 'polite' | 'assertive') => void;
   speak: (text: string) => void;
   stopSpeaking: () => void;
   isSpeaking: boolean;
+  focusMain: () => void;
+  enableProfile: (profile: 'visual' | 'motor' | 'cognitive' | 'hearing') => void;
 }
 
 const defaultSettings: AccessibilitySettings = {
@@ -43,6 +61,21 @@ const defaultSettings: AccessibilitySettings = {
   cursorSize: 'normal',
   lineSpacing: 'normal',
   autoReadContent: false,
+  dyslexiaFont: false,
+  readingGuide: false,
+  colorBlindMode: 'none',
+  focusIndicator: 'default',
+  keyboardNavigation: true,
+  speechRate: 1.0,
+  speechPitch: 1.0,
+  linkHighlight: false,
+  imageDescriptions: true,
+  simplifiedUI: false,
+  buttonSize: 'normal',
+  wordSpacing: 'normal',
+  letterSpacing: 'normal',
+  readingMask: false,
+  saturationLevel: 100,
 };
 
 const AccessibilityContext = createContext<AccessibilityContextType | undefined>(undefined);
@@ -67,7 +100,7 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     localStorage.setItem('emec-accessibility-settings', JSON.stringify(settings));
   }, [settings]);
 
-  // Apply accessibility classes to document
+  // Apply accessibility classes and styles to document
   useEffect(() => {
     const html = document.documentElement;
     
@@ -75,29 +108,53 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     html.style.fontSize = `${settings.fontScale * 100}%`;
 
     // Large text (legacy support)
-    if (settings.largeText || settings.fontScale > 1) {
-      html.classList.add('text-lg');
-    } else {
-      html.classList.remove('text-lg');
-    }
+    html.classList.toggle('text-lg', settings.largeText || settings.fontScale > 1);
 
     // High contrast
-    if (settings.highContrast || settings.contrastLevel !== 'normal') {
-      html.classList.add('high-contrast');
-      if (settings.contrastLevel === 'highest') {
-        html.classList.add('highest-contrast');
-      } else {
-        html.classList.remove('highest-contrast');
-      }
-    } else {
-      html.classList.remove('high-contrast', 'highest-contrast');
-    }
+    html.classList.toggle('high-contrast', settings.highContrast || settings.contrastLevel !== 'normal');
+    html.classList.toggle('highest-contrast', settings.contrastLevel === 'highest');
 
     // Reduced motion
-    if (settings.reducedMotion) {
-      html.classList.add('reduce-motion');
-    } else {
-      html.classList.remove('reduce-motion');
+    html.classList.toggle('reduce-motion', settings.reducedMotion);
+
+    // Dyslexia font
+    html.classList.toggle('dyslexia-font', settings.dyslexiaFont);
+
+    // Reading guide
+    html.classList.toggle('reading-guide-active', settings.readingGuide);
+
+    // Reading mask
+    html.classList.toggle('reading-mask-active', settings.readingMask);
+
+    // Color blind modes
+    html.classList.remove('colorblind-protanopia', 'colorblind-deuteranopia', 'colorblind-tritanopia', 'colorblind-monochrome');
+    if (settings.colorBlindMode !== 'none') {
+      html.classList.add(`colorblind-${settings.colorBlindMode}`);
+    }
+
+    // Focus indicator
+    html.classList.remove('focus-enhanced', 'focus-high-visibility');
+    if (settings.focusIndicator === 'enhanced') {
+      html.classList.add('focus-enhanced');
+    } else if (settings.focusIndicator === 'high-visibility') {
+      html.classList.add('focus-high-visibility');
+    }
+
+    // Keyboard navigation indicator
+    html.classList.toggle('keyboard-nav', settings.keyboardNavigation);
+
+    // Link highlighting
+    html.classList.toggle('highlight-links', settings.linkHighlight);
+
+    // Simplified UI
+    html.classList.toggle('simplified-ui', settings.simplifiedUI);
+
+    // Button sizes
+    html.classList.remove('btn-large', 'btn-extra-large');
+    if (settings.buttonSize === 'large') {
+      html.classList.add('btn-large');
+    } else if (settings.buttonSize === 'extra-large') {
+      html.classList.add('btn-extra-large');
     }
 
     // Background color themes
@@ -125,6 +182,22 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       html.classList.add('line-spacing-wider');
     }
 
+    // Word spacing
+    html.classList.remove('word-spacing-wide', 'word-spacing-wider');
+    if (settings.wordSpacing === 'wide') {
+      html.classList.add('word-spacing-wide');
+    } else if (settings.wordSpacing === 'wider') {
+      html.classList.add('word-spacing-wider');
+    }
+
+    // Letter spacing
+    html.classList.remove('letter-spacing-wide', 'letter-spacing-wider');
+    if (settings.letterSpacing === 'wide') {
+      html.classList.add('letter-spacing-wide');
+    } else if (settings.letterSpacing === 'wider') {
+      html.classList.add('letter-spacing-wider');
+    }
+
     // Cursor size
     html.classList.remove('cursor-large', 'cursor-larger');
     if (settings.cursorSize === 'large') {
@@ -133,6 +206,9 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       html.classList.add('cursor-larger');
     }
 
+    // Saturation level
+    html.style.setProperty('--saturation-level', `${settings.saturationLevel}%`);
+
     // Screen reader optimization
     if (settings.screenReaderOptimized) {
       html.setAttribute('aria-live', 'polite');
@@ -140,6 +216,27 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
       html.removeAttribute('aria-live');
     }
   }, [settings]);
+
+  // Keyboard navigation detection
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Tab') {
+        document.documentElement.classList.add('keyboard-user');
+      }
+    };
+
+    const handleMouseDown = () => {
+      document.documentElement.classList.remove('keyboard-user');
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('mousedown', handleMouseDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('mousedown', handleMouseDown);
+    };
+  }, []);
 
   const updateSetting = <K extends keyof AccessibilitySettings>(
     key: K, 
@@ -153,39 +250,92 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
     localStorage.removeItem('emec-accessibility-settings');
   };
 
-  const getFontScale = () => {
-    return settings.fontScale;
-  };
+  const getFontScale = () => settings.fontScale;
 
-  const announceToScreenReader = (message: string) => {
+  const announceToScreenReader = useCallback((message: string, priority: 'polite' | 'assertive' = 'polite') => {
     const announcement = document.createElement('div');
     announcement.setAttribute('role', 'status');
-    announcement.setAttribute('aria-live', 'polite');
+    announcement.setAttribute('aria-live', priority);
     announcement.setAttribute('aria-atomic', 'true');
     announcement.className = 'sr-only';
     announcement.textContent = message;
     document.body.appendChild(announcement);
     setTimeout(() => announcement.remove(), 1000);
-  };
+  }, []);
 
-  const speak = (text: string) => {
+  const speak = useCallback((text: string) => {
     if (!settings.textToSpeechEnabled || !('speechSynthesis' in window)) return;
     
     speechSynthesis.cancel();
     setIsSpeaking(true);
     
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 0.9;
+    utterance.rate = settings.speechRate;
+    utterance.pitch = settings.speechPitch;
     utterance.onend = () => setIsSpeaking(false);
     utterance.onerror = () => setIsSpeaking(false);
     
     speechSynthesis.speak(utterance);
-  };
+  }, [settings.textToSpeechEnabled, settings.speechRate, settings.speechPitch]);
 
-  const stopSpeaking = () => {
+  const stopSpeaking = useCallback(() => {
     speechSynthesis.cancel();
     setIsSpeaking(false);
-  };
+  }, []);
+
+  const focusMain = useCallback(() => {
+    const main = document.querySelector('main') || document.querySelector('[role="main"]');
+    if (main instanceof HTMLElement) {
+      main.focus();
+      main.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, []);
+
+  const enableProfile = useCallback((profile: 'visual' | 'motor' | 'cognitive' | 'hearing') => {
+    switch (profile) {
+      case 'visual':
+        setSettings(prev => ({
+          ...prev,
+          textToSpeechEnabled: true,
+          autoReadContent: true,
+          highContrast: true,
+          fontScale: 1.5,
+          focusIndicator: 'high-visibility',
+          linkHighlight: true,
+          imageDescriptions: true,
+        }));
+        break;
+      case 'motor':
+        setSettings(prev => ({
+          ...prev,
+          keyboardNavigation: true,
+          buttonSize: 'extra-large',
+          cursorSize: 'larger',
+          focusIndicator: 'enhanced',
+          simplifiedUI: true,
+        }));
+        break;
+      case 'cognitive':
+        setSettings(prev => ({
+          ...prev,
+          simplifiedUI: true,
+          reducedMotion: true,
+          dyslexiaFont: true,
+          lineSpacing: 'wide',
+          wordSpacing: 'wide',
+          readingGuide: true,
+        }));
+        break;
+      case 'hearing':
+        setSettings(prev => ({
+          ...prev,
+          screenReaderOptimized: true,
+          textToSpeechEnabled: false,
+          highContrast: true,
+        }));
+        break;
+    }
+  }, []);
 
   return (
     <AccessibilityContext.Provider
@@ -198,6 +348,8 @@ export function AccessibilityProvider({ children }: { children: ReactNode }) {
         speak,
         stopSpeaking,
         isSpeaking,
+        focusMain,
+        enableProfile,
       }}
     >
       {children}

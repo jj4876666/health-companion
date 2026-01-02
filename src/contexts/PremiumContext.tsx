@@ -4,11 +4,12 @@ import { useToast } from '@/hooks/use-toast';
 interface PremiumContextType {
   isPremium: boolean;
   premiumExpiry: string | null;
-  planType: 'monthly' | 'yearly' | null;
-  activatePremium: (plan: 'monthly' | 'yearly' | 'trial') => void;
+  planType: 'monthly' | 'yearly' | 'demo' | null;
+  activatePremium: (plan: 'monthly' | 'yearly' | 'trial' | 'demo') => void;
   deactivatePremium: () => void;
   daysRemaining: number;
   features: PremiumFeature[];
+  isDemo: boolean;
 }
 
 interface PremiumFeature {
@@ -36,7 +37,7 @@ const PremiumContext = createContext<PremiumContextType | undefined>(undefined);
 export function PremiumProvider({ children }: { children: ReactNode }) {
   const [isPremium, setIsPremium] = useState(false);
   const [premiumExpiry, setPremiumExpiry] = useState<string | null>(null);
-  const [planType, setPlanType] = useState<'monthly' | 'yearly' | null>(null);
+  const [planType, setPlanType] = useState<'monthly' | 'yearly' | 'demo' | null>(null);
   const { toast } = useToast();
 
   // Load from localStorage on mount
@@ -74,12 +75,14 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     }
   }, [isPremium, premiumExpiry, planType]);
 
-  const activatePremium = (plan: 'monthly' | 'yearly' | 'trial') => {
+  const activatePremium = (plan: 'monthly' | 'yearly' | 'trial' | 'demo') => {
     const now = new Date();
     const expiry = new Date(now);
     
     if (plan === 'trial') {
       expiry.setDate(expiry.getDate() + 7); // 7-day free trial
+    } else if (plan === 'demo') {
+      expiry.setDate(expiry.getDate() + 30); // 30-day demo for presentations
     } else if (plan === 'monthly') {
       expiry.setMonth(expiry.getMonth() + 1);
     } else {
@@ -88,11 +91,18 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
 
     setIsPremium(true);
     setPremiumExpiry(expiry.toISOString());
-    setPlanType(plan === 'trial' ? 'monthly' : plan);
+    setPlanType(plan === 'trial' ? 'monthly' : plan === 'demo' ? 'demo' : plan);
+
+    const messages = {
+      trial: { title: "🎉 7-Day Free Trial Activated!", desc: `You now have access to all premium features until ${expiry.toLocaleDateString()}` },
+      demo: { title: "🎊 Demo Premium Activated!", desc: `Full premium access for your presentation! Valid until ${expiry.toLocaleDateString()}` },
+      monthly: { title: "🎉 Premium Activated!", desc: `You now have access to all premium features until ${expiry.toLocaleDateString()}` },
+      yearly: { title: "🎉 Premium Activated!", desc: `You now have access to all premium features until ${expiry.toLocaleDateString()}` }
+    };
 
     toast({
-      title: plan === 'trial' ? "🎉 7-Day Free Trial Activated!" : "🎉 Premium Activated!",
-      description: `You now have access to all premium features until ${expiry.toLocaleDateString()}`,
+      title: messages[plan].title,
+      description: messages[plan].desc,
     });
   };
 
@@ -112,6 +122,8 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     ? Math.max(0, Math.ceil((new Date(premiumExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
 
+  const isDemo = planType === 'demo';
+
   return (
     <PremiumContext.Provider
       value={{
@@ -122,6 +134,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         deactivatePremium,
         daysRemaining,
         features: premiumFeatures,
+        isDemo,
       }}
     >
       {children}

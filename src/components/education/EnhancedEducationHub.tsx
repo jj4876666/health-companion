@@ -15,13 +15,14 @@ import {
   Sparkles, GraduationCap, Heart, Baby, User, Users,
   CheckCircle, Clock, Star, Bookmark, Play, Trophy, Gift,
   Volume2, VolumeX, Bot, Search, Info, Shield, Brain,
-  Flower2, Moon, Sun, Zap, MessageCircle, Lightbulb
+  Flower2, Moon, Sun, Zap, MessageCircle, Lightbulb, Award, Share2
 } from 'lucide-react';
 import { 
   getEducationContent, 
   EducationTopic,
 } from '@/data/educationContent';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
+import { ProgressCertificate } from './ProgressCertificate';
 
 const EDUCATION_STORAGE_KEY = 'emec_education_progress';
 
@@ -57,6 +58,8 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [showAIChat, setShowAIChat] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [showCertificate, setShowCertificate] = useState(false);
+  const [certificateTopic, setCertificateTopic] = useState<EducationTopic | null>(null);
 
   const currentAgeCategory = ageCategory || selectedAgeCategory;
   const ageTheme = getAgeTheme();
@@ -112,10 +115,22 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
     );
   };
 
-  const markSectionComplete = (sectionId: string) => {
+  const markSectionComplete = (sectionId: string, topic?: EducationTopic) => {
     if (!completedSections.includes(sectionId)) {
-      setCompletedSections(prev => [...prev, sectionId]);
+      const newCompleted = [...completedSections, sectionId];
+      setCompletedSections(newCompleted);
       addPoints(10, 'Education Section Complete');
+      
+      // Check if topic is now complete and show certificate
+      if (topic) {
+        const topicSectionIds = topic.content.map(s => s.id);
+        const allComplete = topicSectionIds.every(id => newCompleted.includes(id));
+        if (allComplete) {
+          setCertificateTopic(topic);
+          setShowCertificate(true);
+          addPoints(50, `Completed: ${topic.title.en}`);
+        }
+      }
     }
   };
 
@@ -299,6 +314,19 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                     <Trophy className="w-3.5 h-3.5 mr-1.5" />
                     {Math.round(progress)}% complete
                   </Badge>
+                  {progress === 100 && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setCertificateTopic(selectedTopic);
+                        setShowCertificate(true);
+                      }}
+                      className="bg-amber-500 hover:bg-amber-600 text-white gap-2 shadow-lg"
+                    >
+                      <Award className="w-4 h-4" />
+                      Get Certificate
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -419,7 +447,7 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                           variant={isCompleted ? "secondary" : "default"}
                           onClick={(e) => {
                             e.stopPropagation();
-                            markSectionComplete(section.id);
+                            markSectionComplete(section.id, selectedTopic);
                           }}
                           disabled={isCompleted}
                           className="gap-2 rounded-xl shadow-lg"
@@ -444,6 +472,19 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
             );
           })}
         </div>
+
+        {/* Certificate Modal */}
+        {certificateTopic && (
+          <ProgressCertificate
+            isOpen={showCertificate}
+            onClose={() => setShowCertificate(false)}
+            topicTitle={certificateTopic.title[lang]}
+            topicIcon={certificateTopic.icon}
+            completedSections={certificateTopic.content.filter(s => completedSections.includes(s.id)).length}
+            totalSections={certificateTopic.content.length}
+            completionDate={new Date()}
+          />
+        )}
       </div>
     );
   }

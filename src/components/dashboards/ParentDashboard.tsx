@@ -11,10 +11,11 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
 import { 
   Users, Bell, Clock, CheckCircle, XCircle, Eye, 
   Shield, Activity, BookOpen, Trophy, AlertTriangle,
-  FileText, Heart, User, Stethoscope, Pill
+  FileText, Heart, User, Stethoscope, Pill, Bot
 } from 'lucide-react';
 
 export function ParentDashboard() {
@@ -86,10 +87,14 @@ export function ParentDashboard() {
 
       {/* Tabs */}
       <Tabs defaultValue="children" className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="children" className="gap-2">
             <Users className="w-4 h-4" />
             Children
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="gap-2">
+            <Bot className="w-4 h-4" />
+            AI Chat
           </TabsTrigger>
           <TabsTrigger value="approvals" className="gap-2">
             <Bell className="w-4 h-4" />
@@ -179,6 +184,16 @@ export function ParentDashboard() {
               </Card>
             );
           })}
+        </TabsContent>
+
+        {/* AI Chat Tab */}
+        <TabsContent value="ai" className="space-y-4 mt-4">
+          <EmbeddedAIChat 
+            title="AI Health Assistant"
+            placeholder="Ask about child health, vaccinations, nutrition, development..."
+            maxHeight="500px"
+            context="Parent/Guardian dashboard - focus on child health, development milestones, vaccinations, and parenting health advice"
+          />
         </TabsContent>
 
         {/* Approvals Tab */}

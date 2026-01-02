@@ -68,12 +68,8 @@ export function EnhancedPremiumSection() {
   };
 
   const handleActivateTrial = () => {
-    activatePremium('monthly');
+    activatePremium('trial' as any);
     setShowPremiumDialog(false);
-    toast({
-      title: "🎉 7-Day Free Trial Activated!",
-      description: "Enjoy all premium features for the next 7 days.",
-    });
   };
 
   return (

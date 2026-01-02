@@ -5,7 +5,7 @@ interface PremiumContextType {
   isPremium: boolean;
   premiumExpiry: string | null;
   planType: 'monthly' | 'yearly' | null;
-  activatePremium: (plan: 'monthly' | 'yearly') => void;
+  activatePremium: (plan: 'monthly' | 'yearly' | 'trial') => void;
   deactivatePremium: () => void;
   daysRemaining: number;
   features: PremiumFeature[];
@@ -74,11 +74,13 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     }
   }, [isPremium, premiumExpiry, planType]);
 
-  const activatePremium = (plan: 'monthly' | 'yearly') => {
+  const activatePremium = (plan: 'monthly' | 'yearly' | 'trial') => {
     const now = new Date();
     const expiry = new Date(now);
     
-    if (plan === 'monthly') {
+    if (plan === 'trial') {
+      expiry.setDate(expiry.getDate() + 7); // 7-day free trial
+    } else if (plan === 'monthly') {
       expiry.setMonth(expiry.getMonth() + 1);
     } else {
       expiry.setFullYear(expiry.getFullYear() + 1);
@@ -86,10 +88,10 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
 
     setIsPremium(true);
     setPremiumExpiry(expiry.toISOString());
-    setPlanType(plan);
+    setPlanType(plan === 'trial' ? 'monthly' : plan);
 
     toast({
-      title: "🎉 Premium Activated!",
+      title: plan === 'trial' ? "🎉 7-Day Free Trial Activated!" : "🎉 Premium Activated!",
       description: `You now have access to all premium features until ${expiry.toLocaleDateString()}`,
     });
   };

@@ -12,9 +12,10 @@ import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { PremiumBanner } from '@/components/premium/PremiumBanner';
 import { DailyTargets } from '@/components/targets/DailyTargets';
 import { LifetimeHealthRecords } from '@/components/records/LifetimeHealthRecords';
+import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
-  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target
+  Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target, Bot
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -132,10 +133,14 @@ export function AdultDashboard() {
 
       {/* Main Content */}
       <Tabs defaultValue="records" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="records" className="gap-2">
             <FileText className="w-4 h-4" />
             Records
+          </TabsTrigger>
+          <TabsTrigger value="ai" className="gap-2">
+            <Bot className="w-4 h-4" />
+            AI Chat
           </TabsTrigger>
           <TabsTrigger value="targets" className="gap-2">
             <Target className="w-4 h-4" />
@@ -162,6 +167,16 @@ export function AdultDashboard() {
         {/* Lifetime Health Records Tab */}
         <TabsContent value="records" className="space-y-4 mt-4">
           <LifetimeHealthRecords />
+        </TabsContent>
+
+        {/* AI Chat Tab */}
+        <TabsContent value="ai" className="space-y-4 mt-4">
+          <EmbeddedAIChat 
+            title="AI Health Consultant"
+            placeholder="Ask about diabetes, hypertension, cancer, HIV/AIDS, nutrition..."
+            maxHeight="500px"
+            context="Adult patient dashboard - focus on chronic diseases, preventive care, and detailed medical information"
+          />
         </TabsContent>
 
         {/* Daily Targets Tab */}

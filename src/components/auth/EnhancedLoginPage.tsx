@@ -17,16 +17,14 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { DEMO_EMEC_IDS, DEMO_PASSWORDS, getUserByEmecId } from '@/data/demoUsers';
 
-// Generate unique EMEC ID
+// Generate unique EMEC ID - exactly 11 alphanumeric characters
 const generateEmecId = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  const prefix = 'EMC';
-  const year = new Date().getFullYear().toString().slice(-2);
-  let suffix = '';
-  for (let i = 0; i < 4; i++) {
-    suffix += chars.charAt(Math.floor(Math.random() * chars.length));
+  let result = '';
+  for (let i = 0; i < 11; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-  return `${prefix}${year}${suffix}${Math.floor(Math.random() * 10)}`;
+  return result;
 };
 
 export function EnhancedLoginPage() {

@@ -14,18 +14,35 @@ import {
   BookOpen, ChevronRight, ChevronDown, AlertTriangle,
   Sparkles, GraduationCap, Heart, Baby, User, Users,
   CheckCircle, Clock, Star, Bookmark, Play, Trophy, Gift,
-  Volume2, VolumeX, Bot, Search, Info, Shield
+  Volume2, VolumeX, Bot, Search, Info, Shield, Brain,
+  Flower2, Moon, Sun, Zap, MessageCircle, Lightbulb
 } from 'lucide-react';
 import { 
   getEducationContent, 
   EducationTopic,
 } from '@/data/educationContent';
+import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
 
 const EDUCATION_STORAGE_KEY = 'emec_education_progress';
 
 interface EnhancedEducationHubProps {
   ageCategory?: string;
 }
+
+// Animated background particles
+const FloatingParticle = ({ delay, size, color }: { delay: number; size: number; color: string }) => (
+  <div 
+    className={`absolute rounded-full opacity-20 animate-float ${color}`}
+    style={{
+      width: size,
+      height: size,
+      left: `${Math.random() * 100}%`,
+      top: `${Math.random() * 100}%`,
+      animationDelay: `${delay}s`,
+      animationDuration: `${3 + Math.random() * 4}s`
+    }}
+  />
+);
 
 export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps) {
   const { language } = useLanguage();
@@ -38,7 +55,8 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
   const [bookmarkedTopics, setBookmarkedTopics] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
-  const [showAIExplanation, setShowAIExplanation] = useState<string | null>(null);
+  const [showAIChat, setShowAIChat] = useState(false);
+  const [activeTab, setActiveTab] = useState('all');
 
   const currentAgeCategory = ageCategory || selectedAgeCategory;
   const ageTheme = getAgeTheme();
@@ -46,7 +64,6 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
 
   const content = getEducationContent(currentAgeCategory, lang);
 
-  // Load progress from localStorage
   useEffect(() => {
     try {
       const saved = localStorage.getItem(EDUCATION_STORAGE_KEY);
@@ -60,7 +77,6 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
     }
   }, []);
 
-  // Save progress to localStorage
   useEffect(() => {
     localStorage.setItem(EDUCATION_STORAGE_KEY, JSON.stringify({
       completedSections,
@@ -68,7 +84,6 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
     }));
   }, [completedSections, bookmarkedTopics]);
 
-  // Text-to-speech function
   const speak = (text: string) => {
     if ('speechSynthesis' in window) {
       speechSynthesis.cancel();
@@ -134,7 +149,6 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
     return labels[currentAgeCategory]?.[lang] || labels['adult'][lang];
   };
 
-  // Filter content based on search
   const filteredContent = searchQuery 
     ? content.filter(topic => 
         topic.title[lang].toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -144,34 +158,54 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
 
   const categories = [...new Set(filteredContent.map(topic => topic.category))];
 
+  const categoryFiltered = activeTab === 'all' 
+    ? filteredContent 
+    : filteredContent.filter(t => t.category === activeTab);
+
   const getTopicProgress = (topic: EducationTopic) => {
     const totalSections = topic.content.length;
     const completed = topic.content.filter(s => completedSections.includes(s.id)).length;
     return totalSections > 0 ? (completed / totalSections) * 100 : 0;
   };
 
-  // AI Explanation generator (simple local version)
-  const getAIExplanation = (text: string, sectionTitle: string) => {
-    const explanations: Record<string, Record<string, string>> = {
-      en: {
-        default: `Let me explain "${sectionTitle}" in simpler terms:\n\n${text}\n\nThis information is important for your health awareness. Remember, always consult a healthcare professional for medical advice.`
-      },
-      sw: {
-        default: `Wacha nikusaidie kuelewa "${sectionTitle}":\n\n${text}\n\nMaarifa haya ni muhimu kwa ufahamu wako wa afya. Kumbuka, daima shauriana na mtaalamu wa afya kwa ushauri wa kimatibabu.`
-      },
-      fr: {
-        default: `Laisse-moi t'expliquer "${sectionTitle}" plus simplement:\n\n${text}\n\nCette information est importante pour ta sensibilisation à la santé. N'oublie pas de toujours consulter un professionnel de santé pour des conseils médicaux.`
-      }
+  const totalProgress = content.length > 0 
+    ? content.reduce((acc, topic) => acc + getTopicProgress(topic), 0) / content.length 
+    : 0;
+
+  const getCategoryIcon = (category: string) => {
+    const icons: Record<string, React.ReactNode> = {
+      'hygiene': <Sparkles className="w-4 h-4" />,
+      'nutrition': <Sun className="w-4 h-4" />,
+      'body': <Heart className="w-4 h-4" />,
+      'safety': <Shield className="w-4 h-4" />,
+      'puberty': <Flower2 className="w-4 h-4" />,
+      'menstruation': <Moon className="w-4 h-4" />,
+      'mental-health': <Brain className="w-4 h-4" />,
+      'diseases': <AlertTriangle className="w-4 h-4" />,
     };
-    return explanations[lang]?.default || explanations.en.default;
+    return icons[category] || <BookOpen className="w-4 h-4" />;
   };
 
+  const getCategoryLabel = (category: string) => {
+    const labels: Record<string, { en: string; sw: string; fr: string }> = {
+      'hygiene': { en: 'Hygiene', sw: 'Usafi', fr: 'Hygiène' },
+      'nutrition': { en: 'Nutrition', sw: 'Lishe', fr: 'Nutrition' },
+      'body': { en: 'Body', sw: 'Mwili', fr: 'Corps' },
+      'safety': { en: 'Safety', sw: 'Usalama', fr: 'Sécurité' },
+      'puberty': { en: 'Puberty', sw: 'Balehe', fr: 'Puberté' },
+      'menstruation': { en: 'Menstruation', sw: 'Hedhi', fr: 'Menstruation' },
+      'mental-health': { en: 'Mental Health', sw: 'Afya ya Akili', fr: 'Santé mentale' },
+      'diseases': { en: 'Diseases', sw: 'Magonjwa', fr: 'Maladies' },
+    };
+    return labels[category]?.[lang] || category;
+  };
+
+  // Topic Detail View
   if (selectedTopic) {
     const progress = getTopicProgress(selectedTopic);
     
     return (
       <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-300">
-        {/* Back Button & Progress */}
         <div className="flex items-center justify-between flex-wrap gap-4">
           <Button 
             variant="ghost" 
@@ -182,16 +216,20 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
             {lang === 'sw' ? 'Rudi' : lang === 'fr' ? 'Retour' : 'Back'}
           </Button>
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <Trophy className="w-4 h-4 text-amber-500" />
-              <span>{Math.round(progress)}% Complete</span>
-            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAIChat(!showAIChat)}
+              className="gap-2 bg-gradient-to-r from-primary/10 to-accent/10 border-primary/30"
+            >
+              <Bot className="w-4 h-4" />
+              {showAIChat ? 'Hide AI' : 'Ask AI'}
+            </Button>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => isSpeaking ? stopSpeaking() : speak(selectedTopic.description[lang])}
-              className={isSpeaking ? 'text-primary' : ''}
-              title={isSpeaking ? 'Stop reading' : 'Read aloud'}
+              className={isSpeaking ? 'text-primary animate-pulse' : ''}
             >
               {isSpeaking ? <VolumeX className="w-5 h-5" /> : <Volume2 className="w-5 h-5" />}
             </Button>
@@ -206,48 +244,86 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
           </div>
         </div>
 
-        {/* Topic Header */}
-        <Card className="border-0 shadow-elegant overflow-hidden">
-          <div className={`relative bg-gradient-to-br ${selectedTopic.color} p-8`}>
-            <div className="absolute inset-0 bg-black/10" />
+        {/* AI Chat Panel */}
+        {showAIChat && (
+          <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-accent/5 overflow-hidden animate-in slide-in-from-top-2">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary to-accent flex items-center justify-center">
+                  <Bot className="w-4 h-4 text-white" />
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">AI Health Assistant</p>
+                  <p className="text-xs text-muted-foreground">Ask me anything about {selectedTopic.title[lang]}</p>
+                </div>
+              </div>
+              <EmbeddedAIChat 
+                context={`Age group: ${currentAgeCategory}. Topic: ${selectedTopic.title[lang]} - ${selectedTopic.description[lang]}. Provide age-appropriate explanations.`}
+                maxHeight="250px"
+                showHeader={false}
+              />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Topic Header - Vibrant Design */}
+        <Card className="border-0 shadow-2xl overflow-hidden relative">
+          <div className={`relative bg-gradient-to-br ${selectedTopic.color} p-8 min-h-[200px]`}>
+            {/* Animated Background */}
+            <div className="absolute inset-0 overflow-hidden">
+              {[...Array(6)].map((_, i) => (
+                <FloatingParticle key={i} delay={i * 0.5} size={20 + i * 10} color="bg-white" />
+              ))}
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
+            
             <div className="relative flex items-center gap-6 flex-wrap">
-              <div className="w-20 h-20 rounded-2xl bg-white/20 backdrop-blur-sm flex items-center justify-center text-5xl shadow-lg">
+              <div className="w-24 h-24 rounded-3xl bg-white/25 backdrop-blur-md flex items-center justify-center text-6xl shadow-2xl transform hover:scale-110 transition-transform animate-bounce-slow">
                 {selectedTopic.icon}
               </div>
               <div className="flex-1 min-w-[200px]">
-                <h1 className="text-2xl md:text-3xl font-bold text-white mb-2">{selectedTopic.title[lang]}</h1>
-                <p className="text-white/90 text-lg">{selectedTopic.description[lang]}</p>
+                <h1 className="text-3xl md:text-4xl font-black text-white mb-3 drop-shadow-lg">
+                  {selectedTopic.title[lang]}
+                </h1>
+                <p className="text-white/95 text-lg font-medium">{selectedTopic.description[lang]}</p>
                 <div className="flex items-center gap-3 mt-4 flex-wrap">
-                  <Badge className="bg-white/20 text-white border-white/30">
-                    <Clock className="w-3 h-3 mr-1" />
+                  <Badge className="bg-white/25 text-white border-white/40 backdrop-blur-sm px-4 py-1">
+                    <Clock className="w-3.5 h-3.5 mr-1.5" />
                     {selectedTopic.content.length * 3} min read
                   </Badge>
-                  <Badge className="bg-white/20 text-white border-white/30">
+                  <Badge className="bg-white/25 text-white border-white/40 backdrop-blur-sm px-4 py-1">
+                    <BookOpen className="w-3.5 h-3.5 mr-1.5" />
                     {selectedTopic.content.length} sections
+                  </Badge>
+                  <Badge className="bg-white/25 text-white border-white/40 backdrop-blur-sm px-4 py-1">
+                    <Trophy className="w-3.5 h-3.5 mr-1.5" />
+                    {Math.round(progress)}% complete
                   </Badge>
                 </div>
               </div>
             </div>
-            <div className="mt-6">
-              <Progress value={progress} className="h-2 bg-white/20" />
+            <div className="relative mt-8">
+              <Progress value={progress} className="h-3 bg-white/20 rounded-full" />
             </div>
           </div>
         </Card>
 
         {/* Educational Disclaimer */}
-        <div className="p-4 rounded-xl bg-info/10 border border-info/30">
+        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20 backdrop-blur-sm">
           <div className="flex items-start gap-3">
-            <Info className="w-5 h-5 text-info shrink-0 mt-0.5" />
-            <div className="text-sm">
-              <p className="font-semibold text-info mb-1">
-                {lang === 'sw' ? 'Kumbusho Muhimu' : lang === 'fr' ? 'Rappel Important' : 'Important Reminder'}
+            <div className="w-10 h-10 rounded-xl bg-blue-500/20 flex items-center justify-center shrink-0">
+              <Info className="w-5 h-5 text-blue-600" />
+            </div>
+            <div>
+              <p className="font-bold text-blue-700 dark:text-blue-400 mb-1">
+                {lang === 'sw' ? 'Kumbusho Muhimu' : lang === 'fr' ? 'Rappel Important' : 'Educational Content'}
               </p>
-              <p className="text-muted-foreground text-xs leading-relaxed">
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 {lang === 'sw' 
                   ? 'Programu hii inatoa elimu na uhamasishaji wa afya, si utambuzi wa kimatibabu. Daima tembelea kituo cha afya kwa ushauri wa kimatibabu.'
                   : lang === 'fr'
-                  ? 'Cette application fournit une éducation et sensibilisation à la santé, pas un diagnostic médical. Consultez toujours un établissement de santé pour des conseils médicaux.'
-                  : 'This app provides health education and awareness, not medical diagnosis. Always visit a health facility for medical advice.'}
+                  ? 'Cette application fournit une éducation et sensibilisation à la santé, pas un diagnostic médical.'
+                  : 'This app provides health education and awareness, not medical diagnosis. Always consult healthcare professionals for medical advice.'}
               </p>
             </div>
           </div>
@@ -258,32 +334,31 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
           {selectedTopic.content.map((section, index) => {
             const isExpanded = expandedSections.includes(section.id);
             const isCompleted = completedSections.includes(section.id);
-            const isExplaining = showAIExplanation === section.id;
             
             return (
               <Card 
                 key={section.id} 
-                className={`border-0 shadow-elegant transition-all duration-300 overflow-hidden ${
-                  section.warningSign ? 'ring-2 ring-destructive/30' : ''
-                } ${isCompleted ? 'bg-success/5' : ''}`}
+                className={`border-0 shadow-lg transition-all duration-300 overflow-hidden hover:shadow-xl ${
+                  section.warningSign ? 'ring-2 ring-orange-500/30 bg-orange-50/50 dark:bg-orange-950/20' : ''
+                } ${isCompleted ? 'bg-gradient-to-r from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30' : ''}`}
               >
                 <div 
-                  className="p-5 cursor-pointer hover:bg-muted/50 transition-colors"
+                  className="p-5 cursor-pointer hover:bg-muted/30 transition-colors"
                   onClick={() => toggleSection(section.id)}
                 >
                   <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-colors ${
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-lg font-bold transition-all shadow-lg ${
                       isCompleted 
-                        ? 'bg-success text-white' 
-                        : 'bg-muted text-muted-foreground'
+                        ? 'bg-gradient-to-br from-green-500 to-emerald-500 text-white' 
+                        : 'bg-gradient-to-br from-muted to-muted/50 text-muted-foreground'
                     }`}>
-                      {isCompleted ? <CheckCircle className="w-5 h-5" /> : index + 1}
+                      {isCompleted ? <CheckCircle className="w-6 h-6" /> : index + 1}
                     </div>
                     
                     <div className="flex-1">
-                      <h3 className="font-semibold text-lg flex items-center gap-2">
+                      <h3 className="font-bold text-lg flex items-center gap-2">
                         {section.warningSign && (
-                          <AlertTriangle className="w-5 h-5 text-destructive" />
+                          <AlertTriangle className="w-5 h-5 text-orange-500 animate-pulse" />
                         )}
                         {section.title[lang]}
                       </h3>
@@ -294,48 +369,37 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                       )}
                     </div>
                     
-                    <div className={`w-8 h-8 rounded-full bg-muted flex items-center justify-center transition-transform ${isExpanded ? 'rotate-180' : ''}`}>
-                      <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                    <div className={`w-10 h-10 rounded-full bg-gradient-to-br from-primary/10 to-accent/10 flex items-center justify-center transition-transform duration-300 ${isExpanded ? 'rotate-180' : ''}`}>
+                      <ChevronDown className="w-5 h-5 text-primary" />
                     </div>
                   </div>
                 </div>
                 
                 {isExpanded && (
                   <div className="px-5 pb-5 pt-0 space-y-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                    <div className="ml-14 pl-4 border-l-2 border-primary/20">
-                      <p className="text-muted-foreground leading-relaxed whitespace-pre-line">
+                    <div className="ml-16 pl-4 border-l-4 border-primary/30">
+                      <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-base">
                         {section.content[lang]}
                       </p>
                       
                       {section.bulletPoints && (
-                        <ul className="space-y-2 mt-4">
+                        <ul className="space-y-3 mt-5">
                           {section.bulletPoints[lang].map((point, idx) => (
                             <li 
                               key={idx}
-                              className="flex items-start gap-3 p-3 rounded-xl bg-gradient-to-r from-primary/5 to-transparent hover:from-primary/10 transition-colors"
+                              className="flex items-start gap-3 p-4 rounded-2xl bg-gradient-to-r from-primary/5 via-accent/5 to-primary/5 hover:from-primary/10 hover:to-accent/10 transition-all transform hover:translate-x-1"
                             >
-                              <span className="text-xl flex-shrink-0">{point.split(' ')[0]}</span>
-                              <span className="text-sm">{point.split(' ').slice(1).join(' ')}</span>
+                              <span className="text-2xl flex-shrink-0 animate-bounce-slow" style={{ animationDelay: `${idx * 0.1}s` }}>
+                                {point.split(' ')[0]}
+                              </span>
+                              <span className="text-sm font-medium">{point.split(' ').slice(1).join(' ')}</span>
                             </li>
                           ))}
                         </ul>
                       )}
-
-                      {/* AI Explanation */}
-                      {isExplaining && (
-                        <div className="mt-4 p-4 rounded-xl bg-primary/5 border border-primary/20 animate-in fade-in">
-                          <div className="flex items-center gap-2 mb-2">
-                            <Bot className="w-5 h-5 text-primary" />
-                            <span className="font-semibold text-primary">AI Explanation</span>
-                          </div>
-                          <p className="text-sm text-muted-foreground whitespace-pre-line">
-                            {getAIExplanation(section.content[lang], section.title[lang])}
-                          </p>
-                        </div>
-                      )}
                       
                       {/* Action Buttons */}
-                      <div className="flex items-center justify-between mt-4 pt-4 border-t border-border/50 flex-wrap gap-2">
+                      <div className="flex items-center justify-between mt-6 pt-4 border-t border-border/50 flex-wrap gap-3">
                         <div className="flex items-center gap-2">
                           <Button
                             size="sm"
@@ -344,22 +408,10 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                               e.stopPropagation();
                               isSpeaking ? stopSpeaking() : speak(section.content[lang]);
                             }}
-                            className="gap-2"
+                            className="gap-2 rounded-xl"
                           >
                             {isSpeaking ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4" />}
                             {isSpeaking ? 'Stop' : 'Read Aloud'}
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setShowAIExplanation(isExplaining ? null : section.id);
-                            }}
-                            className="gap-2"
-                          >
-                            <Bot className="w-4 h-4" />
-                            {isExplaining ? 'Hide AI' : 'AI Explain'}
                           </Button>
                         </div>
                         <Button
@@ -370,17 +422,17 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                             markSectionComplete(section.id);
                           }}
                           disabled={isCompleted}
-                          className="gap-2"
+                          className="gap-2 rounded-xl shadow-lg"
                         >
                           {isCompleted ? (
                             <>
                               <CheckCircle className="w-4 h-4" />
-                              Completed
+                              Completed!
                             </>
                           ) : (
                             <>
-                              <Play className="w-4 h-4" />
-                              Mark Complete
+                              <Zap className="w-4 h-4" />
+                              Mark Complete (+10 pts)
                             </>
                           )}
                         </Button>
@@ -396,179 +448,224 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
     );
   }
 
+  // Main Hub View - Completely Redesigned
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${ageTheme.colors.primary} flex items-center justify-center shadow-lg`}>
-            <GraduationCap className="w-8 h-8 text-white" />
-          </div>
-          <div>
-            <h1 className="text-2xl md:text-3xl font-bold">
-              {lang === 'sw' ? 'Elimu ya Afya' : lang === 'fr' ? 'Éducation à la santé' : 'Health Education'}
-            </h1>
-            <div className="flex items-center gap-2 mt-2 flex-wrap">
-              <Badge variant="secondary" className="gap-1">
-                {getAgeIcon()}
-                {getAgeLabel()}
-              </Badge>
-              <Badge variant="outline" className="bg-primary/5">
-                <BookOpen className="w-3 h-3 mr-1" />
-                {filteredContent.length} {lang === 'sw' ? 'mada' : lang === 'fr' ? 'sujets' : 'topics'}
-              </Badge>
-            </div>
-          </div>
+    <div className="space-y-8">
+      {/* Hero Section */}
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary via-accent to-primary p-8 md:p-12 text-white">
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(10)].map((_, i) => (
+            <FloatingParticle key={i} delay={i * 0.3} size={15 + i * 8} color="bg-white" />
+          ))}
         </div>
+        <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-10" />
         
-        {/* Stats Card */}
-        <Card className="hidden md:block border-0 shadow-elegant bg-gradient-to-br from-amber-500/10 to-orange-500/10">
-          <CardContent className="p-4 flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-amber-500/20 flex items-center justify-center">
-              <Star className="w-6 h-6 text-amber-500" />
+        <div className="relative z-10">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-14 h-14 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center shadow-xl">
+              <GraduationCap className="w-7 h-7" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Learning Progress</p>
-              <p className="text-xl font-bold text-amber-600">{completedSections.length} sections</p>
+              <Badge className="bg-white/20 text-white border-white/30 mb-1">
+                {getAgeIcon()}
+                <span className="ml-1.5">{getAgeLabel()}</span>
+              </Badge>
+              <h1 className="text-3xl md:text-4xl font-black tracking-tight">
+                {lang === 'sw' ? 'Kituo cha Elimu ya Afya' : lang === 'fr' ? 'Centre d\'Éducation Santé' : 'Health Education Hub'}
+              </h1>
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          </div>
+          
+          <p className="text-white/90 text-lg max-w-2xl mb-6">
+            {lang === 'sw' 
+              ? 'Jifunze kuhusu afya yako kwa njia ya kufurahisha na rahisi kuelewa!'
+              : lang === 'fr'
+              ? 'Apprends sur ta santé de manière amusante et facile à comprendre!'
+              : 'Learn about your health in a fun and easy-to-understand way!'}
+          </p>
 
-      {/* Educational Disclaimer Banner */}
-      <div className="p-4 rounded-xl bg-primary/5 border border-primary/20">
-        <div className="flex items-start gap-3">
-          <Shield className="w-5 h-5 text-primary shrink-0 mt-0.5" />
-          <div className="text-sm">
-            <p className="font-semibold text-primary mb-1">
-              {lang === 'sw' ? 'Elimu ya Afya - Sio Utambuzi' : lang === 'fr' ? 'Éducation Santé - Pas un Diagnostic' : 'Health Education - Not Diagnosis'}
-            </p>
-            <p className="text-muted-foreground text-xs leading-relaxed">
-              {lang === 'sw' 
-                ? 'Programu hii inatoa elimu na uhamasishaji wa afya pekee. Haibadilishi ushauri wa kimatibabu kutoka kwa mtaalamu. Daima tembelea kituo cha afya kwa matatizo ya kiafya.'
-                : lang === 'fr'
-                ? 'Cette application fournit uniquement une éducation et sensibilisation à la santé. Elle ne remplace pas les conseils médicaux professionnels. Consultez toujours un établissement de santé pour les problèmes de santé.'
-                : 'This app provides health education and awareness only. It does not replace professional medical advice. Always visit a health facility for health concerns.'}
+          {/* Progress Overview */}
+          <div className="bg-white/15 backdrop-blur-md rounded-2xl p-5 max-w-md">
+            <div className="flex items-center justify-between mb-3">
+              <span className="font-bold flex items-center gap-2">
+                <Trophy className="w-5 h-5 text-yellow-300" />
+                {lang === 'sw' ? 'Maendeleo Yako' : lang === 'fr' ? 'Tes Progrès' : 'Your Progress'}
+              </span>
+              <span className="text-2xl font-black">{Math.round(totalProgress)}%</span>
+            </div>
+            <Progress value={totalProgress} className="h-3 bg-white/20 rounded-full" />
+            <p className="text-sm text-white/80 mt-2">
+              {content.length} {lang === 'sw' ? 'mada zinapatikana' : lang === 'fr' ? 'sujets disponibles' : 'topics available'}
             </p>
           </div>
         </div>
       </div>
 
-      {/* Search */}
+      {/* AI Assistant Quick Access */}
+      <Card className="border-2 border-dashed border-primary/30 bg-gradient-to-r from-primary/5 via-background to-accent/5 hover:border-primary/50 transition-all cursor-pointer group"
+        onClick={() => setShowAIChat(!showAIChat)}
+      >
+        <CardContent className="p-6">
+          <div className="flex items-center gap-4">
+            <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-xl group-hover:scale-110 transition-transform">
+              <Bot className="w-8 h-8 text-white" />
+            </div>
+            <div className="flex-1">
+              <h3 className="font-bold text-xl mb-1 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary animate-pulse" />
+                {lang === 'sw' ? 'Msaidizi wa AI' : lang === 'fr' ? 'Assistant IA' : 'AI Health Assistant'}
+              </h3>
+              <p className="text-muted-foreground">
+                {lang === 'sw' 
+                  ? 'Uliza swali lolote kuhusu afya - nitakusaidia kuelewa!'
+                  : lang === 'fr'
+                  ? 'Pose n\'importe quelle question sur la santé - je t\'aiderai à comprendre!'
+                  : 'Ask any health question - I\'ll help you understand!'}
+              </p>
+            </div>
+            <MessageCircle className="w-8 h-8 text-muted-foreground group-hover:text-primary transition-colors" />
+          </div>
+        </CardContent>
+      </Card>
+
+      {showAIChat && (
+        <Card className="border-primary/20 shadow-xl animate-in slide-in-from-top-2">
+          <CardContent className="p-6">
+            <EmbeddedAIChat context={`Age group: ${currentAgeCategory}. Provide age-appropriate health education explanations.`} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Search Bar */}
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         <Input
-          placeholder={lang === 'sw' ? 'Tafuta mada...' : lang === 'fr' ? 'Rechercher des sujets...' : 'Search topics...'}
+          type="text"
+          placeholder={lang === 'sw' ? 'Tafuta mada...' : lang === 'fr' ? 'Rechercher un sujet...' : 'Search topics...'}
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="pl-10"
+          className="pl-12 h-14 text-lg rounded-2xl border-2 focus:border-primary shadow-lg"
         />
       </div>
 
       {/* Category Tabs */}
-      <Tabs defaultValue={categories[0]} className="w-full">
-        <ScrollArea className="w-full pb-2">
-          <TabsList className="w-full justify-start bg-muted/50 p-1">
-            {categories.map(category => (
-              <TabsTrigger 
-                key={category} 
-                value={category} 
-                className="capitalize data-[state=active]:bg-background data-[state=active]:shadow-sm"
-              >
-                {category.replace('-', ' ')}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </ScrollArea>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="w-full h-auto flex-wrap gap-2 bg-transparent p-0 justify-start">
+          <TabsTrigger 
+            value="all" 
+            className="rounded-xl px-6 py-3 data-[state=active]:bg-primary data-[state=active]:text-white shadow-md"
+          >
+            <Sparkles className="w-4 h-4 mr-2" />
+            {lang === 'sw' ? 'Zote' : lang === 'fr' ? 'Tout' : 'All'}
+          </TabsTrigger>
+          {categories.map(category => (
+            <TabsTrigger 
+              key={category}
+              value={category}
+              className="rounded-xl px-5 py-3 data-[state=active]:bg-primary data-[state=active]:text-white shadow-md"
+            >
+              {getCategoryIcon(category)}
+              <span className="ml-2">{getCategoryLabel(category)}</span>
+            </TabsTrigger>
+          ))}
+        </TabsList>
 
-        {categories.map(category => (
-          <TabsContent key={category} value={category} className="mt-6">
-            <div className="grid gap-4 md:grid-cols-2">
-              {filteredContent.filter(topic => topic.category === category).map((topic, index) => {
-                const progress = getTopicProgress(topic);
-                const isBookmarked = bookmarkedTopics.includes(topic.id);
-                
-                return (
-                  <Card 
-                    key={topic.id}
-                    className="group border-0 shadow-elegant cursor-pointer hover:shadow-xl transition-all duration-300 hover:-translate-y-1 overflow-hidden"
-                    style={{ animationDelay: `${index * 50}ms` }}
-                    onClick={() => {
-                      setSelectedTopic(topic);
-                      setExpandedSections([topic.content[0]?.id]);
-                    }}
-                  >
-                    {progress > 0 && (
-                      <div className="h-1 bg-muted">
-                        <div 
-                          className="h-full bg-success transition-all duration-500"
-                          style={{ width: `${progress}%` }}
-                        />
+        <TabsContent value={activeTab} className="mt-6">
+          {/* Topic Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {categoryFiltered.map((topic, index) => {
+              const progress = getTopicProgress(topic);
+              const isBookmarked = bookmarkedTopics.includes(topic.id);
+              
+              return (
+                <Card 
+                  key={topic.id}
+                  className="group cursor-pointer border-0 shadow-xl hover:shadow-2xl transition-all duration-300 overflow-hidden hover:-translate-y-2"
+                  onClick={() => setSelectedTopic(topic)}
+                  style={{ animationDelay: `${index * 0.05}s` }}
+                >
+                  <div className={`relative bg-gradient-to-br ${topic.color} p-6 min-h-[160px]`}>
+                    <div className="absolute inset-0 overflow-hidden opacity-30">
+                      {[...Array(3)].map((_, i) => (
+                        <FloatingParticle key={i} delay={i} size={30} color="bg-white" />
+                      ))}
+                    </div>
+                    <div className="absolute top-4 right-4 flex gap-2">
+                      {isBookmarked && (
+                        <Badge className="bg-yellow-500/90 text-white border-0">
+                          <Star className="w-3 h-3 mr-1 fill-current" />
+                          Saved
+                        </Badge>
+                      )}
+                      {progress === 100 && (
+                        <Badge className="bg-green-500/90 text-white border-0">
+                          <CheckCircle className="w-3 h-3 mr-1" />
+                          Done
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="relative">
+                      <div className="text-6xl mb-3 transform group-hover:scale-125 transition-transform duration-300">
+                        {topic.icon}
                       </div>
-                    )}
+                    </div>
+                  </div>
+                  
+                  <CardContent className="p-5">
+                    <h3 className="font-bold text-lg mb-2 group-hover:text-primary transition-colors line-clamp-2">
+                      {topic.title[lang]}
+                    </h3>
+                    <p className="text-sm text-muted-foreground line-clamp-2 mb-4">
+                      {topic.description[lang]}
+                    </p>
                     
-                    <CardContent className="p-6">
-                      <div className="flex items-start gap-4">
-                        <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${topic.color} flex items-center justify-center text-4xl flex-shrink-0 shadow-lg group-hover:scale-110 transition-transform duration-300`}>
-                          {topic.icon}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h3 className="font-semibold text-lg group-hover:text-primary transition-colors">
-                              {topic.title[lang]}
-                            </h3>
-                            {isBookmarked && (
-                              <Bookmark className="w-4 h-4 text-amber-500 fill-amber-500 flex-shrink-0" />
-                            )}
-                          </div>
-                          <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
-                            {topic.description[lang]}
-                          </p>
-                          <div className="flex items-center gap-2 mt-3 flex-wrap">
-                            <Badge variant="outline" className="text-xs bg-background">
-                              <Clock className="w-3 h-3 mr-1" />
-                              {topic.content.length * 3} min
-                            </Badge>
-                            <Badge variant="outline" className="text-xs bg-background">
-                              {topic.content.length} {lang === 'sw' ? 'sehemu' : lang === 'fr' ? 'sections' : 'sections'}
-                            </Badge>
-                            {topic.gender && topic.gender !== 'all' && (
-                              <Badge variant="secondary" className="text-xs capitalize">
-                                {topic.gender === 'male' 
-                                  ? (lang === 'sw' ? 'Wavulana' : lang === 'fr' ? 'Garçons' : 'Boys')
-                                  : (lang === 'sw' ? 'Wasichana' : lang === 'fr' ? 'Filles' : 'Girls')
-                                }
-                              </Badge>
-                            )}
-                          </div>
-                          {progress > 0 && (
-                            <div className="flex items-center gap-2 mt-3">
-                              <CheckCircle className="w-4 h-4 text-success" />
-                              <span className="text-xs text-success font-medium">{Math.round(progress)}% complete</span>
-                            </div>
-                          )}
-                        </div>
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <BookOpen className="w-3.5 h-3.5" />
+                          {topic.content.length} sections
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Clock className="w-3.5 h-3.5" />
+                          {topic.content.length * 3} min
+                        </span>
                       </div>
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </TabsContent>
-        ))}
-      </Tabs>
-
-      {/* Floating AI Helper Hint */}
-      <div className="fixed bottom-24 right-6 z-40">
-        <div className="p-3 rounded-xl bg-primary/10 border border-primary/30 shadow-lg animate-bounce-soft max-w-[200px]">
-          <div className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-primary" />
-            <p className="text-xs text-primary font-medium">
-              {lang === 'sw' ? 'Uliza AI msaada!' : lang === 'fr' ? 'Demandez l\'aide de l\'IA!' : 'Ask AI for help!'}
-            </p>
+                      <div className="relative">
+                        <Progress value={progress} className="h-2 rounded-full" />
+                        <span className="absolute right-0 -top-5 text-xs font-bold text-primary">
+                          {Math.round(progress)}%
+                        </span>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      variant="ghost" 
+                      className="w-full mt-4 group-hover:bg-primary group-hover:text-white transition-all rounded-xl"
+                    >
+                      {lang === 'sw' ? 'Jifunze Zaidi' : lang === 'fr' ? 'En savoir plus' : 'Learn More'}
+                      <ChevronRight className="w-4 h-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
-        </div>
-      </div>
+
+          {categoryFiltered.length === 0 && (
+            <div className="text-center py-16">
+              <div className="w-24 h-24 rounded-full bg-muted/50 flex items-center justify-center mx-auto mb-6">
+                <Search className="w-10 h-10 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-bold mb-2">
+                {lang === 'sw' ? 'Hakuna mada zilizopatikana' : lang === 'fr' ? 'Aucun sujet trouvé' : 'No topics found'}
+              </h3>
+              <p className="text-muted-foreground">
+                {lang === 'sw' ? 'Jaribu kutafuta kwa maneno tofauti' : lang === 'fr' ? 'Essaie avec d\'autres mots' : 'Try searching with different words'}
+              </p>
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

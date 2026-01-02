@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Home, Calculator, Heart, AlertTriangle, Menu, X, Video, Pill, HandHeart, Gamepad2, Crown } from "lucide-react";
+import { Home, Calculator, Heart, AlertTriangle, Menu, X, Video, Pill, HandHeart, Gamepad2, Crown, BookOpen, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -7,12 +7,14 @@ import { usePremium } from "@/contexts/PremiumContext";
 
 const navItems = [
   { name: "Home", path: "/dashboard", icon: Home },
+  { name: "Education", path: "/education", icon: BookOpen },
   { name: "Consultation", path: "/consultation", icon: Video },
   { name: "Calculators", path: "/calculators", icon: Calculator },
   { name: "Games", path: "/games", icon: Gamepad2 },
   { name: "First Aid", path: "/first-aid", icon: Heart },
   { name: "Emergency", path: "/emergency", icon: AlertTriangle },
   { name: "Pharmacy", path: "/pharmacy", icon: Pill, premium: true },
+  { name: "Premium", path: "/premium", icon: Sparkles },
   { name: "Donations", path: "/donations", icon: HandHeart },
 ];
 

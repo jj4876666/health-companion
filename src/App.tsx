@@ -12,7 +12,8 @@ import { PointsProvider } from "@/contexts/PointsContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
 import { SplashScreen } from "@/components/splash/SplashScreen";
-import { LoginPage } from "@/components/auth/LoginPage";
+import { EnhancedLoginPage } from "@/components/auth/EnhancedLoginPage";
+import Premium from "./pages/Premium";
 import { FloatingAIAssistant } from "@/components/chat/FloatingAIAssistant";
 import { DemoControls } from "@/components/demo/DemoControls";
 import { SkipLink } from "@/components/accessibility/SkipLink";
@@ -52,9 +53,10 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
-      <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
+      <Route path="/login" element={<PublicRoute><EnhancedLoginPage /></PublicRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
+      <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
       <Route path="/calculators" element={<ProtectedRoute><Calculators /></ProtectedRoute>} />
       <Route path="/first-aid" element={<ProtectedRoute><FirstAid /></ProtectedRoute>} />
       <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />

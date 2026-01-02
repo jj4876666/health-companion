@@ -1,11 +1,11 @@
 import { PageLayout } from "@/components/layout/PageLayout";
-import { EducationHub } from "@/components/education/EducationHub";
+import { EnhancedEducationHub } from "@/components/education/EnhancedEducationHub";
 
 const Education = () => {
   return (
     <PageLayout>
       <div className="container mx-auto px-4 py-8">
-        <EducationHub />
+        <EnhancedEducationHub />
       </div>
     </PageLayout>
   );

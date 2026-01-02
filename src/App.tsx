@@ -15,6 +15,9 @@ import { SplashScreen } from "@/components/splash/SplashScreen";
 import { LoginPage } from "@/components/auth/LoginPage";
 import { FloatingAIAssistant } from "@/components/chat/FloatingAIAssistant";
 import { DemoControls } from "@/components/demo/DemoControls";
+import { SkipLink } from "@/components/accessibility/SkipLink";
+import { ReadingGuide } from "@/components/accessibility/ReadingGuide";
+import { AccessibilityToolbar } from "@/components/accessibility/AccessibilityToolbar";
 import Dashboard from "./pages/Dashboard";
 import Education from "./pages/Education";
 import Calculators from "./pages/Calculators";
@@ -88,9 +91,14 @@ const App = () => {
                         <SplashScreen onComplete={() => setShowSplash(false)} />
                       ) : (
                         <BrowserRouter>
-                          <AppRoutes />
+                          <SkipLink />
+                          <ReadingGuide />
+                          <main id="main-content">
+                            <AppRoutes />
+                          </main>
                           <DemoControls />
                           <FloatingAIAssistant />
+                          <AccessibilityToolbar />
                         </BrowserRouter>
                       )}
                     </TooltipProvider>

@@ -429,10 +429,18 @@ export function EnhancedPremiumSection() {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex-col gap-2 sm:flex-col">
             <Button onClick={handleActivateTrial} className="w-full gap-2">
               <Sparkles className="w-4 h-4" />
               Start Free Trial
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={() => { activatePremium('demo'); setShowPremiumDialog(false); }} 
+              className="w-full gap-2 border-purple-500/30 text-purple-600 hover:bg-purple-500/10"
+            >
+              <Zap className="w-4 h-4" />
+              Activate Demo Premium (30 days)
             </Button>
           </DialogFooter>
         </DialogContent>

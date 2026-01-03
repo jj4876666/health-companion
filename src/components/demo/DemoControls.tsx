@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { 
   Settings2, Baby, User, Users, Wifi, WifiOff, 
   Eye, Sparkles, AlertCircle, Shield, X, ChevronDown, ChevronUp,
-  RotateCcw
+  RotateCcw, Crown
 } from 'lucide-react';
 import {
   Sheet,
@@ -51,11 +51,19 @@ const ageCategories: { value: AgeCategory; label: string; icon: React.ReactNode;
   },
 ];
 
-const accountTypes: { value: UserRole; label: string; icon: React.ReactNode; color: string }[] = [
-  { value: 'child', label: 'Child', icon: <Baby className="w-4 h-4" />, color: 'bg-pink-500' },
-  { value: 'adult', label: 'Adult', icon: <User className="w-4 h-4" />, color: 'bg-blue-500' },
-  { value: 'parent', label: 'Parent', icon: <Users className="w-4 h-4" />, color: 'bg-green-500' },
-  { value: 'admin', label: 'Health Officer', icon: <Shield className="w-4 h-4" />, color: 'bg-purple-500' },
+const childAccountTypes = [
+  { value: 'child', label: 'Kevin (9)', icon: <Baby className="w-4 h-4" />, color: 'bg-blue-500', description: 'Child View' },
+  { value: 'teen', label: 'Faith (14)', icon: <User className="w-4 h-4" />, color: 'bg-purple-500', description: 'Teen View' },
+];
+
+const adultAccountTypes = [
+  { value: 'adultFree', label: 'Mary (Free)', icon: <User className="w-4 h-4" />, color: 'bg-slate-500', description: 'Free Account' },
+  { value: 'adultPremium', label: 'John (Premium)', icon: <Crown className="w-4 h-4" />, color: 'bg-amber-500', description: 'Premium Account' },
+];
+
+const otherAccountTypes = [
+  { value: 'parent', label: 'Parent', icon: <Users className="w-4 h-4" />, color: 'bg-green-500', description: 'Grace Achieng' },
+  { value: 'admin', label: 'Health Officer', icon: <Shield className="w-4 h-4" />, color: 'bg-red-500', description: 'Dr. Wekesa' },
 ];
 
 export function DemoControls() {
@@ -69,10 +77,21 @@ export function DemoControls() {
   } = useDemo();
   const { currentUser, switchAccountType, viewingAsChild, setViewingAsChild } = useAuth();
   const { resetPoints, points, streak } = usePoints();
-  const { resetPremium, isPremium } = usePremium();
+  const { resetPremium, isPremium, setIsPremiumUser } = usePremium();
   const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const theme = getAgeTheme();
+
+  // Handle account switching with premium state
+  const handleAccountSwitch = (accountType: string) => {
+    switchAccountType(accountType as any);
+    // Set premium status based on account type
+    if (accountType === 'adultPremium') {
+      setIsPremiumUser(true);
+    } else {
+      setIsPremiumUser(false);
+    }
+  };
 
   const handleDemoReset = () => {
     resetPoints();
@@ -82,8 +101,6 @@ export function DemoControls() {
       description: 'All points, streaks, and premium trials have been cleared for a fresh presentation.',
     });
   };
-
-  if (!isDemoMode) return null;
 
   if (!isDemoMode) return null;
 
@@ -144,25 +161,79 @@ export function DemoControls() {
                 </div>
               </div>
 
-              {/* Account Type Selector */}
+              {/* Children/Teen Account Selector */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Baby className="w-4 h-4" />
+                  Children Accounts
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {childAccountTypes.map((account) => (
+                    <Button
+                      key={account.value}
+                      variant={currentUser?.name?.includes(account.label.split(' ')[0]) ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-auto py-2 flex flex-col items-center gap-1"
+                      onClick={() => handleAccountSwitch(account.value)}
+                    >
+                      <div className={`p-1.5 rounded ${account.color} text-white`}>
+                        {account.icon}
+                      </div>
+                      <span className="text-xs font-medium">{account.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{account.description}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Free vs Premium Adult Accounts */}
+              <div className="space-y-3">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <Crown className="w-4 h-4 text-amber-500" />
+                  Free vs Premium Comparison
+                </Label>
+                <div className="grid grid-cols-2 gap-2">
+                  {adultAccountTypes.map((account) => (
+                    <Button
+                      key={account.value}
+                      variant={currentUser?.name?.includes(account.label.split(' ')[0]) ? 'default' : 'outline'}
+                      size="sm"
+                      className={`h-auto py-3 flex flex-col items-center gap-1 ${account.value === 'adultPremium' ? 'ring-2 ring-amber-500/50' : ''}`}
+                      onClick={() => handleAccountSwitch(account.value)}
+                    >
+                      <div className={`p-1.5 rounded ${account.color} text-white`}>
+                        {account.icon}
+                      </div>
+                      <span className="text-xs font-medium">{account.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{account.description}</span>
+                    </Button>
+                  ))}
+                </div>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Compare features between free and premium accounts
+                </p>
+              </div>
+
+              {/* Other Account Types */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium flex items-center gap-2">
                   <Users className="w-4 h-4" />
-                  Account Type
+                  Other Roles
                 </Label>
                 <div className="grid grid-cols-2 gap-2">
-                  {accountTypes.map((account) => (
+                  {otherAccountTypes.map((account) => (
                     <Button
                       key={account.value}
                       variant={currentUser?.role === account.value ? 'default' : 'outline'}
                       size="sm"
-                      className="h-auto py-2 flex items-center gap-2"
-                      onClick={() => switchAccountType(account.value)}
+                      className="h-auto py-2 flex flex-col items-center gap-1"
+                      onClick={() => handleAccountSwitch(account.value)}
                     >
-                      <div className={`p-1 rounded ${account.color} text-white`}>
+                      <div className={`p-1.5 rounded ${account.color} text-white`}>
                         {account.icon}
                       </div>
-                      <span className="text-xs">{account.label}</span>
+                      <span className="text-xs font-medium">{account.label}</span>
+                      <span className="text-[10px] text-muted-foreground">{account.description}</span>
                     </Button>
                   ))}
                 </div>
@@ -269,28 +340,57 @@ export function DemoControls() {
               )}
 
               {/* Demo Accounts Quick Reference */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium">Quick Demo Accounts</Label>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
-                    <p className="font-medium text-blue-700 dark:text-blue-300">👦 Kevin Otieno</p>
-                    <p className="text-muted-foreground">Age 9 • Child</p>
-                    <p className="text-[10px] text-muted-foreground">Blood: O+ • Allergies: Peanuts</p>
+              <div className="space-y-3">
+                <Label className="text-sm font-medium">Demo Account Reference</Label>
+                
+                {/* Children Section */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Children</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                      <p className="font-medium text-blue-700 dark:text-blue-300">👦 Kevin Otieno</p>
+                      <p className="text-muted-foreground">Age 9 • Child</p>
+                      <p className="text-[10px] text-muted-foreground">Fun games, simple content</p>
+                    </div>
+                    <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                      <p className="font-medium text-purple-700 dark:text-purple-300">👧 Faith Achieng</p>
+                      <p className="text-muted-foreground">Age 14 • Teen</p>
+                      <p className="text-[10px] text-muted-foreground">Puberty, mental health access</p>
+                    </div>
                   </div>
-                  <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
-                    <p className="font-medium text-purple-700 dark:text-purple-300">👧 Faith Achieng</p>
-                    <p className="text-muted-foreground">Age 14 • Teen</p>
-                    <p className="text-[10px] text-muted-foreground">Blood: A+ • Allergies: Dust</p>
+                </div>
+
+                {/* Free vs Premium Section */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Free vs Premium Adults</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-800">
+                      <p className="font-medium text-slate-700 dark:text-slate-300">👩 Mary Wanjiku</p>
+                      <p className="text-muted-foreground">Age 28 • FREE</p>
+                      <p className="text-[10px] text-muted-foreground">Basic features only</p>
+                    </div>
+                    <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded border-2 border-amber-400 dark:border-amber-600">
+                      <p className="font-medium text-amber-700 dark:text-amber-300">👨 John Kamau ⭐</p>
+                      <p className="text-muted-foreground">Age 35 • PREMIUM</p>
+                      <p className="text-[10px] text-muted-foreground">All features unlocked</p>
+                    </div>
                   </div>
-                  <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded border border-pink-200 dark:border-pink-800">
-                    <p className="font-medium text-pink-700 dark:text-pink-300">👶 Brian Odhiambo</p>
-                    <p className="text-muted-foreground">Age 4 • Infant</p>
-                    <p className="text-[10px] text-muted-foreground">Blood: O- • No allergies</p>
-                  </div>
-                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
-                    <p className="font-medium text-green-700 dark:text-green-300">👩 Grace Achieng</p>
-                    <p className="text-muted-foreground">Parent • 3 children</p>
-                    <p className="text-[10px] text-muted-foreground">Manages Kevin, Faith, Brian</p>
+                </div>
+
+                {/* Other Roles */}
+                <div className="space-y-1">
+                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Other Roles</p>
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                      <p className="font-medium text-green-700 dark:text-green-300">👩‍👧‍👦 Grace Achieng</p>
+                      <p className="text-muted-foreground">Parent</p>
+                      <p className="text-[10px] text-muted-foreground">Manages Kevin, Faith, Brian</p>
+                    </div>
+                    <div className="p-2 bg-red-50 dark:bg-red-900/20 rounded border border-red-200 dark:border-red-800">
+                      <p className="font-medium text-red-700 dark:text-red-300">🏥 Dr. Wekesa</p>
+                      <p className="text-muted-foreground">Health Officer</p>
+                      <p className="text-[10px] text-muted-foreground">Edit patient records</p>
+                    </div>
                   </div>
                 </div>
               </div>

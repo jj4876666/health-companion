@@ -11,6 +11,7 @@ interface PremiumContextType {
   features: PremiumFeature[];
   isDemo: boolean;
   resetPremium: () => void;
+  setIsPremiumUser: (isPremiumUser: boolean) => void;
 }
 
 interface PremiumFeature {
@@ -39,7 +40,27 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   const [isPremium, setIsPremium] = useState(false);
   const [premiumExpiry, setPremiumExpiry] = useState<string | null>(null);
   const [planType, setPlanType] = useState<'monthly' | 'yearly' | 'demo' | null>(null);
+  const [isPremiumUser, setIsPremiumUserState] = useState(false);
   const { toast } = useToast();
+
+  // When user is marked as premium user (like John Kamau), auto-activate
+  const setIsPremiumUser = (value: boolean) => {
+    setIsPremiumUserState(value);
+    if (value && !isPremium) {
+      // Auto-activate demo premium for premium demo users
+      const now = new Date();
+      const expiry = new Date(now);
+      expiry.setDate(expiry.getDate() + 365); // 1 year for demo user
+      setIsPremium(true);
+      setPremiumExpiry(expiry.toISOString());
+      setPlanType('demo');
+    } else if (!value && planType === 'demo') {
+      // Deactivate if switching away from premium user
+      setIsPremium(false);
+      setPremiumExpiry(null);
+      setPlanType(null);
+    }
+  };
 
   // Load from localStorage on mount
   useEffect(() => {
@@ -135,7 +156,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   return (
     <PremiumContext.Provider
       value={{
-        isPremium,
+        isPremium: isPremium || isPremiumUser,
         premiumExpiry,
         planType,
         activatePremium,
@@ -144,6 +165,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         features: premiumFeatures,
         isDemo,
         resetPremium,
+        setIsPremiumUser,
       }}
     >
       {children}

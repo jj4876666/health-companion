@@ -2,8 +2,11 @@ import { ChildUser, ParentUser, AdminUser, AdultUser, User, generateEmecId } fro
 
 // Demo EMEC IDs (11 characters: 3 letters + 8 alphanumeric)
 export const DEMO_EMEC_IDS = {
-  child: 'KOT2025A001',
-  adult: 'AJM2025B002',
+  child: 'KOT2025A001',      // Kevin - Child (9 years)
+  teen: 'FAC2025A002',       // Faith - Teen (14 years)
+  adult: 'AJM2025B002',      // James - Adult
+  adultFree: 'MWN2025F001',  // Mary - Adult Free Account
+  adultPremium: 'JMK2025P001', // John - Adult Premium Account
   parent: 'GAC2025C003',
   admin: 'ADM2025D004',
 };
@@ -11,7 +14,10 @@ export const DEMO_EMEC_IDS = {
 // Demo passwords
 export const DEMO_PASSWORDS = {
   child: 'kevin2025',
+  teen: 'faith2025',
   adult: 'james2025',
+  adultFree: 'mary2025',
+  adultPremium: 'john2025',
   parent: 'grace2025',
   admin: 'admin2025',
 };
@@ -37,6 +43,80 @@ export const demoChild: ChildUser = {
     sensitiveContent: true,
     requiresParentApproval: true,
   },
+};
+
+// Faith - Teen account (14 years) - distinct from Kevin
+export const demoTeen: ChildUser = {
+  id: 'teen-001',
+  name: 'Faith Achieng',
+  email: 'faith.demo@emec.app',
+  role: 'child',
+  emecId: DEMO_EMEC_IDS.teen,
+  password: DEMO_PASSWORDS.teen,
+  profilePicture: '/placeholder.svg',
+  createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-02T00:00:00Z',
+  age: 14,
+  bloodGroup: 'A+',
+  allergies: ['Dust', 'Pollen'],
+  parentId: 'parent-001',
+  points: 480,
+  completedQuizzes: ['quiz-001', 'quiz-003', 'quiz-005'],
+  restrictions: {
+    sensitiveContent: false,  // Teens can access puberty/mental health content
+    requiresParentApproval: true,
+  },
+};
+
+// Free Adult Account - for demo comparison
+export const demoAdultFree: AdultUser = {
+  id: 'adult-free-001',
+  name: 'Mary Wanjiku',
+  email: 'mary.demo@emec.app',
+  role: 'adult',
+  emecId: DEMO_EMEC_IDS.adultFree,
+  password: DEMO_PASSWORDS.adultFree,
+  profilePicture: '/placeholder.svg',
+  createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-03T00:00:00Z',
+  age: 28,
+  bloodGroup: 'B+',
+  allergies: [],
+  medicalConditions: [],
+  medications: [],
+  emergencyContact: {
+    name: 'Peter Wanjiku',
+    phone: '+254798765432',
+    relationship: 'Brother',
+  },
+  pendingChanges: [],
+};
+
+// Premium Adult Account - for demo comparison
+export const demoAdultPremium: AdultUser = {
+  id: 'adult-premium-001',
+  name: 'John Kamau',
+  email: 'john.demo@emec.app',
+  role: 'adult',
+  emecId: DEMO_EMEC_IDS.adultPremium,
+  password: DEMO_PASSWORDS.adultPremium,
+  profilePicture: '/placeholder.svg',
+  createdAt: '2025-01-01T00:00:00Z',
+  isVerified: true,
+  verificationDate: '2025-01-03T00:00:00Z',
+  age: 35,
+  bloodGroup: 'AB+',
+  allergies: ['Aspirin'],
+  medicalConditions: ['Diabetes Type 2'],
+  medications: ['Metformin 500mg twice daily'],
+  emergencyContact: {
+    name: 'Jane Kamau',
+    phone: '+254712345999',
+    relationship: 'Spouse',
+  },
+  pendingChanges: [],
 };
 
 export const demoAdult: AdultUser = {
@@ -115,14 +195,28 @@ export const demoAdmin: AdminUser = {
   canPrescribeMedication: true,
 };
 
-export const allDemoUsers: User[] = [demoChild, demoAdult, demoParent, demoAdmin];
+export const allDemoUsers: User[] = [
+  demoChild, 
+  demoTeen, 
+  demoAdult, 
+  demoAdultFree, 
+  demoAdultPremium, 
+  demoParent, 
+  demoAdmin
+];
 
 export const getDemoUserByRole = (role: string): User | null => {
   switch (role) {
     case 'child':
       return demoChild;
+    case 'teen':
+      return demoTeen;
     case 'adult':
       return demoAdult;
+    case 'adultFree':
+      return demoAdultFree;
+    case 'adultPremium':
+      return demoAdultPremium;
     case 'parent':
       return demoParent;
     case 'admin':
@@ -147,6 +241,7 @@ export const validateEmecLogin = (emecId: string, password: string): User | null
 // Legacy PIN validation for backward compatibility
 export const DEMO_PINS = {
   child: '1234',
+  teen: '1414',
   parent: '5678',
   admin: '9999',
 };

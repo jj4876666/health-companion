@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, UserRole, ChildUser, ParentUser, AdminUser, AdultUser, AuditLogEntry, PendingChange } from '@/types/emec';
-import { allDemoUsers, getDemoUserByRole, validateEmecLogin, demoChild, demoParent, demoAdmin, demoAdult, getUserByEmecId } from '@/data/demoUsers';
+import { allDemoUsers, getDemoUserByRole, validateEmecLogin, demoChild, demoTeen, demoParent, demoAdmin, demoAdult, demoAdultFree, demoAdultPremium, getUserByEmecId } from '@/data/demoUsers';
 import { demoAuditLog } from '@/data/demoAuditLog';
 import { useToast } from '@/hooks/use-toast';
 
@@ -450,14 +450,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Quick account type switching for demo
-  const switchAccountType = (role: UserRole) => {
+  const switchAccountType = (role: UserRole | 'teen' | 'adultFree' | 'adultPremium') => {
     let newUser: User | null = null;
     switch (role) {
       case 'child':
         newUser = demoChild;
         break;
+      case 'teen':
+        newUser = demoTeen;
+        break;
       case 'adult':
         newUser = demoAdult;
+        break;
+      case 'adultFree':
+        newUser = demoAdultFree;
+        break;
+      case 'adultPremium':
+        newUser = demoAdultPremium;
         break;
       case 'parent':
         newUser = demoParent;
@@ -472,7 +481,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setViewingAsChild(false);
       toast({
         title: "Account Switched",
-        description: `Now viewing as ${role}`,
+        description: `Now viewing as ${newUser.name}`,
       });
     }
   };

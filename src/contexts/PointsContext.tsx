@@ -14,6 +14,7 @@ interface PointsContextType {
   isPremiumTrial: boolean;
   pointsHistory: PointsTransaction[];
   getStreakBonus: () => number;
+  resetPoints: () => void;
 }
 
 interface PointsTransaction {
@@ -224,6 +225,23 @@ export function PointsProvider({ children }: { children: ReactNode }) {
     return false;
   };
 
+  const resetPoints = () => {
+    setPoints(0);
+    setTotalEarned(0);
+    setPointsHistory([]);
+    setStreak(0);
+    setLastActivityDate(null);
+    setPremiumTrialExpiry(null);
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(TRIAL_KEY);
+    localStorage.removeItem(STREAK_KEY);
+    
+    toast({
+      title: '🔄 Demo Reset Complete',
+      description: 'All points, streaks, and trials have been cleared.',
+    });
+  };
+
   const isPremiumTrial = premiumTrialExpiry 
     ? new Date(premiumTrialExpiry) > new Date()
     : false;
@@ -243,6 +261,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
         isPremiumTrial,
         pointsHistory,
         getStreakBonus,
+        resetPoints,
       }}
     >
       {children}

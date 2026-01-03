@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePoints } from '@/contexts/PointsContext';
+import { useDemo } from '@/contexts/DemoContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,7 @@ import {
   Gamepad2, Heart, Brain, 
   Trophy, Star, RefreshCcw, CheckCircle, XCircle,
   Zap, Target, Sparkles, Crown, ArrowLeft, Timer,
-  Flame, Medal
+  Flame, Medal, Gift
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -58,10 +59,21 @@ export default function Games() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { points, addPoints } = usePoints();
+  const { isDemoMode } = useDemo();
 
   const [activeGame, setActiveGame] = useState<string | null>(null);
   const [totalPoints, setTotalPoints] = useState(0);
   const [streak, setStreak] = useState(0);
+
+  // Demo points function for presentations
+  const addDemoPoints = (amount: number) => {
+    addPoints(amount, 'Demo Points for Presentation');
+    setTotalPoints(prev => prev + amount);
+    toast({
+      title: "🎁 Demo Points Added!",
+      description: `+${amount} points added for testing premium unlock features`,
+    });
+  };
 
   // Memory Match State
   const [memoryCards, setMemoryCards] = useState<Array<{ id: number; emoji: string; name: string; isFlipped: boolean; isMatched: boolean }>>([]);
@@ -533,7 +545,7 @@ export default function Games() {
           </div>
           
           {/* Stats Cards */}
-          <div className="flex gap-3">
+          <div className="flex flex-wrap gap-3">
             <Card className="border-0 shadow-elegant bg-gradient-to-br from-amber-500/10 to-orange-500/10">
               <CardContent className="p-4 flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center">
@@ -556,6 +568,35 @@ export default function Games() {
                 </div>
               </CardContent>
             </Card>
+            
+            {/* Demo Points Button - Only visible in demo mode */}
+            {isDemoMode && (
+              <Card className="border-2 border-dashed border-emerald-500/50 shadow-elegant bg-gradient-to-br from-emerald-500/10 to-green-500/10">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gift className="w-4 h-4 text-emerald-500" />
+                    <span className="text-xs font-medium text-emerald-600 dark:text-emerald-400">Demo Mode</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      size="sm" 
+                      variant="outline"
+                      className="h-8 text-xs border-emerald-500/50 hover:bg-emerald-500/20"
+                      onClick={() => addDemoPoints(100)}
+                    >
+                      +100 pts
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      className="h-8 text-xs bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700"
+                      onClick={() => addDemoPoints(500)}
+                    >
+                      +500 pts
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 

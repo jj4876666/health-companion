@@ -10,6 +10,7 @@ interface PremiumContextType {
   daysRemaining: number;
   features: PremiumFeature[];
   isDemo: boolean;
+  resetPremium: () => void;
 }
 
 interface PremiumFeature {
@@ -118,6 +119,13 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
     });
   };
 
+  const resetPremium = () => {
+    setIsPremium(false);
+    setPremiumExpiry(null);
+    setPlanType(null);
+    localStorage.removeItem(STORAGE_KEY);
+  };
+
   const daysRemaining = premiumExpiry 
     ? Math.max(0, Math.ceil((new Date(premiumExpiry).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)))
     : 0;
@@ -135,6 +143,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
         daysRemaining,
         features: premiumFeatures,
         isDemo,
+        resetPremium,
       }}
     >
       {children}

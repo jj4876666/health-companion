@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { useDemo, AgeCategory } from '@/contexts/DemoContext';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePoints } from '@/contexts/PointsContext';
+import { usePremium } from '@/contexts/PremiumContext';
 import { UserRole } from '@/types/emec';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,7 +11,8 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { 
   Settings2, Baby, User, Users, Wifi, WifiOff, 
-  Eye, Sparkles, AlertCircle, Shield, X, ChevronDown, ChevronUp
+  Eye, Sparkles, AlertCircle, Shield, X, ChevronDown, ChevronUp,
+  RotateCcw
 } from 'lucide-react';
 import {
   Sheet,
@@ -19,6 +22,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
+import { useToast } from '@/hooks/use-toast';
 
 const ageCategories: { value: AgeCategory; label: string; icon: React.ReactNode; description: string }[] = [
   { 
@@ -64,8 +68,22 @@ export function DemoControls() {
     getAgeTheme
   } = useDemo();
   const { currentUser, switchAccountType, viewingAsChild, setViewingAsChild } = useAuth();
+  const { resetPoints, points, streak } = usePoints();
+  const { resetPremium, isPremium } = usePremium();
+  const { toast } = useToast();
   const [open, setOpen] = useState(false);
   const theme = getAgeTheme();
+
+  const handleDemoReset = () => {
+    resetPoints();
+    resetPremium();
+    toast({
+      title: '🔄 Demo Reset Complete!',
+      description: 'All points, streaks, and premium trials have been cleared for a fresh presentation.',
+    });
+  };
+
+  if (!isDemoMode) return null;
 
   if (!isDemoMode) return null;
 
@@ -254,23 +272,63 @@ export function DemoControls() {
               <div className="space-y-2">
                 <Label className="text-sm font-medium">Quick Demo Accounts</Label>
                 <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div className="p-2 bg-muted rounded border">
-                    <p className="font-medium">Child: Kevin</p>
-                    <p className="text-muted-foreground">Age 9</p>
+                  <div className="p-2 bg-blue-50 dark:bg-blue-900/20 rounded border border-blue-200 dark:border-blue-800">
+                    <p className="font-medium text-blue-700 dark:text-blue-300">👦 Kevin Otieno</p>
+                    <p className="text-muted-foreground">Age 9 • Child</p>
+                    <p className="text-[10px] text-muted-foreground">Blood: O+ • Allergies: Peanuts</p>
                   </div>
-                  <div className="p-2 bg-muted rounded border">
-                    <p className="font-medium">Teen: Faith</p>
-                    <p className="text-muted-foreground">Age 14</p>
+                  <div className="p-2 bg-purple-50 dark:bg-purple-900/20 rounded border border-purple-200 dark:border-purple-800">
+                    <p className="font-medium text-purple-700 dark:text-purple-300">👧 Faith Achieng</p>
+                    <p className="text-muted-foreground">Age 14 • Teen</p>
+                    <p className="text-[10px] text-muted-foreground">Blood: A+ • Allergies: Dust</p>
                   </div>
-                  <div className="p-2 bg-muted rounded border">
-                    <p className="font-medium">Infant: Brian</p>
-                    <p className="text-muted-foreground">Age 4</p>
+                  <div className="p-2 bg-pink-50 dark:bg-pink-900/20 rounded border border-pink-200 dark:border-pink-800">
+                    <p className="font-medium text-pink-700 dark:text-pink-300">👶 Brian Odhiambo</p>
+                    <p className="text-muted-foreground">Age 4 • Infant</p>
+                    <p className="text-[10px] text-muted-foreground">Blood: O- • No allergies</p>
                   </div>
-                  <div className="p-2 bg-muted rounded border">
-                    <p className="font-medium">Parent: Grace</p>
-                    <p className="text-muted-foreground">3 children</p>
+                  <div className="p-2 bg-green-50 dark:bg-green-900/20 rounded border border-green-200 dark:border-green-800">
+                    <p className="font-medium text-green-700 dark:text-green-300">👩 Grace Achieng</p>
+                    <p className="text-muted-foreground">Parent • 3 children</p>
+                    <p className="text-[10px] text-muted-foreground">Manages Kevin, Faith, Brian</p>
                   </div>
                 </div>
+              </div>
+
+              {/* Demo Reset Button */}
+              <div className="space-y-3 border-t pt-4">
+                <Label className="text-sm font-medium flex items-center gap-2">
+                  <RotateCcw className="w-4 h-4" />
+                  Reset Demo Data
+                </Label>
+                <div className="p-3 bg-muted/50 rounded-lg space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span>Current Points:</span>
+                    <Badge variant="secondary">{points}</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span>Current Streak:</span>
+                    <Badge variant="secondary">{streak} days</Badge>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span>Premium Status:</span>
+                    <Badge variant={isPremium ? 'default' : 'secondary'}>
+                      {isPremium ? 'Active' : 'Inactive'}
+                    </Badge>
+                  </div>
+                </div>
+                <Button 
+                  variant="destructive" 
+                  size="sm" 
+                  className="w-full gap-2"
+                  onClick={handleDemoReset}
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  Reset All Demo Data
+                </Button>
+                <p className="text-[10px] text-muted-foreground text-center">
+                  Clears points, streaks, and premium trials for fresh presentations
+                </p>
               </div>
 
               {/* Judge Tip */}

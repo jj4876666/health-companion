@@ -6,6 +6,28 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Simple in-memory rate limiting for demo protection
+const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
+const RATE_LIMIT = 30; // requests per minute
+const RATE_WINDOW = 60 * 1000; // 1 minute
+
+function checkRateLimit(clientId: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(clientId);
+  
+  if (!entry || now > entry.resetTime) {
+    rateLimitMap.set(clientId, { count: 1, resetTime: now + RATE_WINDOW });
+    return true;
+  }
+  
+  if (entry.count >= RATE_LIMIT) {
+    return false;
+  }
+  
+  entry.count++;
+  return true;
+}
+
 const SYSTEM_PROMPT = `You are an AI Health Consultant for EMEC (Electronic Medical & Education Companion), a health education app.
 
 IMPORTANT DISCLAIMER: You are NOT a doctor and cannot diagnose conditions or prescribe treatments. Always recommend users consult a healthcare professional for medical concerns.
@@ -56,12 +78,27 @@ serve(async (req) => {
   }
 
   try {
+    // Rate limiting based on IP or a unique identifier
+    const clientId = req.headers.get('x-forwarded-for') || 
+                     req.headers.get('x-real-ip') || 
+                     'anonymous';
+    
+    if (!checkRateLimit(clientId)) {
+      console.log(`Rate limit exceeded for client: ${clientId}`);
+      return new Response(JSON.stringify({ error: "Rate limit exceeded. Please try again later." }), {
+        status: 429,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const { messages, userAge, language = 'en' } = await req.json();
     const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
     
     if (!LOVABLE_API_KEY) {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
+    
+    console.log(`Health AI request - Age: ${userAge}, Language: ${language}, Client: ${clientId}`);
 
     // Adjust system prompt based on user age with content filtering
     let ageContext = '';

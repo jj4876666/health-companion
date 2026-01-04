@@ -12,6 +12,7 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ChildHealthRecords } from '@/components/records/ChildHealthRecords';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
+import { PeriodTracker } from '@/components/wellness/PeriodTracker';
 import { 
   Star, Trophy, BookOpen, Heart, Gamepad2, 
   Lock, Sparkles, Brain, FileText, MessageCircle,
@@ -304,6 +305,9 @@ export function TeenDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Period Tracker - Private */}
+            <PeriodTracker />
 
             {/* Mental Health Resources */}
             <Card className="border-0 shadow-md">

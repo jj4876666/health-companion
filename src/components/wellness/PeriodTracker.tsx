@@ -6,15 +6,35 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Slider } from '@/components/ui/slider';
 import { 
   Lock, Eye, EyeOff, CalendarDays, Droplets, 
-  ChevronRight, Info, Moon, Sun, AlertCircle
+  ChevronRight, Info, Moon, Sun, AlertCircle,
+  Frown, Meh, Smile, Zap, Brain, Check
 } from 'lucide-react';
 import { format, differenceInDays, addDays } from 'date-fns';
+import { useToast } from '@/hooks/use-toast';
 
 interface PeriodTrackerProps {
   className?: string;
 }
+
+interface TodaySymptoms {
+  cramps: number; // 0-3 (none, mild, moderate, severe)
+  headache: number; // 0-3
+  mood: 'great' | 'good' | 'okay' | 'low' | 'bad' | null;
+  bloating: number; // 0-3
+  fatigue: number; // 0-3
+}
+
+const symptomLevels = ['None', 'Mild', 'Moderate', 'Severe'];
+const moodOptions = [
+  { value: 'great', icon: <Smile className="w-5 h-5" />, label: 'Great', color: 'text-emerald-500 bg-emerald-100 dark:bg-emerald-900/30' },
+  { value: 'good', icon: <Smile className="w-5 h-5" />, label: 'Good', color: 'text-green-500 bg-green-100 dark:bg-green-900/30' },
+  { value: 'okay', icon: <Meh className="w-5 h-5" />, label: 'Okay', color: 'text-amber-500 bg-amber-100 dark:bg-amber-900/30' },
+  { value: 'low', icon: <Frown className="w-5 h-5" />, label: 'Low', color: 'text-orange-500 bg-orange-100 dark:bg-orange-900/30' },
+  { value: 'bad', icon: <Frown className="w-5 h-5" />, label: 'Bad', color: 'text-rose-500 bg-rose-100 dark:bg-rose-900/30' },
+];
 
 export function PeriodTracker({ className }: PeriodTrackerProps) {
   const [isPrivateMode, setIsPrivateMode] = useState(true);
@@ -22,6 +42,16 @@ export function PeriodTracker({ className }: PeriodTrackerProps) {
   const [lastPeriodDate, setLastPeriodDate] = useState<Date | undefined>(new Date(2026, 0, 1));
   const [cycleLength, setCycleLength] = useState(28);
   const [periodLength, setPeriodLength] = useState(5);
+  const [showSymptomLogger, setShowSymptomLogger] = useState(false);
+  const [todaySymptoms, setTodaySymptoms] = useState<TodaySymptoms>({
+    cramps: 0,
+    headache: 0,
+    mood: null,
+    bloating: 0,
+    fatigue: 0
+  });
+  const [symptomsSaved, setSymptomsSaved] = useState(false);
+  const { toast } = useToast();
 
   // Calculate next period
   const nextPeriodDate = lastPeriodDate ? addDays(lastPeriodDate, cycleLength) : null;
@@ -75,6 +105,15 @@ export function PeriodTracker({ className }: PeriodTrackerProps) {
   };
 
   const currentPhase = phaseInfo[phase as keyof typeof phaseInfo];
+
+  const handleSaveSymptoms = () => {
+    setSymptomsSaved(true);
+    toast({
+      title: "Symptoms Logged",
+      description: "Your symptoms for today have been saved privately.",
+    });
+    setTimeout(() => setShowSymptomLogger(false), 1000);
+  };
 
   // Privacy gate - show unlock prompt if not unlocked
   if (!showTracker) {
@@ -175,6 +214,130 @@ export function PeriodTracker({ className }: PeriodTrackerProps) {
 
           <p className="text-sm text-muted-foreground">{currentPhase.tip}</p>
         </div>
+
+        {/* Symptom Logger Toggle */}
+        {!showSymptomLogger ? (
+          <Button 
+            variant="outline" 
+            className="w-full border-dashed"
+            onClick={() => setShowSymptomLogger(true)}
+          >
+            <Zap className="w-4 h-4 mr-2 text-amber-500" />
+            Log Today's Symptoms
+            {symptomsSaved && <Check className="w-4 h-4 ml-2 text-green-500" />}
+          </Button>
+        ) : (
+          <div className="p-4 rounded-xl border-2 border-dashed border-rose-200 dark:border-rose-800 space-y-4">
+            <div className="flex items-center justify-between">
+              <h4 className="font-medium text-sm flex items-center gap-2">
+                <Zap className="w-4 h-4 text-amber-500" />
+                Log Symptoms - {format(new Date(), 'MMM d')}
+              </h4>
+              <Button variant="ghost" size="sm" onClick={() => setShowSymptomLogger(false)}>
+                ✕
+              </Button>
+            </div>
+
+            {/* Mood Selector */}
+            <div className="space-y-2">
+              <Label className="text-xs flex items-center gap-1">
+                <Brain className="w-3 h-3" /> How are you feeling?
+              </Label>
+              <div className="flex gap-2 flex-wrap">
+                {moodOptions.map((mood) => (
+                  <button
+                    key={mood.value}
+                    onClick={() => setTodaySymptoms(prev => ({ ...prev, mood: mood.value as any }))}
+                    className={`flex flex-col items-center p-2 rounded-lg transition-all ${
+                      todaySymptoms.mood === mood.value 
+                        ? `${mood.color} ring-2 ring-offset-1 ring-current` 
+                        : 'bg-muted/50 hover:bg-muted'
+                    }`}
+                  >
+                    {mood.icon}
+                    <span className="text-[10px] mt-1">{mood.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Cramps */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Cramps</Label>
+                <span className="text-xs font-medium text-rose-500">
+                  {symptomLevels[todaySymptoms.cramps]}
+                </span>
+              </div>
+              <Slider
+                value={[todaySymptoms.cramps]}
+                onValueChange={(v) => setTodaySymptoms(prev => ({ ...prev, cramps: v[0] }))}
+                max={3}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            {/* Headache */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Headache</Label>
+                <span className="text-xs font-medium text-purple-500">
+                  {symptomLevels[todaySymptoms.headache]}
+                </span>
+              </div>
+              <Slider
+                value={[todaySymptoms.headache]}
+                onValueChange={(v) => setTodaySymptoms(prev => ({ ...prev, headache: v[0] }))}
+                max={3}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            {/* Bloating */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Bloating</Label>
+                <span className="text-xs font-medium text-blue-500">
+                  {symptomLevels[todaySymptoms.bloating]}
+                </span>
+              </div>
+              <Slider
+                value={[todaySymptoms.bloating]}
+                onValueChange={(v) => setTodaySymptoms(prev => ({ ...prev, bloating: v[0] }))}
+                max={3}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            {/* Fatigue */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label className="text-xs">Fatigue</Label>
+                <span className="text-xs font-medium text-amber-500">
+                  {symptomLevels[todaySymptoms.fatigue]}
+                </span>
+              </div>
+              <Slider
+                value={[todaySymptoms.fatigue]}
+                onValueChange={(v) => setTodaySymptoms(prev => ({ ...prev, fatigue: v[0] }))}
+                max={3}
+                step={1}
+                className="w-full"
+              />
+            </div>
+
+            <Button 
+              className="w-full bg-rose-500 hover:bg-rose-600 text-white"
+              onClick={handleSaveSymptoms}
+            >
+              <Check className="w-4 h-4 mr-2" />
+              Save Symptoms
+            </Button>
+          </div>
+        )}
 
         {/* Next Period Prediction */}
         {daysUntilNext !== null && daysUntilNext > 0 && (

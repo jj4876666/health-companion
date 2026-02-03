@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDemo } from '@/contexts/DemoContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -12,10 +13,11 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, CheckCircle2, 
-  UserCircle, AlertTriangle, Info, Mail, Chrome, Loader2, Database, Sparkles
+  UserCircle, AlertTriangle, Info, Mail, Chrome, Loader2, Database, Sparkles, KeyRound
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DEMO_EMEC_IDS, DEMO_PASSWORDS, getUserByEmecId } from '@/data/demoUsers';
+import { AccountRecovery } from './AccountRecovery';
 
 // Generate unique EMEC ID - exactly 11 alphanumeric characters
 const generateEmecId = (): string => {
@@ -37,6 +39,7 @@ export function EnhancedLoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [emecId, setEmecId] = useState('');
   const [foundUser, setFoundUser] = useState<{ name: string; role: string; isVerified: boolean } | null>(null);
+  const [showRecovery, setShowRecovery] = useState(false);
   
   // Sample data consent
   const [showConsentDialog, setShowConsentDialog] = useState(false);
@@ -45,6 +48,7 @@ export function EnhancedLoginPage() {
   
   const { loginWithEmecId } = useAuth();
   const { language, t } = useLanguage();
+  const { isDemoMode } = useDemo();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -188,6 +192,15 @@ export function EnhancedLoginPage() {
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
+      {/* Demo Mode Badge */}
+      {isDemoMode && (
+        <div className="fixed top-4 right-4 z-50">
+          <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
+            🧪 DEMO MODE
+          </Badge>
+        </div>
+      )}
+
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -494,6 +507,15 @@ export function EnhancedLoginPage() {
                   </TabsContent>
                 </Tabs>
 
+                {/* Forgot Password Link */}
+                <button
+                  onClick={() => setShowRecovery(true)}
+                  className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-2"
+                >
+                  <KeyRound className="w-4 h-4" />
+                  Forgot password?
+                </button>
+
                 {/* Encryption Badge */}
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Lock className="w-4 h-4" />
@@ -636,6 +658,12 @@ export function EnhancedLoginPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Account Recovery Modal */}
+      <AccountRecovery 
+        isOpen={showRecovery} 
+        onClose={() => setShowRecovery(false)} 
+      />
     </div>
   );
 }

@@ -1,15 +1,46 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useDemo } from '@/contexts/DemoContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, CheckCircle2, UserCircle, AlertTriangle, Info } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { 
+  Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, 
+  CheckCircle2, UserCircle, AlertTriangle, Info, UserPlus,
+  KeyRound, FileText, Building2, Copy
+} from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DEMO_EMEC_IDS, DEMO_PASSWORDS, allDemoUsers, getUserByEmecId } from '@/data/demoUsers';
+import { AccountRecovery } from './AccountRecovery';
+
+// Generate hospital-style patient ID
+const generatePatientId = () => {
+  const year = new Date().getFullYear();
+  const random = String(Math.floor(Math.random() * 99999)).padStart(5, '0');
+  return `EMEC/${year}/${random}`;
+};
+
+// Generate EMEC ID
+const generateEmecId = () => {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i = 0; i < 11; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+};
+
+// Generate consent code
+const generateConsentCode = () => {
+  return String(Math.floor(100000 + Math.random() * 900000));
+};
 
 export function LoginPage() {
   const [emecId, setEmecId] = useState('');
@@ -18,8 +49,29 @@ export function LoginPage() {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [foundUser, setFoundUser] = useState<{ name: string; role: string; isVerified: boolean } | null>(null);
+  const [showRecovery, setShowRecovery] = useState(false);
+  const [activeTab, setActiveTab] = useState('login');
+  
+  // Signup state
+  const [signupData, setSignupData] = useState({
+    fullName: '',
+    email: '',
+    phone: '',
+    password: '',
+    confirmPassword: '',
+    dateOfBirth: '',
+    gender: '',
+    bloodGroup: '',
+  });
+  const [signupStep, setSignupStep] = useState<'form' | 'success'>('form');
+  const [newPatientData, setNewPatientData] = useState<{
+    emecId: string;
+    patientId: string;
+    consentCode: string;
+  } | null>(null);
   
   const { loginWithEmecId } = useAuth();
+  const { isDemoMode } = useDemo();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -68,7 +120,6 @@ export function LoginPage() {
     setEmecId(formatted);
     setError('');
     
-    // Auto-lookup user when full EMEC ID is entered
     if (formatted.length === 11) {
       const user = getUserByEmecId(formatted);
       if (user) {
@@ -100,7 +151,6 @@ export function LoginPage() {
     setIsLoading(true);
     setError('');
 
-    // Simulate verification process
     await new Promise((resolve) => setTimeout(resolve, 1000));
 
     const success = loginWithEmecId(emecId, password);
@@ -127,10 +177,91 @@ export function LoginPage() {
       role: account.role,
       isVerified: true,
     });
+    setActiveTab('login');
+  };
+
+  const handleSignup = async () => {
+    const { fullName, email, password, confirmPassword, phone } = signupData;
+
+    if (!fullName || !email || !password || !phone) {
+      setError('Please fill in all required fields');
+      return;
+    }
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    // Simulate registration
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Generate patient credentials
+    const newEmecId = generateEmecId();
+    const newPatientId = generatePatientId();
+    const newConsentCode = generateConsentCode();
+
+    setNewPatientData({
+      emecId: newEmecId,
+      patientId: newPatientId,
+      consentCode: newConsentCode,
+    });
+
+    setSignupStep('success');
+    setIsLoading(false);
+
+    toast({
+      title: '🎉 Registration Successful!',
+      description: 'Your patient file has been created.',
+    });
+  };
+
+  const copyToClipboard = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: 'Copied!',
+      description: `${label} copied to clipboard`,
+    });
+  };
+
+  const handleContinueToLogin = () => {
+    if (newPatientData) {
+      setEmecId(newPatientData.emecId);
+      setPassword(signupData.password);
+      setActiveTab('login');
+      setSignupStep('form');
+      setSignupData({
+        fullName: '',
+        email: '',
+        phone: '',
+        password: '',
+        confirmPassword: '',
+        dateOfBirth: '',
+        gender: '',
+        bloodGroup: '',
+      });
+    }
   };
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
+      {/* Demo Mode Badge */}
+      {isDemoMode && (
+        <div className="fixed top-4 right-4 z-50">
+          <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
+            🧪 DEMO MODE
+          </Badge>
+        </div>
+      )}
+
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -162,120 +293,307 @@ export function LoginPage() {
           </div>
 
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Login Form */}
+            {/* Login/Signup Form */}
             <Card className="shadow-elegant border-0">
-              <CardHeader className="text-center pb-2">
-                <CardTitle className="text-2xl md:text-3xl flex items-center justify-center gap-2">
-                  <CreditCard className="w-6 h-6" />
-                  {language === 'sw' ? 'Ingia na EMEC ID' : 'Login with EMEC ID'}
-                </CardTitle>
-                <CardDescription className="text-base">
-                  {language === 'sw' 
-                    ? 'Ingiza nambari yako ya EMEC na nenosiri' 
-                    : 'Enter your 11-character EMEC ID and password'}
-                </CardDescription>
-              </CardHeader>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <CardHeader className="text-center pb-2">
+                  <TabsList className="grid w-full grid-cols-2 mb-4">
+                    <TabsTrigger value="login" className="gap-2">
+                      <CreditCard className="w-4 h-4" />
+                      Login
+                    </TabsTrigger>
+                    <TabsTrigger value="signup" className="gap-2">
+                      <UserPlus className="w-4 h-4" />
+                      New Patient
+                    </TabsTrigger>
+                  </TabsList>
+                </CardHeader>
 
-              <CardContent className="space-y-6">
-                {/* EMEC ID Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="emecId" className="flex items-center gap-2">
-                    <CreditCard className="w-4 h-4" />
-                    EMEC ID
-                  </Label>
-                  <Input
-                    id="emecId"
-                    value={emecId}
-                    onChange={(e) => handleEmecIdChange(e.target.value)}
-                    placeholder="e.g., KOT2025A001"
-                    maxLength={11}
-                    className="text-center text-lg tracking-widest font-mono uppercase"
-                  />
-                  <p className="text-xs text-muted-foreground text-center">
-                    {emecId.length}/11 characters
-                  </p>
-                </div>
+                {/* Login Tab */}
+                <TabsContent value="login">
+                  <CardContent className="space-y-6">
+                    <div className="text-center mb-4">
+                      <CardTitle className="text-2xl flex items-center justify-center gap-2">
+                        <CreditCard className="w-6 h-6" />
+                        {language === 'sw' ? 'Ingia na EMEC ID' : 'Login with EMEC ID'}
+                      </CardTitle>
+                      <CardDescription className="text-base mt-2">
+                        {language === 'sw' 
+                          ? 'Ingiza nambari yako ya EMEC na nenosiri' 
+                          : 'Enter your 11-character EMEC ID and password'}
+                      </CardDescription>
+                    </div>
 
-                {/* Found User Display */}
-                {foundUser && (
-                  <div className="p-4 rounded-lg bg-success/10 border border-success/30 animate-fade-in">
-                    <div className="flex items-center gap-3">
-                      <CheckCircle2 className="w-6 h-6 text-success" />
-                      <div>
-                        <p className="font-semibold text-success">{foundUser.name}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <Badge variant="outline" className="capitalize">{foundUser.role}</Badge>
-                          {foundUser.isVerified && (
-                            <Badge className="bg-success/20 text-success border-success/30">
-                              ✓ Verified
-                            </Badge>
-                          )}
+                    {/* EMEC ID Input */}
+                    <div className="space-y-2">
+                      <Label htmlFor="emecId" className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" />
+                        EMEC ID
+                      </Label>
+                      <Input
+                        id="emecId"
+                        value={emecId}
+                        onChange={(e) => handleEmecIdChange(e.target.value)}
+                        placeholder="e.g., KOT2025A001"
+                        maxLength={11}
+                        className="text-center text-lg tracking-widest font-mono uppercase"
+                      />
+                      <p className="text-xs text-muted-foreground text-center">
+                        {emecId.length}/11 characters
+                      </p>
+                    </div>
+
+                    {/* Found User Display */}
+                    {foundUser && (
+                      <div className="p-4 rounded-lg bg-success/10 border border-success/30 animate-fade-in">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-6 h-6 text-success" />
+                          <div>
+                            <p className="font-semibold text-success">{foundUser.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="capitalize">{foundUser.role}</Badge>
+                              {foundUser.isVerified && (
+                                <Badge className="bg-success/20 text-success border-success/30">
+                                  ✓ Verified
+                                </Badge>
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
+                    )}
+
+                    {/* Password Input */}
+                    <div className="space-y-2">
+                      <Label htmlFor="password" className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" />
+                        Password
+                      </Label>
+                      <div className="relative">
+                        <Input
+                          id="password"
+                          type={showPassword ? 'text' : 'password'}
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password"
+                          className="pr-12"
+                          onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                        >
+                          {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Password Input */}
-                <div className="space-y-2">
-                  <Label htmlFor="password" className="flex items-center gap-2">
-                    <Lock className="w-4 h-4" />
-                    Password
-                  </Label>
-                  <div className="relative">
-                    <Input
-                      id="password"
-                      type={showPassword ? 'text' : 'password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="Enter your password"
-                      className="pr-12"
-                      onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                    {error && (
+                      <p className="text-destructive text-sm text-center animate-fade-in">{error}</p>
+                    )}
+
+                    <Button
+                      onClick={handleLogin}
+                      disabled={!emecId || !password || isLoading}
+                      className="w-full h-12 text-lg"
                     >
-                      {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {isLoading ? (
+                        <span className="flex items-center gap-2">
+                          <Lock className="w-5 h-5 animate-pulse" />
+                          Verifying...
+                        </span>
+                      ) : (
+                        <span className="flex items-center gap-2">
+                          <Shield className="w-5 h-5" />
+                          Secure Login
+                        </span>
+                      )}
+                    </Button>
+
+                    {/* Forgot Password */}
+                    <button
+                      onClick={() => setShowRecovery(true)}
+                      className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-2"
+                    >
+                      <KeyRound className="w-4 h-4" />
+                      Forgot password?
                     </button>
-                  </div>
-                </div>
 
-                {error && (
-                  <p className="text-destructive text-sm text-center animate-fade-in">{error}</p>
-                )}
+                    {/* Encryption Badge */}
+                    <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
+                      <Lock className="w-4 h-4" />
+                      <span>256-bit encryption (simulated for demo)</span>
+                    </div>
+                  </CardContent>
+                </TabsContent>
 
-                <Button
-                  onClick={handleLogin}
-                  disabled={!emecId || !password || isLoading}
-                  className="w-full h-12 text-lg"
-                >
-                  {isLoading ? (
-                    <span className="flex items-center gap-2">
-                      <Lock className="w-5 h-5 animate-pulse" />
-                      Verifying...
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      <Shield className="w-5 h-5" />
-                      Secure Login
-                    </span>
-                  )}
-                </Button>
+                {/* Signup Tab */}
+                <TabsContent value="signup">
+                  <CardContent className="space-y-4">
+                    {signupStep === 'form' ? (
+                      <>
+                        <div className="text-center mb-4">
+                          <CardTitle className="text-xl flex items-center justify-center gap-2">
+                            <FileText className="w-5 h-5" />
+                            Open New Patient File
+                          </CardTitle>
+                          <CardDescription className="mt-2">
+                            Register to receive your unique EMEC ID
+                          </CardDescription>
+                        </div>
 
-                {/* Simulated Encryption Badge */}
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <Lock className="w-4 h-4" />
-                  <span>256-bit encryption (simulated for demo)</span>
-                </div>
-              </CardContent>
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="col-span-2 space-y-2">
+                            <Label>Full Name *</Label>
+                            <Input
+                              value={signupData.fullName}
+                              onChange={(e) => setSignupData({...signupData, fullName: e.target.value})}
+                              placeholder="Enter your full name"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Email *</Label>
+                            <Input
+                              type="email"
+                              value={signupData.email}
+                              onChange={(e) => setSignupData({...signupData, email: e.target.value})}
+                              placeholder="you@email.com"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Phone *</Label>
+                            <Input
+                              value={signupData.phone}
+                              onChange={(e) => setSignupData({...signupData, phone: e.target.value})}
+                              placeholder="+254..."
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Date of Birth</Label>
+                            <Input
+                              type="date"
+                              value={signupData.dateOfBirth}
+                              onChange={(e) => setSignupData({...signupData, dateOfBirth: e.target.value})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Gender</Label>
+                            <Select value={signupData.gender} onValueChange={(v) => setSignupData({...signupData, gender: v})}>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="male">Male</SelectItem>
+                                <SelectItem value="female">Female</SelectItem>
+                                <SelectItem value="other">Other</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Password *</Label>
+                            <Input
+                              type="password"
+                              value={signupData.password}
+                              onChange={(e) => setSignupData({...signupData, password: e.target.value})}
+                              placeholder="Min 6 characters"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label>Confirm Password *</Label>
+                            <Input
+                              type="password"
+                              value={signupData.confirmPassword}
+                              onChange={(e) => setSignupData({...signupData, confirmPassword: e.target.value})}
+                              placeholder="Confirm password"
+                            />
+                          </div>
+                        </div>
+
+                        {error && (
+                          <Alert variant="destructive">
+                            <AlertTriangle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                          </Alert>
+                        )}
+
+                        <Button onClick={handleSignup} disabled={isLoading} className="w-full h-11">
+                          {isLoading ? 'Creating Patient File...' : 'Create Patient File'}
+                        </Button>
+                      </>
+                    ) : (
+                      /* Success State - New Patient Created */
+                      <div className="space-y-4 py-4">
+                        <div className="text-center">
+                          <div className="mx-auto w-16 h-16 rounded-full bg-success/10 flex items-center justify-center mb-4">
+                            <CheckCircle2 className="w-8 h-8 text-success" />
+                          </div>
+                          <h3 className="text-xl font-bold">Patient File Created!</h3>
+                          <p className="text-muted-foreground mt-1">Your medical record is now active</p>
+                        </div>
+
+                        <Card className="border-2 border-primary/30 bg-primary/5">
+                          <CardContent className="pt-4 space-y-3">
+                            {/* EMEC ID */}
+                            <div className="flex items-center justify-between p-3 bg-background rounded-lg">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Your EMEC ID</p>
+                                <p className="font-mono font-bold text-lg text-primary">{newPatientData?.emecId}</p>
+                              </div>
+                              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(newPatientData?.emecId || '', 'EMEC ID')}>
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            {/* Hospital File No */}
+                            <div className="flex items-center justify-between p-3 bg-background rounded-lg">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Hospital File Number</p>
+                                <p className="font-mono font-semibold">{newPatientData?.patientId}</p>
+                              </div>
+                              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(newPatientData?.patientId || '', 'File Number')}>
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+
+                            {/* Consent Code */}
+                            <div className="flex items-center justify-between p-3 bg-success/10 rounded-lg border border-success/30">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Consent Code (5 min)</p>
+                                <p className="font-mono font-bold text-xl tracking-widest text-success">{newPatientData?.consentCode}</p>
+                              </div>
+                              <Button variant="ghost" size="sm" onClick={() => copyToClipboard(newPatientData?.consentCode || '', 'Consent Code')}>
+                                <Copy className="w-4 h-4" />
+                              </Button>
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Alert>
+                          <Info className="h-4 w-4" />
+                          <AlertDescription>
+                            Your medical records show "No data yet" until healthcare providers add information.
+                            Share your consent code with authorized personnel only.
+                          </AlertDescription>
+                        </Alert>
+
+                        <Button onClick={handleContinueToLogin} className="w-full">
+                          Continue to Login
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </TabsContent>
+              </Tabs>
             </Card>
 
             {/* Demo Accounts */}
             <Card className="shadow-elegant border-0">
               <CardHeader className="pb-2">
-                <CardTitle className="text-xl">Demo Accounts</CardTitle>
+                <CardTitle className="text-xl flex items-center gap-2">
+                  <Building2 className="w-5 h-5" />
+                  Demo Accounts
+                </CardTitle>
                 <CardDescription>
                   Click to auto-fill credentials for testing
                 </CardDescription>
@@ -361,6 +679,12 @@ export function LoginPage() {
           </footer>
         </div>
       </main>
+
+      {/* Account Recovery Modal */}
+      <AccountRecovery 
+        isOpen={showRecovery} 
+        onClose={() => setShowRecovery(false)} 
+      />
     </div>
   );
 }

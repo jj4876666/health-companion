@@ -19,7 +19,7 @@ const defaultValue: PremiumContextType = {
   planType: null,
   activatePremium: () => {},
   deactivatePremium: () => {},
-  daysRemaining: 9999,
+  daysRemaining: 9999, // large number to indicate non-expiring in demo
   features: [],
   resetPremium: () => {},
   setIsPremiumUser: () => {},

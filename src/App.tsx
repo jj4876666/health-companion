@@ -56,7 +56,7 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><EnhancedLoginPage /></PublicRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
-      <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+      <Route path="/premium" element={<Navigate to="/dashboard" replace />} /> {/* Premium disabled for demo */}
       <Route path="/calculators" element={<ProtectedRoute><Calculators /></ProtectedRoute>} />
       <Route path="/first-aid" element={<ProtectedRoute><FirstAid /></ProtectedRoute>} />
       <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />

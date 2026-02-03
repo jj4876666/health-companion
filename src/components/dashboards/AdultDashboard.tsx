@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useDemo } from '@/contexts/DemoContext';
 import { AdultUser } from '@/types/emec';
 import { demoAdult } from '@/data/demoUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,9 +10,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { AllergyChecker } from '@/components/allergy/AllergyChecker';
-import { PremiumBanner } from '@/components/premium/PremiumBanner';
 import { DailyTargets } from '@/components/targets/DailyTargets';
-import { LifetimeHealthRecords } from '@/components/records/LifetimeHealthRecords';
+import { EnhancedPatientRecords } from '@/components/records/EnhancedPatientRecords';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
@@ -20,6 +20,7 @@ import {
 import { useToast } from '@/hooks/use-toast';
 
 export function AdultDashboard() {
+  const { isDemoMode } = useDemo();
   const { currentUser, pendingChanges, approveChange, rejectChange, addAuditEntry } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
@@ -164,9 +165,9 @@ export function AdultDashboard() {
           </TabsTrigger>
         </TabsList>
 
-        {/* Lifetime Health Records Tab */}
+        {/* Enhanced Patient Records Tab */}
         <TabsContent value="records" className="space-y-4 mt-4">
-          <LifetimeHealthRecords />
+          <EnhancedPatientRecords patientEmecId={adult.emecId} />
         </TabsContent>
 
         {/* AI Chat Tab */}
@@ -237,7 +238,7 @@ export function AdultDashboard() {
             </CardContent>
           </Card>
 
-          <PremiumBanner />
+          {/* Premium section disabled for demo focus */}
         </TabsContent>
 
         {/* Health Tab */}

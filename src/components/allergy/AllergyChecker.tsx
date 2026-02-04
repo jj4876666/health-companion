@@ -4,7 +4,6 @@ import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, AlertTriangle, CheckCircle2, XCircle, 
   Apple, Wheat, Milk, Egg, Fish, Cookie,
@@ -133,8 +132,6 @@ interface AllergyCheckerProps {
 }
 
 export function AllergyChecker({ userAllergies }: AllergyCheckerProps) {
-  const { getChildUser } = useAuth();
-  const child = getChildUser();
   const [searchTerm, setSearchTerm] = useState('');
   const [result, setResult] = useState<{
     food: string;
@@ -144,7 +141,8 @@ export function AllergyChecker({ userAllergies }: AllergyCheckerProps) {
   } | null>(null);
   const [isListening, setIsListening] = useState(false);
 
-  const allergies = userAllergies || child?.allergies || ['Peanuts'];
+  // Demo allergies for display
+  const allergies = userAllergies || ['Peanuts'];
 
   const checkFood = (food: string) => {
     const normalizedFood = food.toLowerCase().trim();

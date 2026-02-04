@@ -5,6 +5,7 @@ import { TeenDashboard } from '@/components/dashboards/TeenDashboard';
 import { ParentDashboard } from '@/components/dashboards/ParentDashboard';
 import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
 import { AdultDashboard } from '@/components/dashboards/AdultDashboard';
+import { NewUserDashboard } from '@/components/dashboards/NewUserDashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { ChildUser } from '@/types/emec';
 
@@ -15,7 +16,16 @@ export default function Dashboard() {
     return <Navigate to="/login" replace />;
   }
 
+  // Check if this is a newly registered user (has new_user data in localStorage)
+  const isNewUser = currentUser.id.startsWith('local-') && 
+    localStorage.getItem(`new_user_${currentUser.id}`) !== null;
+
   const renderDashboard = () => {
+    // New users get the blank records dashboard
+    if (isNewUser) {
+      return <NewUserDashboard />;
+    }
+
     // Check if child is actually a teen (age 13-17)
     if (currentUser.role === 'child') {
       const childUser = currentUser as ChildUser;

@@ -1,8 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { User, UserRole, AuditLogEntry, ChildUser, ParentUser, AdminUser, AdultUser, generateEmecId } from '@/types/emec';
-import { demoAuditLog, demoChildrenData, demoParent, demoAdmin, demoAdult, getDemoUserByRole, validateEmecLogin } from '@/data/demoAuditLog';
-import { demoAuditLog as _demoAuditLog } from '@/data/demoAuditLog';
-import { demoChildrenData as _demoChildren } from '@/data/demoUsers';
+import { demoAuditLog } from '@/data/demoAuditLog';
+import { getDemoUserByRole, validateEmecLogin } from '@/data/demoUsers';
 
 // NOTE: this file intentionally keeps local/demo behavior and stores new users/records in localStorage only.
 
@@ -42,10 +41,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       try {
         setAuditLog(JSON.parse(savedAudit));
       } catch (e) {
-        setAuditLog(_demoAuditLog);
+        setAuditLog(demoAuditLog);
       }
     } else {
-      setAuditLog(_demoAuditLog);
+      setAuditLog(demoAuditLog);
     }
   }, []);
 

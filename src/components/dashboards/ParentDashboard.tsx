@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDemo } from '@/contexts/DemoContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ParentUser, ChildUser } from '@/types/emec';
-import { demoParent } from '@/data/demoUsers';
+import { demoParent, demoChild, demoTeen } from '@/data/demoUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,20 +12,31 @@ import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Users, Bell, Clock, CheckCircle, XCircle, Eye, 
   Shield, Activity, BookOpen, Trophy, AlertTriangle,
   FileText, Heart, User, Stethoscope, Pill, Bot
 } from 'lucide-react';
 
+// Get child objects from IDs for demo
+const getChildrenFromIds = (ids: string[]): ChildUser[] => {
+  const childMap: Record<string, ChildUser> = {
+    'child-001': demoChild,
+    'teen-001': demoTeen,
+  };
+  return ids.map(id => childMap[id]).filter(Boolean);
+};
+
 export function ParentDashboard() {
-  const { currentUser, approveRequest, rejectRequest, auditLog, linkedChildren, setActiveChildId, setViewingAsChild } = useAuth();
+  const { currentUser, addAuditEntry } = useAuth();
   const { setSelectedAgeCategory, getContentAccess } = useDemo();
   const { t } = useLanguage();
+  const { toast } = useToast();
   
   const parent = (currentUser as ParentUser) || demoParent;
+  const linkedChildren = getChildrenFromIds(parent.linkedChildren || ['child-001']);
   const pendingApprovals = parent.pendingApprovals?.filter(a => a.status === 'pending') || [];
-  const recentAudit = auditLog.slice(0, 5);
 
   const getAgeCategory = (age: number) => {
     if (age <= 2) return 'infant';
@@ -35,9 +46,7 @@ export function ParentDashboard() {
   };
 
   const handleViewAsChild = (child: ChildUser) => {
-    setActiveChildId(child.id);
     setSelectedAgeCategory(getAgeCategory(child.age) as any);
-    setViewingAsChild(true);
   };
 
   const getContentAccessSummary = (age: number) => {
@@ -45,6 +54,30 @@ export function ParentDashboard() {
     const total = Object.keys(access).length;
     const unlocked = Object.values(access).filter(Boolean).length;
     return { unlocked, total, percentage: Math.round((unlocked / total) * 100) };
+  };
+
+  const handleApproveRequest = (id: string) => {
+    toast({ title: 'Request approved', description: 'Demo mode - change approved' });
+    addAuditEntry({
+      userId: parent.id,
+      userName: parent.name,
+      userRole: 'parent',
+      action: 'APPROVE_REQUEST',
+      target: id,
+      details: 'Approved pending request',
+    });
+  };
+
+  const handleRejectRequest = (id: string) => {
+    toast({ title: 'Request rejected', description: 'Demo mode - change rejected' });
+    addAuditEntry({
+      userId: parent.id,
+      userName: parent.name,
+      userRole: 'parent',
+      action: 'REJECT_REQUEST',
+      target: id,
+      details: 'Rejected pending request',
+    });
   };
 
   return (
@@ -68,7 +101,7 @@ export function ParentDashboard() {
           <div className="flex gap-4 flex-wrap">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20">
               <Users className="w-4 h-4" />
-              <span>{parent.linkedChildren?.length || 1} Linked Children</span>
+              <span>{linkedChildren.length} Linked Children</span>
             </div>
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/20">
               <Bell className="w-4 h-4" />
@@ -241,14 +274,14 @@ export function ParentDashboard() {
                     <Button
                       variant="outline"
                       className="flex-1 gap-2"
-                      onClick={() => rejectRequest(approval.id)}
+                      onClick={() => handleRejectRequest(approval.id)}
                     >
                       <XCircle className="w-4 h-4" />
                       Reject
                     </Button>
                     <Button
                       className="flex-1 gap-2"
-                      onClick={() => approveRequest(approval.id)}
+                      onClick={() => handleApproveRequest(approval.id)}
                     >
                       <CheckCircle className="w-4 h-4" />
                       Approve
@@ -268,28 +301,21 @@ export function ParentDashboard() {
               <CardDescription>Recent activity for your linked accounts</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3">
-              {recentAudit.map((entry) => (
-                <div key={entry.id} className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${
-                    entry.userRole === 'child' ? 'bg-purple-500/20 text-purple-500' :
-                    entry.userRole === 'parent' ? 'bg-blue-500/20 text-blue-500' :
-                    'bg-orange-500/20 text-orange-500'
-                  }`}>
-                    {entry.userRole[0].toUpperCase()}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="font-medium">{entry.userName}</span>
-                      <Badge variant="outline" className="text-xs">{entry.action}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground truncate">{entry.details}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {new Date(entry.timestamp).toLocaleString()}
-                      {entry.facilityName && ` • ${entry.facilityName}`}
-                    </p>
-                  </div>
+              <div className="flex items-start gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold bg-blue-500/20 text-blue-500">
+                  P
                 </div>
-              ))}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium">{parent.name}</span>
+                    <Badge variant="outline" className="text-xs">LOGIN</Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground truncate">Session started</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {new Date().toLocaleString()}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>

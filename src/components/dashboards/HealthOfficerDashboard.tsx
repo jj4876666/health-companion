@@ -33,7 +33,7 @@ const recordCategories = [
 import { Activity } from 'lucide-react';
 
 export function HealthOfficerDashboard() {
-  const { currentUser, auditLog, requestPatientEdit } = useAuth();
+  const { currentUser, addAuditEntry } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   
@@ -112,7 +112,15 @@ export function HealthOfficerDashboard() {
       title: 'Update Requested',
       description: 'A consent request has been sent to the patient/guardian',
     });
-    requestPatientEdit(patientEmecId, category, 'N/A', JSON.stringify(data));
+    addAuditEntry({
+      userId: admin.id,
+      userName: admin.name,
+      userRole: 'admin',
+      action: 'REQUEST_UPDATE',
+      target: patientEmecId,
+      details: `Requested update to ${category}`,
+      facilityName: admin.facilityName,
+    });
   };
 
   return (
@@ -407,20 +415,15 @@ export function HealthOfficerDashboard() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 max-h-64 overflow-y-auto">
-            {auditLog.slice(0, 10).map((entry) => (
-              <div
-                key={entry.id}
-                className="p-2 text-sm border-b last:border-0"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-medium">{entry.action}</span>
-                  <span className="text-xs text-muted-foreground">
-                    {new Date(entry.timestamp).toLocaleString()}
-                  </span>
-                </div>
-                <p className="text-muted-foreground text-xs">{entry.details}</p>
+            <div className="p-2 text-sm border-b last:border-0">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">Session Started</span>
+                <span className="text-xs text-muted-foreground">
+                  {new Date().toLocaleString()}
+                </span>
               </div>
-            ))}
+              <p className="text-muted-foreground text-xs">Health officer session active</p>
+            </div>
           </div>
         </CardContent>
       </Card>

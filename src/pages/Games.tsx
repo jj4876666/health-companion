@@ -55,7 +55,7 @@ const healthyFoods = ['🍎', '🥦', '🥕', '🍊', '🥬', '🍇', '🥒', '�
 const unhealthyFoods = ['🍔', '🍟', '🍩', '🍭', '🧁', '🍪', '🥤', '🍫'];
 
 export default function Games() {
-  const { currentUser, isAuthenticated, updateChildPoints } = useAuth();
+  const { currentUser, isAuthenticated } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   const { points, addPoints } = usePoints();
@@ -143,7 +143,6 @@ export default function Games() {
           if (memoryMatches + 1 === healthCards.length) {
             const gamePoints = Math.max(100 - memoryMoves * 2, 20);
             setTotalPoints(prev => prev + gamePoints);
-            updateChildPoints(gamePoints);
             addPoints(gamePoints, 'Memory Match Game');
           }
         }, 500);
@@ -190,7 +189,6 @@ export default function Games() {
     } else {
       const gamePoints = reactionScore + (answer === currentFact.isTrue ? 10 : 0);
       setTotalPoints(prev => prev + gamePoints);
-      updateChildPoints(gamePoints);
       addPoints(gamePoints, 'Fact or Fiction Quiz');
       setActiveGame(null);
     }
@@ -255,11 +253,10 @@ export default function Games() {
     if (catchLives <= 0 && activeGame === 'catch') {
       setCatchGameActive(false);
       setTotalPoints(prev => prev + catchScore);
-      updateChildPoints(catchScore);
       addPoints(catchScore, 'Nutrition Catch Game');
       setTimeout(() => setActiveGame(null), 2000);
     }
-  }, [catchLives, activeGame, catchScore, updateChildPoints, addPoints]);
+  }, [catchLives, activeGame, catchScore, addPoints]);
 
   // Keyboard controls for catch game
   useEffect(() => {

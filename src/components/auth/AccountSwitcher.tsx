@@ -35,7 +35,7 @@ export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
   const [verifiedUser, setVerifiedUser] = useState<typeof allDemoUsers[0] | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
-  const { currentUser, switchAccountWithEmec } = useAuth();
+  const { currentUser, loginWithEmecId } = useAuth();
   const { t } = useLanguage();
 
   const availableAccounts = allDemoUsers.filter(user => user.role !== currentUser?.role);
@@ -80,7 +80,7 @@ export function AccountSwitcher({ trigger }: AccountSwitcherProps) {
       return;
     }
 
-    const success = await switchAccountWithEmec(emecId, password);
+    const success = loginWithEmecId(emecId, password);
     
     if (success) {
       handleClose();

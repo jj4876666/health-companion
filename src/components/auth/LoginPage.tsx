@@ -70,7 +70,7 @@ export function LoginPage() {
     consentCode: string;
   } | null>(null);
   
-  const { loginWithEmecId } = useAuth();
+  const { loginWithEmecId, registerUser } = useAuth();
   const { isDemoMode } = useDemo();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
@@ -209,8 +209,25 @@ export function LoginPage() {
     const newPatientId = generatePatientId();
     const newConsentCode = generateConsentCode();
 
+    // Register in context and localStorage
+    const newUser = registerUser({
+      name: fullName,
+      email,
+      phone,
+      password,
+      role: 'adult',
+    });
+
+    // Store additional new user data in localStorage for the dashboard
+    localStorage.setItem(`new_user_${newUser.id}`, JSON.stringify({
+      isNewUser: true,
+      patientId: newPatientId,
+      consentCode: newConsentCode,
+      createdAt: new Date().toISOString(),
+    }));
+
     setNewPatientData({
-      emecId: newEmecId,
+      emecId: newUser.emecId,
       patientId: newPatientId,
       consentCode: newConsentCode,
     });
@@ -233,22 +250,12 @@ export function LoginPage() {
   };
 
   const handleContinueToLogin = () => {
-    if (newPatientData) {
-      setEmecId(newPatientData.emecId);
-      setPassword(signupData.password);
-      setActiveTab('login');
-      setSignupStep('form');
-      setSignupData({
-        fullName: '',
-        email: '',
-        phone: '',
-        password: '',
-        confirmPassword: '',
-        dateOfBirth: '',
-        gender: '',
-        bloodGroup: '',
-      });
-    }
+    // User is already logged in via registerUser, just navigate to dashboard
+    toast({
+      title: '✓ Account Ready',
+      description: 'Redirecting to your dashboard...',
+    });
+    navigate('/dashboard');
   };
 
   return (

@@ -21,12 +21,13 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AdultDashboard() {
   const { isDemoMode } = useDemo();
-  const { currentUser, pendingChanges, approveChange, rejectChange, addAuditEntry } = useAuth();
+  const { currentUser, addAuditEntry } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
   
   const adult = (currentUser as AdultUser) || demoAdult;
-  const myPendingChanges = pendingChanges.filter(c => c.status === 'pending');
+  // Demo: no pending changes in simplified context
+  const myPendingChanges: any[] = [];
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">
@@ -81,7 +82,7 @@ export function AdultDashboard() {
         </p>
       </div>
 
-      {/* Pending Changes Alert */}
+      {/* Info about pending changes - demo placeholder */}
       {myPendingChanges.length > 0 && (
         <Card className="border-2 border-warning bg-warning/5">
           <CardHeader>
@@ -90,45 +91,9 @@ export function AdultDashboard() {
               Pending Changes ({myPendingChanges.length})
             </CardTitle>
             <CardDescription>
-              A health officer has requested to update your records
+              Demo: No pending changes in this session
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-3">
-            {myPendingChanges.map((change) => (
-              <div key={change.id} className="p-4 rounded-lg bg-background border">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Shield className="w-4 h-4 text-primary" />
-                      <span className="font-medium">{change.adminName}</span>
-                      <Badge variant="outline" className="text-xs">{change.facilityName}</Badge>
-                    </div>
-                    <p className="text-sm text-muted-foreground mb-2">
-                      Requested on {new Date(change.createdAt).toLocaleDateString()}
-                    </p>
-                    <div className="p-3 rounded bg-muted/50">
-                      <p className="text-sm font-medium">{change.fieldChanged}</p>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-sm text-destructive line-through">{change.oldValue}</span>
-                        <span className="text-muted-foreground">→</span>
-                        <span className="text-sm text-success font-medium">{change.newValue}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-2">
-                    <Button size="sm" onClick={() => approveChange(change.id)} className="gap-1">
-                      <Check className="w-4 h-4" />
-                      Approve
-                    </Button>
-                    <Button size="sm" variant="destructive" onClick={() => rejectChange(change.id)} className="gap-1">
-                      <X className="w-4 h-4" />
-                      Reject
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </CardContent>
         </Card>
       )}
 

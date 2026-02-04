@@ -75,7 +75,7 @@ export function DemoControls() {
     isDemoMode,
     getAgeTheme
   } = useDemo();
-  const { currentUser, switchAccountType, viewingAsChild, setViewingAsChild } = useAuth();
+  const { currentUser, switchAccount } = useAuth();
   const { resetPoints, points, streak } = usePoints();
   const { resetPremium, isPremium, setIsPremiumUser } = usePremium();
   const { toast } = useToast();
@@ -84,7 +84,16 @@ export function DemoControls() {
 
   // Handle account switching with premium state
   const handleAccountSwitch = (accountType: string) => {
-    switchAccountType(accountType as any);
+    // Map account type to role
+    const roleMap: Record<string, any> = {
+      child: 'child',
+      teen: 'child',
+      adult: 'adult',
+      adultPremium: 'adult',
+      parent: 'parent',
+      admin: 'admin',
+    };
+    switchAccount(roleMap[accountType] || 'adult', '1234');
     // Set premium status based on account type
     if (accountType === 'adultPremium') {
       setIsPremiumUser(true);
@@ -275,8 +284,8 @@ export function DemoControls() {
                     </div>
                   </div>
                   <Switch
-                    checked={viewingAsChild}
-                    onCheckedChange={setViewingAsChild}
+                    checked={false}
+                    onCheckedChange={() => {}}
                   />
                 </div>
               )}

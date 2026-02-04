@@ -31,8 +31,7 @@ const emergencyTypes = [
 ];
 
 export function EmergencyContact({ userLocation, onFacilitySelect }: EmergencyContactProps) {
-  const { currentUser, addAuditEntry, getChildUser } = useAuth();
-  const child = getChildUser();
+  const { currentUser, addAuditEntry } = useAuth();
   const { toast } = useToast();
   
   const [selectedFacility, setSelectedFacility] = useState<HealthFacility | null>(null);
@@ -213,17 +212,13 @@ export function EmergencyContact({ userLocation, onFacilitySelect }: EmergencyCo
                   />
                 </div>
 
-                {/* Patient Info */}
-                {child && (
+                {/* Patient Info - Demo placeholder */}
+                {currentUser && (
                   <div className="p-3 rounded-lg bg-muted/50">
                     <p className="text-sm font-medium mb-2">Patient Information:</p>
                     <div className="grid grid-cols-2 gap-2 text-sm">
-                      <div>Name: <strong>{child.name}</strong></div>
-                      <div>Age: <strong>{child.age} years</strong></div>
-                      <div>Blood: <strong>{child.bloodGroup}</strong></div>
-                      <div className="col-span-2">
-                        Allergies: <strong className="text-destructive">{child.allergies.join(', ')}</strong>
-                      </div>
+                      <div>Name: <strong>{currentUser.name || 'Demo Patient'}</strong></div>
+                      <div>EMEC ID: <strong>{currentUser.emecId || 'N/A'}</strong></div>
                     </div>
                   </div>
                 )}

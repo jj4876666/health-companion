@@ -39,7 +39,7 @@ const difficultyPoints = {
 };
 
 export default function Quizzes() {
-  const { currentUser, isAuthenticated, updateChildPoints } = useAuth();
+  const { currentUser, isAuthenticated } = useAuth();
   const { language, t } = useLanguage();
   const { toast } = useToast();
   const { addPoints } = usePoints();
@@ -149,7 +149,7 @@ export default function Quizzes() {
       setShowResult(true);
       const finalScore = score + (isCorrect ? 1 : 0);
       const pointsEarned = Math.round(finalScore / activeQuiz.questions.length * activeQuiz.points);
-      updateChildPoints(pointsEarned);
+      // Use points context instead
       
       // Add points to the global Points system for premium unlocks
       addPoints(pointsEarned, `Quiz completed: ${activeQuiz.title}`);

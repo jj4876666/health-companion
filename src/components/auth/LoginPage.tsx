@@ -62,12 +62,14 @@ export function LoginPage() {
     dateOfBirth: '',
     gender: '',
     bloodGroup: '',
+    accountType: 'adult' as 'adult' | 'parent' | 'admin',
   });
   const [signupStep, setSignupStep] = useState<'form' | 'success'>('form');
   const [newPatientData, setNewPatientData] = useState<{
     emecId: string;
     patientId: string;
     consentCode: string;
+    accountType: string;
   } | null>(null);
   
   const { loginWithEmecId, registerUser } = useAuth();
@@ -209,13 +211,13 @@ export function LoginPage() {
     const newPatientId = generatePatientId();
     const newConsentCode = generateConsentCode();
 
-    // Register in context and localStorage
+    // Register in context and localStorage with selected account type
     const newUser = registerUser({
       name: fullName,
       email,
       phone,
       password,
-      role: 'adult',
+      role: signupData.accountType,
     });
 
     // Store additional new user data in localStorage for the dashboard
@@ -223,6 +225,7 @@ export function LoginPage() {
       isNewUser: true,
       patientId: newPatientId,
       consentCode: newConsentCode,
+      accountType: signupData.accountType,
       createdAt: new Date().toISOString(),
     }));
 
@@ -230,6 +233,7 @@ export function LoginPage() {
       emecId: newUser.emecId,
       patientId: newPatientId,
       consentCode: newConsentCode,
+      accountType: signupData.accountType,
     });
 
     setSignupStep('success');
@@ -237,7 +241,7 @@ export function LoginPage() {
 
     toast({
       title: '🎉 Registration Successful!',
-      description: 'Your patient file has been created.',
+      description: `Your ${signupData.accountType === 'admin' ? 'Health Officer' : signupData.accountType === 'parent' ? 'Parent/Guardian' : 'Patient'} account has been created.`,
     });
   };
 
@@ -443,11 +447,62 @@ export function LoginPage() {
                         <div className="text-center mb-4">
                           <CardTitle className="text-xl flex items-center justify-center gap-2">
                             <FileText className="w-5 h-5" />
-                            Open New Patient File
+                            Create New Account
                           </CardTitle>
                           <CardDescription className="mt-2">
-                            Register to receive your unique EMEC ID
+                            Choose your account type and register
                           </CardDescription>
+                        </div>
+
+                        {/* Account Type Selection */}
+                        <div className="space-y-2">
+                          <Label className="flex items-center gap-2">
+                            <Shield className="w-4 h-4" />
+                            Account Type *
+                          </Label>
+                          <div className="grid grid-cols-3 gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setSignupData({...signupData, accountType: 'adult'})}
+                              className={`p-3 rounded-lg border-2 transition-all text-center ${
+                                signupData.accountType === 'adult'
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <UserCircle className="w-5 h-5 mx-auto mb-1" />
+                              <span className="text-xs font-medium">Normal Adult</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSignupData({...signupData, accountType: 'parent'})}
+                              className={`p-3 rounded-lg border-2 transition-all text-center ${
+                                signupData.accountType === 'parent'
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <Users className="w-5 h-5 mx-auto mb-1" />
+                              <span className="text-xs font-medium">Parent</span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSignupData({...signupData, accountType: 'admin'})}
+                              className={`p-3 rounded-lg border-2 transition-all text-center ${
+                                signupData.accountType === 'admin'
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <Shield className="w-5 h-5 mx-auto mb-1" />
+                              <span className="text-xs font-medium">Admin</span>
+                            </button>
+                          </div>
+                          {signupData.accountType === 'admin' && (
+                            <p className="text-xs text-muted-foreground mt-1 p-2 rounded bg-muted/50">
+                              ⚕️ Admin accounts require facility verification before editing patient records
+                            </p>
+                          )}
                         </div>
 
                         <div className="grid grid-cols-2 gap-3">

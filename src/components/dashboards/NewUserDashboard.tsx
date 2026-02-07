@@ -192,7 +192,7 @@ export function NewUserDashboard() {
           {isDemoMode && (
             <div className="fixed top-4 right-4 z-50">
               <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
-                🧪 DEMO MODE
+                🧪 New Patient
               </Badge>
             </div>
           )}

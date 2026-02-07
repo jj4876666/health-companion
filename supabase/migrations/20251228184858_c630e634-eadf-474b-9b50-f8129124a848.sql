@@ -26,6 +26,13 @@ CREATE TABLE public.profiles (
     -- Enable Row-Level Security
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
+CREATE POLICY "Users can manage their own profile"
+ON public.profiles
+FOR ALL
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+
 -- Deny all access by default
 CREATE POLICY deny_all ON public.profiles
 FOR ALL

@@ -5,8 +5,8 @@ export const DEMO_EMEC_IDS = {
   child: 'KOT2025A001',      // Kevin - Child (9 years)
   teen: 'FAC2025A002',       // Faith - Teen (14 years)
   adult: 'AJM2025B002',      // James - Adult
-  adultFree: 'MWN2025F001',  // Mary - Adult Free Account
-  adultPremium: 'JMK2025P001', // John - Adult Premium Account
+  
+  
   parent: 'GAC2025C003',
   admin: 'ADM2025D004',
 };
@@ -16,8 +16,7 @@ export const DEMO_PASSWORDS = {
   child: 'kevin2025',
   teen: 'faith2025',
   adult: 'james2025',
-  adultFree: 'mary2025',
-  adultPremium: 'john2025',
+
   parent: 'grace2025',
   admin: 'admin2025',
 };

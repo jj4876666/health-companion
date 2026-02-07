@@ -23,6 +23,27 @@ CREATE TABLE public.profiles (
     premium_expiry TIMESTAMP WITH TIME ZONE,
     created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now(),
     updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT now()
+    -- Enable Row-Level Security
+ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
+
+-- Deny all access by default
+CREATE POLICY deny_all ON public.profiles
+FOR ALL
+USING (false)
+WITH CHECK (false);
+
+-- Allow users to access only their own profile
+CREATE POLICY user_owns_profile ON public.profiles
+FOR ALL
+USING (user_id = auth.uid())
+WITH CHECK (user_id = auth.uid());
+
+-- Optional: allow admins full access
+CREATE POLICY admin_full_access ON public.profiles
+FOR ALL
+USING (auth.role() = 'admin')
+WITH CHECK (auth.role() = 'admin');
+
 );
 
 -- Create user_roles table (separate from profiles for security)

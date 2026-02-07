@@ -100,6 +100,16 @@ export function NewUserDashboard() {
         }
       }
     }
+
+    if (!profile) {
+  return (
+    <div>
+      <h2>Welcome!</h2>
+      <p>Profile setup is only available after authentication.</p>
+    </div>
+  );
+}
+
     
     // Add current user if they're a patient
     if (currentUser && newUserData?.accountType !== 'admin') {

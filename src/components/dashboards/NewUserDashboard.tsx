@@ -101,16 +101,8 @@ export function NewUserDashboard() {
       }
     }
 
-    if (!profile) {
-  return (
-    <div>
-      <h2>Welcome!</h2>
-      <p>Profile setup is only available after authentication.</p>
-    </div>
-  );
-}
 
-    
+
     // Add current user if they're a patient
     if (currentUser && newUserData?.accountType !== 'admin') {
       const exists = patients.find(p => p.id === currentUser.id);
@@ -136,7 +128,9 @@ export function NewUserDashboard() {
   };
 
   const generateNewConsentCode = () => {
-    const newCode = String(Math.floor(100000 + Math.random() * 900000));
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const newCode = (100000 + (array[0] % 900000)).toString();
     if (currentUser?.id && newUserData) {
       const updatedData = {
         ...newUserData,

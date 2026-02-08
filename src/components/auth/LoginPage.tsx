@@ -30,15 +30,19 @@ const generatePatientId = () => {
 const generateEmecId = () => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
+  const array = new Uint8Array(11);
+  crypto.getRandomValues(array);
   for (let i = 0; i < 11; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(array[i] % chars.length);
   }
   return result;
 };
 
 // Generate consent code
 const generateConsentCode = () => {
-  return String(Math.floor(100000 + Math.random() * 900000));
+  const array = new Uint32Array(1);
+  crypto.getRandomValues(array);
+  return (100000 + (array[0] % 900000)).toString();
 };
 
 export function LoginPage() {

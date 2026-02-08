@@ -198,12 +198,6 @@ export function EnhancedPatientRecords({ isNewPatient = false, patientEmecId, co
 
   return (
     <div className="space-y-5">
-      {/* Demo badge */}
-      {isDemoMode && (
-        <div className="fixed top-4 right-4 z-50">
-          <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">🧪 DEMO MODE</Badge>
-        </div>
-      )}
 
       {/* Emergency Override Warning */}
       {showEmergencyOverride && (

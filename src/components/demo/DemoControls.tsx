@@ -56,10 +56,7 @@ const childAccountTypes = [
   { value: 'teen', label: 'Faith (14)', icon: <User className="w-4 h-4" />, color: 'bg-purple-500', description: 'Teen View' },
 ];
 
-const adultAccountTypes = [
-  { value: 'adultFree', label: 'Mary (Free)', icon: <User className="w-4 h-4" />, color: 'bg-slate-500', description: 'Free Account' },
-  { value: 'adultPremium', label: 'John (Premium)', icon: <Crown className="w-4 h-4" />, color: 'bg-amber-500', description: 'Premium Account' },
-];
+const adultAccountTypes: { value: string; label: string; icon: React.ReactNode; color: string; description: string }[] = [];
 
 const otherAccountTypes = [
   { value: 'parent', label: 'Parent', icon: <Users className="w-4 h-4" />, color: 'bg-green-500', description: 'Grace Achieng' },
@@ -89,17 +86,12 @@ export function DemoControls() {
       child: 'child',
       teen: 'child',
       adult: 'adult',
-      adultPremium: 'adult',
       parent: 'parent',
       admin: 'admin',
     };
     switchAccount(roleMap[accountType] || 'adult', '1234');
     // Set premium status based on account type
-    if (accountType === 'adultPremium') {
-      setIsPremiumUser(true);
-    } else {
-      setIsPremiumUser(false);
-    }
+    setIsPremiumUser(false);
   };
 
   const handleDemoReset = () => {
@@ -195,33 +187,6 @@ export function DemoControls() {
                 </div>
               </div>
 
-              {/* Free vs Premium Adult Accounts */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium flex items-center gap-2">
-                  <Crown className="w-4 h-4 text-amber-500" />
-                  Free vs Premium Comparison
-                </Label>
-                <div className="grid grid-cols-2 gap-2">
-                  {adultAccountTypes.map((account) => (
-                    <Button
-                      key={account.value}
-                      variant={currentUser?.name?.includes(account.label.split(' ')[0]) ? 'default' : 'outline'}
-                      size="sm"
-                      className={`h-auto py-3 flex flex-col items-center gap-1 ${account.value === 'adultPremium' ? 'ring-2 ring-amber-500/50' : ''}`}
-                      onClick={() => handleAccountSwitch(account.value)}
-                    >
-                      <div className={`p-1.5 rounded ${account.color} text-white`}>
-                        {account.icon}
-                      </div>
-                      <span className="text-xs font-medium">{account.label}</span>
-                      <span className="text-[10px] text-muted-foreground">{account.description}</span>
-                    </Button>
-                  ))}
-                </div>
-                <p className="text-[10px] text-muted-foreground text-center">
-                  Compare features between free and premium accounts
-                </p>
-              </div>
 
               {/* Other Account Types */}
               <div className="space-y-3">

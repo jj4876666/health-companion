@@ -5,8 +5,6 @@ export const DEMO_EMEC_IDS = {
   child: 'KOT2025A001',      // Kevin - Child (9 years)
   teen: 'FAC2025A002',       // Faith - Teen (14 years)
   adult: 'AJM2025B002',      // James - Adult
-  adultFree: 'MWJ2025B003',  // Mary - Free Adult
-  adultPremium: 'JKM2025B004', // John - Premium Adult
   parent: 'GAC2025C003',
   admin: 'ADM2025D004',
 };
@@ -16,8 +14,6 @@ export const DEMO_PASSWORDS = {
   child: 'kevin2025',
   teen: 'faith2025',
   adult: 'james2025',
-  adultFree: 'mary2025',
-  adultPremium: 'john2025',
   parent: 'grace2025',
   admin: 'admin2025',
 };
@@ -67,56 +63,6 @@ export const demoTeen: ChildUser = {
     sensitiveContent: false,  // Teens can access puberty/mental health content
     requiresParentApproval: true,
   },
-};
-
-// Free Adult Account - for demo comparison
-export const demoAdultFree: AdultUser = {
-  id: 'adult-free-001',
-  name: 'Mary Wanjiku',
-  email: 'mary.demo@emec.app',
-  role: 'adult',
-  emecId: DEMO_EMEC_IDS.adultFree,
-  password: DEMO_PASSWORDS.adultFree,
-  profilePicture: '/placeholder.svg',
-  createdAt: '2025-01-01T00:00:00Z',
-  isVerified: true,
-  verificationDate: '2025-01-03T00:00:00Z',
-  age: 28,
-  bloodGroup: 'B+',
-  allergies: [],
-  medicalConditions: [],
-  medications: [],
-  emergencyContact: {
-    name: 'Peter Wanjiku',
-    phone: '+254798765432',
-    relationship: 'Brother',
-  },
-  pendingChanges: [],
-};
-
-// Premium Adult Account - for demo comparison
-export const demoAdultPremium: AdultUser = {
-  id: 'adult-premium-001',
-  name: 'John Kamau',
-  email: 'john.demo@emec.app',
-  role: 'adult',
-  emecId: DEMO_EMEC_IDS.adultPremium,
-  password: DEMO_PASSWORDS.adultPremium,
-  profilePicture: '/placeholder.svg',
-  createdAt: '2025-01-01T00:00:00Z',
-  isVerified: true,
-  verificationDate: '2025-01-03T00:00:00Z',
-  age: 35,
-  bloodGroup: 'AB+',
-  allergies: ['Aspirin'],
-  medicalConditions: ['Diabetes Type 2'],
-  medications: ['Metformin 500mg twice daily'],
-  emergencyContact: {
-    name: 'Jane Kamau',
-    phone: '+254712345999',
-    relationship: 'Spouse',
-  },
-  pendingChanges: [],
 };
 
 export const demoAdult: AdultUser = {
@@ -199,8 +145,6 @@ export const allDemoUsers: User[] = [
   demoChild, 
   demoTeen, 
   demoAdult, 
-  demoAdultFree, 
-  demoAdultPremium, 
   demoParent, 
   demoAdmin
 ];
@@ -213,10 +157,6 @@ export const getDemoUserByRole = (role: string): User | null => {
       return demoTeen;
     case 'adult':
       return demoAdult;
-    case 'adultFree':
-      return demoAdultFree;
-    case 'adultPremium':
-      return demoAdultPremium;
     case 'parent':
       return demoParent;
     case 'admin':

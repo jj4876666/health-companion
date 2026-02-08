@@ -515,14 +515,22 @@ export function LoginPage() {
   );
 
   return (
-    <div className="min-h-screen gradient-hero flex flex-col">
-      {/* Demo Mode Badge */}
-      {isDemoMode && (
-        <div className="fixed top-4 right-4 z-50">
-          <Badge className="bg-warning text-warning-foreground px-3 py-1.5 text-sm font-semibold animate-pulse">
-            🧪 DEMO MODE
-          </Badge>
-        </div>
+  <div className="min-h-screen gradient-hero flex flex-col">
+
+    {/* <-- THIS IS THE TOP DEMO BADGE */}
+    {isDemoMode && (
+      <div className="fixed top-4 right-4 z-50">
+        <Badge className="bg-warning text-warning-foreground px-3 py-1.5 text-sm font-semibold animate-pulse">
+          🧪 DEMO MODE
+        </Badge>
+      </div>
+    )}
+
+    {/* Animated Background */}
+    <div className="fixed inset-0 overflow-hidden pointer-events-none">
+      ...
+    </div>
+
       )}
 
       {/* Animated Background */}

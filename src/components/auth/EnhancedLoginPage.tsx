@@ -48,9 +48,9 @@ export function EnhancedLoginPage() {
   const [consentGiven, setConsentGiven] = useState(false);
   const [newUserEmecId, setNewUserEmecId] = useState('');
   
-  const { loginWithEmecId } = useAuth();
+  const { loginWithEmecId, registerUser } = useAuth();
   const { language, t } = useLanguage();
-  const { isDemoMode } = useDemo();
+  const { isDemoMode, setIsDemoMode } = useDemo();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -96,8 +96,27 @@ export function EnhancedLoginPage() {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const generatedEmecId = generateEmecId();
+    // Create a real new user via registerUser
+    const newUser = registerUser({
+      name: email.split('@')[0],
+      email,
+      password,
+      role: 'adult',
+    });
+
+    const generatedEmecId = newUser.emecId;
+    
+    // Store new user data for NewUserDashboard
+    localStorage.setItem(`new_user_${newUser.id}`, JSON.stringify({
+      isNewUser: true,
+      patientId: `EMEC/${new Date().getFullYear()}/${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`,
+      consentCode: '',
+      accountType: 'adult',
+      createdAt: new Date().toISOString(),
+    }));
+
     setNewUserEmecId(generatedEmecId);
+    setIsDemoMode(false);
     setShowConsentDialog(true);
     setIsLoading(false);
   };
@@ -127,8 +146,23 @@ export function EnhancedLoginPage() {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 1500));
     
-    const generatedEmecId = generateEmecId();
-    setNewUserEmecId(generatedEmecId);
+    const newUser = registerUser({
+      name: 'Google User',
+      email: 'google@demo.app',
+      password: 'google-auth',
+      role: 'adult',
+    });
+
+    localStorage.setItem(`new_user_${newUser.id}`, JSON.stringify({
+      isNewUser: true,
+      patientId: `EMEC/${new Date().getFullYear()}/${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`,
+      consentCode: '',
+      accountType: 'adult',
+      createdAt: new Date().toISOString(),
+    }));
+
+    setNewUserEmecId(newUser.emecId);
+    setIsDemoMode(false);
     setShowConsentDialog(true);
     setIsLoading(false);
   };
@@ -150,6 +184,7 @@ export function EnhancedLoginPage() {
     const success = loginWithEmecId(emecId, password);
     
     if (success) {
+      setIsDemoMode(true);
       toast({
         title: "✓ Verification Successful",
         description: `Welcome back, ${foundUser?.name}!`,
@@ -164,11 +199,9 @@ export function EnhancedLoginPage() {
   };
 
   const handleConsentComplete = () => {
-    // Store the new EMEC ID
     localStorage.setItem('emec_user_id', newUserEmecId);
     
     if (consentGiven) {
-      // Load sample data
       localStorage.setItem('emec_sample_data_loaded', 'true');
       toast({
         title: "🎉 Account Created!",
@@ -182,7 +215,7 @@ export function EnhancedLoginPage() {
     }
     
     setShowConsentDialog(false);
-    loginWithEmecId(DEMO_EMEC_IDS.adult, DEMO_PASSWORDS.adult);
+    // Navigate to dashboard - the user was already registered via registerUser
     navigate('/dashboard');
   };
 

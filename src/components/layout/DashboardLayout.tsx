@@ -203,8 +203,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       {/* Footer (visible on desktop) */}
       <footer className="hidden lg:block text-center py-4 text-sm text-muted-foreground border-t">
-        <p>© 2025 EMEC – All rights reserved</p>
-        <p>Developed by Nicholas & Barack Hussein, Mbita High School</p>
+        <p>© 2026 EMEC – All rights reserved</p>
+        <p>Developed by Jacob Johnson & Barack Hussein, Mbita High School</p>
       </footer>
     </div>
   );

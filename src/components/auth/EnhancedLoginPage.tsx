@@ -203,13 +203,14 @@ export function EnhancedLoginPage() {
   </div>
 )} */}
 
-      {isDemoMode && (
-        <div className="fixed top-4 right-4 z-50">
-          <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
-            🧪 DEMO MODE
-          </Badge>
-        </div>
-      )}
+     {/* {isDemoMode && (
+  <div className="fixed top-4 right-4 z-50">
+    <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
+      🧪 DEMO MODE
+    </Badge>
+  </div>
+)} */}
+
 
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">

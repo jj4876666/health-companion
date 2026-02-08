@@ -76,7 +76,7 @@ export function LoginPage() {
   } | null>(null);
   
   const { loginWithEmecId, registerUser } = useAuth();
-  const { isDemoMode } = useDemo();
+  const { isDemoMode, setIsDemoMode } = useDemo();
   const { language, t } = useLanguage();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -161,6 +161,7 @@ export function LoginPage() {
     const success = loginWithEmecId(emecId, password);
     
     if (success) {
+      setIsDemoMode(true); // Demo accounts use demo mode
       toast({
         title: "✓ Verification Successful",
         description: `Welcome back, ${foundUser?.name}!`,
@@ -236,6 +237,7 @@ export function LoginPage() {
 
     setSignupStep('success');
     setIsLoading(false);
+    setIsDemoMode(false);
 
     toast({
       title: '🎉 Registration Successful!',

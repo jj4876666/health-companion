@@ -217,7 +217,14 @@ export function NewUserDashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-slate-900 dark:to-slate-800">
       <div className="p-4 md:p-6 space-y-6 max-w-5xl mx-auto">
-        {/* Demo Mode Badge */}
+        {/* {isDemoMode && (
+  <div className="fixed top-4 right-4 z-50">
+    <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
+      🧪 DEMO MODE
+    </Badge>
+  </div>
+)} */}
+
         {isDemoMode && (
           <div className="fixed top-4 right-4 z-50">
             <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">

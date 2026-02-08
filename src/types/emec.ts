@@ -8,13 +8,16 @@ export function generateEmecId(): string {
   const alphanumeric = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   
   let id = '';
-  // First 3 characters are letters
+  const letterArray = new Uint8Array(3);
+  const alphaArray = new Uint8Array(8);
+  crypto.getRandomValues(letterArray);
+  crypto.getRandomValues(alphaArray);
+  
   for (let i = 0; i < 3; i++) {
-    id += letters.charAt(Math.floor(Math.random() * letters.length));
+    id += letters.charAt(letterArray[i] % letters.length);
   }
-  // Next 8 characters are alphanumeric
   for (let i = 0; i < 8; i++) {
-    id += alphanumeric.charAt(Math.floor(Math.random() * alphanumeric.length));
+    id += alphanumeric.charAt(alphaArray[i] % alphanumeric.length);
   }
   return id;
 }

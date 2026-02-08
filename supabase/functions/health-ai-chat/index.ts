@@ -1,9 +1,10 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.89.0";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version',
 };
 
 // Simple in-memory rate limiting for demo protection
@@ -72,16 +73,44 @@ TEEN-APPROPRIATE CONTENT:
 - Discuss healthy relationships in age-appropriate terms
 - Be supportive about body image and self-care
 `;
+
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    // Rate limiting based on IP or a unique identifier
-    const clientId = req.headers.get('x-forwarded-for') || 
-                     req.headers.get('x-real-ip') || 
-                     'anonymous';
+    // Authentication check
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader?.startsWith('Bearer ')) {
+      console.log('No auth header provided, rejecting request');
+      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    const supabase = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader } } }
+    );
+
+    const token = authHeader.replace('Bearer ', '');
+    const { data: claimsData, error: claimsError } = await supabase.auth.getClaims(token);
+    
+    let userId = 'demo-user';
+    if (claimsError || !claimsData?.claims) {
+      // For demo mode: allow requests with the anon key but rate limit strictly
+      console.log('Auth validation failed, allowing demo access with strict rate limiting');
+    } else {
+      userId = claimsData.claims.sub as string;
+    }
+
+    // Rate limiting based on user ID or IP
+    const clientId = userId !== 'demo-user' 
+      ? userId 
+      : req.headers.get('x-forwarded-for') || req.headers.get('x-real-ip') || 'anonymous';
     
     if (!checkRateLimit(clientId)) {
       console.log(`Rate limit exceeded for client: ${clientId}`);
@@ -98,7 +127,7 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY is not configured");
     }
     
-    console.log(`Health AI request - Age: ${userAge}, Language: ${language}, Client: ${clientId}`);
+    console.log(`Health AI request - Age: ${userAge}, Language: ${language}, User: ${userId}`);
 
     // Adjust system prompt based on user age with content filtering
     let ageContext = '';

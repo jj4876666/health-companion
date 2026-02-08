@@ -99,7 +99,9 @@ export function ConsentWorkflow({
       return;
     }
 
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const array = new Uint32Array(1);
+    crypto.getRandomValues(array);
+    const code = (100000 + (array[0] % 900000)).toString();
     setGeneratedCode(code);
     setTimeRemaining(300);
     setIsCodeActive(true);

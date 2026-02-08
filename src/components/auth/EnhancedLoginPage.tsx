@@ -23,8 +23,10 @@ import { AccountRecovery } from './AccountRecovery';
 const generateEmecId = (): string => {
   const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
   let result = '';
+  const array = new Uint8Array(11);
+  crypto.getRandomValues(array);
   for (let i = 0; i < 11; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
+    result += chars.charAt(array[i] % chars.length);
   }
   return result;
 };

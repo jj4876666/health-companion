@@ -194,7 +194,15 @@ export function EnhancedLoginPage() {
 
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
-      {/* Demo Mode Badge */}
+      {/* UI Indicator */}
+{/* {isDemoMode && (
+  <div className="fixed top-4 right-4 z-50">
+    <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">
+      🧪 DEMO MODE
+    </Badge>
+  </div>
+)} */}
+
       {isDemoMode && (
         <div className="fixed top-4 right-4 z-50">
           <Badge className="bg-amber-500 text-white px-3 py-1.5 text-sm font-semibold animate-pulse">

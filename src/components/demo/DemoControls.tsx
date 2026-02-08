@@ -334,22 +334,6 @@ export function DemoControls() {
                   </div>
                 </div>
 
-                {/* Free vs Premium Section */}
-                <div className="space-y-1">
-                  <p className="text-[10px] font-medium text-muted-foreground uppercase tracking-wide">Free vs Premium Adults</p>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
-                    <div className="p-2 bg-slate-50 dark:bg-slate-900/20 rounded border border-slate-200 dark:border-slate-800">
-                      <p className="font-medium text-slate-700 dark:text-slate-300">👩 Mary Wanjiku</p>
-                      <p className="text-muted-foreground">Age 28 • FREE</p>
-                      <p className="text-[10px] text-muted-foreground">Basic features only</p>
-                    </div>
-                    <div className="p-2 bg-amber-50 dark:bg-amber-900/20 rounded border-2 border-amber-400 dark:border-amber-600">
-                      <p className="font-medium text-amber-700 dark:text-amber-300">👨 John Kamau ⭐</p>
-                      <p className="text-muted-foreground">Age 35 • PREMIUM</p>
-                      <p className="text-[10px] text-muted-foreground">All features unlocked</p>
-                    </div>
-                  </div>
-                </div>
 
                 {/* Other Roles */}
                 <div className="space-y-1">

@@ -33,12 +33,7 @@ USING (user_id = auth.uid())
 WITH CHECK (user_id = auth.uid());
 
 
--- Deny all access by default
-CREATE POLICY deny_all ON public.profiles
-FOR ALL
-USING (false)
-WITH CHECK (false);
-
+--
 -- Allow users to access only their own profile
 CREATE POLICY user_owns_profile ON public.profiles
 FOR ALL

@@ -78,7 +78,7 @@ export function AdultDashboard() {
       {/* Demo Label */}
       <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-center">
         <p className="text-sm text-warning-foreground font-medium">
-        
+          Demo Data – Editable for Presentation
         </p>
       </div>
 

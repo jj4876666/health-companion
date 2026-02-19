@@ -111,12 +111,12 @@ export function ParentDashboard() {
         </div>
       </div>
 
+      {/* Demo Label */}
       <div className="text-center">
-  <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
-    EMEC Health App – Live
-  </Badge>
-</div>
-
+        <Badge variant="outline" className="bg-warning/10 text-warning-foreground border-warning/30">
+          Demo Data – Editable for Presentation
+        </Badge>
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="children" className="w-full">

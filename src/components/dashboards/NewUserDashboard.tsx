@@ -70,53 +70,6 @@ export function NewUserDashboard() {
     }
   }, [currentUser]);
 
-  // NEW: If user hasn't completed profile, show registration form
-if (!currentUser?.name || !newUserData?.accountType) {
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-      <div className="p-6 bg-white dark:bg-slate-800 shadow-lg rounded-xl w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-4 text-center">Complete Your Profile</h2>
-        
-        <div className="space-y-4">
-          <div>
-            <Label>Name</Label>
-            <Input placeholder="Enter your full name" value={currentUser?.name || ''} onChange={(e) => currentUser.name = e.target.value} />
-          </div>
-
-          <div>
-            <Label>Age</Label>
-            <Input type="number" placeholder="Enter your age" />
-          </div>
-
-          <div>
-            <Label>Gender</Label>
-            <Input placeholder="Male / Female / Other" />
-          </div>
-
-          <div>
-            <Label>Account Type</Label>
-            <Input placeholder="Patient / Parent / Adult" />
-          </div>
-
-          <Button className="w-full mt-4" onClick={() => {
-            // Save to localStorage
-            const updatedData = {
-              ...newUserData,
-              accountType: (document.querySelector<HTMLInputElement>('input[placeholder="Patient / Parent / Adult"]')?.value || 'adult'),
-              createdAt: new Date().toISOString()
-            };
-            localStorage.setItem(`new_user_${currentUser.id}`, JSON.stringify(updatedData));
-            window.location.reload(); // refresh to load dashboard
-          }}>
-            Save Profile
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-
   const loadLocalPatients = () => {
     const patients: LocalPatient[] = [];
     // Scan localStorage for new_user entries

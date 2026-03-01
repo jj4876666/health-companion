@@ -463,6 +463,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          account_type: string | null
           address: string | null
           age_category: Database["public"]["Enums"]["age_category"] | null
           avatar_url: string | null
@@ -470,18 +471,26 @@ export type Database = {
           created_at: string
           date_of_birth: string | null
           emec_id: string
+          emergency_contact: Json | null
           full_name: string
           gender: string | null
+          height: number | null
           id: string
+          is_active: boolean | null
           is_premium: boolean | null
           language: string | null
+          license_number: string | null
+          parent_email: string | null
+          parent_phone: string | null
           parent_user_id: string | null
           phone: string | null
           premium_expiry: string | null
           updated_at: string
           user_id: string
+          weight: number | null
         }
         Insert: {
+          account_type?: string | null
           address?: string | null
           age_category?: Database["public"]["Enums"]["age_category"] | null
           avatar_url?: string | null
@@ -489,18 +498,26 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           emec_id: string
+          emergency_contact?: Json | null
           full_name: string
           gender?: string | null
+          height?: number | null
           id?: string
+          is_active?: boolean | null
           is_premium?: boolean | null
           language?: string | null
+          license_number?: string | null
+          parent_email?: string | null
+          parent_phone?: string | null
           parent_user_id?: string | null
           phone?: string | null
           premium_expiry?: string | null
           updated_at?: string
           user_id: string
+          weight?: number | null
         }
         Update: {
+          account_type?: string | null
           address?: string | null
           age_category?: Database["public"]["Enums"]["age_category"] | null
           avatar_url?: string | null
@@ -508,16 +525,23 @@ export type Database = {
           created_at?: string
           date_of_birth?: string | null
           emec_id?: string
+          emergency_contact?: Json | null
           full_name?: string
           gender?: string | null
+          height?: number | null
           id?: string
+          is_active?: boolean | null
           is_premium?: boolean | null
           language?: string | null
+          license_number?: string | null
+          parent_email?: string | null
+          parent_phone?: string | null
           parent_user_id?: string | null
           phone?: string | null
           premium_expiry?: string | null
           updated_at?: string
           user_id?: string
+          weight?: number | null
         }
         Relationships: []
       }

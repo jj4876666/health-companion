@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDemo } from '@/contexts/DemoContext';
@@ -9,33 +10,19 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { 
   Heart, User, Users, Shield, Lock, Eye, EyeOff, CreditCard, CheckCircle2, 
-  UserCircle, AlertTriangle, Info, Mail, Chrome, Loader2, Database, Sparkles, KeyRound
+  UserCircle, AlertTriangle, Info, Mail, Loader2, KeyRound
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DEMO_EMEC_IDS, DEMO_PASSWORDS, getUserByEmecId } from '@/data/demoUsers';
 import { AccountRecovery } from './AccountRecovery';
-
-// Generate unique EMEC ID - exactly 11 alphanumeric characters
-const generateEmecId = (): string => {
-  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-  let result = '';
-  const array = new Uint8Array(11);
-  crypto.getRandomValues(array);
-  for (let i = 0; i < 11; i++) {
-    result += chars.charAt(array[i] % chars.length);
-  }
-  return result;
-};
+import { ProductionSignupForm } from './ProductionSignupForm';
 
 export function EnhancedLoginPage() {
   const [authMode, setAuthMode] = useState<'login' | 'signup'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -43,12 +30,7 @@ export function EnhancedLoginPage() {
   const [foundUser, setFoundUser] = useState<{ name: string; role: string; isVerified: boolean } | null>(null);
   const [showRecovery, setShowRecovery] = useState(false);
   
-  // Sample data consent
-  const [showConsentDialog, setShowConsentDialog] = useState(false);
-  const [consentGiven, setConsentGiven] = useState(false);
-  const [newUserEmecId, setNewUserEmecId] = useState('');
-  
-  const { loginWithEmecId, registerUser } = useAuth();
+  const { loginWithEmecId } = useAuth();
   const { language, t } = useLanguage();
   const { isDemoMode, setIsDemoMode } = useDemo();
   const navigate = useNavigate();
@@ -72,151 +54,66 @@ export function EnhancedLoginPage() {
         setFoundUser({ name: user.name, role: user.role, isVerified: user.isVerified });
       } else {
         setFoundUser(null);
-        setError('EMEC ID not found in demo database');
       }
     } else {
       setFoundUser(null);
     }
   };
 
-  const handleEmailSignup = async () => {
-    if (!email || !password) {
-      setError('Please enter email and password');
-      return;
-    }
-    if (password !== confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters');
-      return;
-    }
-
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    // Create a real new user via registerUser
-    const newUser = registerUser({
-      name: email.split('@')[0],
-      email,
-      password,
-      role: 'adult',
-    });
-
-    const generatedEmecId = newUser.emecId;
-    
-    // Store new user data for NewUserDashboard
-    localStorage.setItem(`new_user_${newUser.id}`, JSON.stringify({
-      isNewUser: true,
-      patientId: `EMEC/${new Date().getFullYear()}/${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`,
-      consentCode: '',
-      accountType: 'adult',
-      createdAt: new Date().toISOString(),
-    }));
-
-    setNewUserEmecId(generatedEmecId);
-    setIsDemoMode(false);
-    setShowConsentDialog(true);
-    setIsLoading(false);
-  };
-
+  // Real Supabase email login
   const handleEmailLogin = async () => {
-    if (!email || !password) {
-      setError('Please enter email and password');
+    if (!email || !password) { setError('Please enter email and password'); return; }
+    setIsLoading(true);
+    setError('');
+    
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({ email, password });
+    
+    if (loginError) {
+      setError(loginError.message);
+      setIsLoading(false);
       return;
     }
 
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    // Demo: Accept any email/password for demo purposes
-    toast({
-      title: "✓ Login Successful",
-      description: "Welcome to EMEC Demo!",
-    });
-    
-    // Log in as adult by default for email login
-    loginWithEmecId(DEMO_EMEC_IDS.adult, DEMO_PASSWORDS.adult);
-    navigate('/dashboard');
+    if (data.user) {
+      // Fetch profile to get user info
+      const { data: profile } = await supabase.from('profiles').select('*').eq('user_id', data.user.id).single();
+      
+      setIsDemoMode(false);
+      toast({
+        title: "✓ Login Successful",
+        description: `Welcome back${profile?.full_name ? ', ' + profile.full_name : ''}!`,
+      });
+      navigate('/dashboard');
+    }
     setIsLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
-    setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    const newUser = registerUser({
-      name: 'Google User',
-      email: 'google@demo.app',
-      password: 'google-auth',
-      role: 'adult',
-    });
-
-    localStorage.setItem(`new_user_${newUser.id}`, JSON.stringify({
-      isNewUser: true,
-      patientId: `EMEC/${new Date().getFullYear()}/${String(Math.floor(Math.random() * 99999)).padStart(5, '0')}`,
-      consentCode: '',
-      accountType: 'adult',
-      createdAt: new Date().toISOString(),
-    }));
-
-    setNewUserEmecId(newUser.emecId);
-    setIsDemoMode(false);
-    setShowConsentDialog(true);
-    setIsLoading(false);
-  };
-
+  // Demo EMEC ID login (keeps existing demo flow)
   const handleEmecLogin = async () => {
-    if (!emecId || !password) {
-      setError('Please enter your EMEC ID and password');
-      return;
-    }
-
-    if (emecId.length !== 11) {
-      setError('EMEC ID must be 11 characters');
-      return;
-    }
+    if (!emecId || !password) { setError('Please enter your EMEC ID and password'); return; }
+    if (emecId.length !== 11) { setError('EMEC ID must be 11 characters'); return; }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    await new Promise(resolve => setTimeout(resolve, 500));
 
     const success = loginWithEmecId(emecId, password);
     
     if (success) {
       setIsDemoMode(true);
-      toast({
-        title: "✓ Verification Successful",
-        description: `Welcome back, ${foundUser?.name}!`,
-      });
+      toast({ title: "✓ Verification Successful", description: `Welcome back, ${foundUser?.name}!` });
       navigate('/dashboard');
     } else {
-      setError('Invalid EMEC ID or password');
+      // Try Supabase login with EMEC ID lookup
+      const { data: profile } = await supabase.from('profiles').select('user_id, full_name').eq('emec_id', emecId).single();
+      if (profile) {
+        setError('Please use "Email" login for live accounts, or use a demo EMEC ID.');
+      } else {
+        setError('Invalid EMEC ID or password');
+      }
       setPassword('');
     }
     
     setIsLoading(false);
-  };
-
-  const handleConsentComplete = () => {
-    localStorage.setItem('emec_user_id', newUserEmecId);
-    
-    if (consentGiven) {
-      localStorage.setItem('emec_sample_data_loaded', 'true');
-      toast({
-        title: "🎉 Account Created!",
-        description: `Your EMEC ID: ${newUserEmecId}. Sample health data has been loaded.`,
-      });
-    } else {
-      toast({
-        title: "🎉 Account Created!",
-        description: `Your EMEC ID: ${newUserEmecId}. You can add health data later.`,
-      });
-    }
-    
-    setShowConsentDialog(false);
-    // Navigate to dashboard - the user was already registered via registerUser
-    navigate('/dashboard');
   };
 
   const handleQuickLogin = (account: typeof demoAccounts[0]) => {
@@ -225,10 +122,36 @@ export function EnhancedLoginPage() {
     setFoundUser({ name: account.name, role: account.role, isVerified: true });
   };
 
+  // Show production signup form
+  if (authMode === 'signup') {
+    return (
+      <div className="min-h-screen gradient-hero flex flex-col">
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute bottom-20 right-10 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+        </div>
+        <header className="relative p-6 flex items-center justify-center">
+          <div className="flex items-center gap-3">
+            <div className="w-14 h-14 rounded-xl gradient-emec flex items-center justify-center shadow-lg">
+              <Heart className="w-7 h-7 text-white fill-white" />
+            </div>
+            <div>
+              <span className="text-3xl font-bold text-foreground">EMEC</span>
+              <p className="text-xs text-muted-foreground">Electronic Medical & Education Companion</p>
+            </div>
+          </div>
+        </header>
+        <main className="relative flex-1 flex items-center justify-center p-6">
+          <div className="w-full max-w-2xl">
+            <ProductionSignupForm onBack={() => setAuthMode('login')} />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen gradient-hero flex flex-col">
-
-
       {/* Animated Background */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl animate-pulse" />
@@ -252,302 +175,133 @@ export function EnhancedLoginPage() {
       {/* Main Content */}
       <main className="relative flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-5xl">
-          {/* Demo Label */}
-          <div className="text-center mb-6">
-            <span className="inline-block px-4 py-2 rounded-full bg-warning/20 text-warning-foreground text-sm font-medium border border-warning/30">
-              {t('demo.label')}
-            </span>
-          </div>
-
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Login/Signup Form */}
+            {/* Login Form */}
             <Card className="shadow-elegant border-0">
               <CardHeader className="text-center pb-2">
                 <CardTitle className="text-2xl md:text-3xl flex items-center justify-center gap-2">
                   <Heart className="w-6 h-6 text-primary" />
-                  {authMode === 'login' ? 'Welcome Back' : 'Create Account'}
+                  Welcome Back
                 </CardTitle>
                 <CardDescription className="text-base">
-                  {authMode === 'login' 
-                    ? 'Sign in to access your health records' 
-                    : 'Join EMEC to manage your health journey'}
+                  Sign in to access your health records
                 </CardDescription>
               </CardHeader>
 
               <CardContent className="space-y-6">
-                <Tabs value={authMode} onValueChange={(v) => setAuthMode(v as 'login' | 'signup')}>
+                {/* Login Methods */}
+                <Tabs defaultValue="email" className="w-full">
                   <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="login">Sign In</TabsTrigger>
-                    <TabsTrigger value="signup">Sign Up</TabsTrigger>
+                    <TabsTrigger value="email">Email Login</TabsTrigger>
+                    <TabsTrigger value="emec">Demo (EMEC ID)</TabsTrigger>
                   </TabsList>
 
-                  <TabsContent value="signup" className="space-y-4 mt-4">
-                    {/* Google Sign-In Button */}
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12 gap-3"
-                      onClick={handleGoogleSignIn}
-                      disabled={isLoading}
-                    >
-                      <Chrome className="w-5 h-5" />
-                      Continue with Google
-                    </Button>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or with email</span>
-                      </div>
-                    </div>
-
+                  {/* Real Email Login */}
+                  <TabsContent value="email" className="space-y-4 mt-4">
                     <div className="space-y-2">
-                      <Label htmlFor="signup-email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email
+                      <Label htmlFor="login-email" className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" /> Email
                       </Label>
                       <Input
-                        id="signup-email"
-                        type="email"
-                        value={email}
+                        id="login-email" type="email" value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         placeholder="you@example.com"
                       />
                     </div>
-
                     <div className="space-y-2">
-                      <Label htmlFor="signup-password" className="flex items-center gap-2">
-                        <Lock className="w-4 h-4" />
-                        Password
+                      <Label htmlFor="login-password" className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> Password
                       </Label>
                       <div className="relative">
                         <Input
-                          id="signup-password"
-                          type={showPassword ? 'text' : 'password'}
-                          value={password}
-                          onChange={(e) => setPassword(e.target.value)}
-                          placeholder="Create a password"
-                          className="pr-12"
+                          id="login-password" type={showPassword ? 'text' : 'password'}
+                          value={password} onChange={(e) => setPassword(e.target.value)}
+                          placeholder="Enter your password" className="pr-12"
+                          onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()}
                         />
-                        <button
-                          type="button"
-                          onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                        >
+                        <button type="button" onClick={() => setShowPassword(!showPassword)}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground">
                           {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirm Password</Label>
-                      <Input
-                        id="confirm-password"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        placeholder="Confirm your password"
-                      />
-                    </div>
-
-                    {error && (
-                      <p className="text-destructive text-sm text-center animate-fade-in">{error}</p>
-                    )}
-
-                    <Button
-                      onClick={handleEmailSignup}
-                      disabled={isLoading}
-                      className="w-full h-12 text-lg"
-                    >
+                    <Button onClick={handleEmailLogin} disabled={!email || !password || isLoading} className="w-full h-12 text-lg">
                       {isLoading ? (
-                        <span className="flex items-center gap-2">
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Creating Account...
-                        </span>
+                        <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" />Signing In...</span>
                       ) : (
-                        <span className="flex items-center gap-2">
-                          <Sparkles className="w-5 h-5" />
-                          Create Account
-                        </span>
+                        <span className="flex items-center gap-2"><Mail className="w-5 h-5" />Sign In</span>
                       )}
                     </Button>
                   </TabsContent>
 
-                  <TabsContent value="login" className="space-y-4 mt-4">
-                    {/* Google Sign-In */}
-                    <Button 
-                      variant="outline" 
-                      className="w-full h-12 gap-3"
-                      onClick={handleGoogleSignIn}
-                      disabled={isLoading}
-                    >
-                      <Chrome className="w-5 h-5" />
-                      Continue with Google
-                    </Button>
-
-                    <div className="relative">
-                      <div className="absolute inset-0 flex items-center">
-                        <span className="w-full border-t" />
-                      </div>
-                      <div className="relative flex justify-center text-xs uppercase">
-                        <span className="bg-card px-2 text-muted-foreground">Or sign in with</span>
-                      </div>
+                  {/* Demo EMEC Login */}
+                  <TabsContent value="emec" className="space-y-4 mt-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="emecId" className="flex items-center gap-2">
+                        <CreditCard className="w-4 h-4" /> EMEC ID
+                      </Label>
+                      <Input
+                        id="emecId" value={emecId}
+                        onChange={(e) => handleEmecIdChange(e.target.value)}
+                        placeholder="e.g., KOT2025A001" maxLength={11}
+                        className="text-center text-lg tracking-widest font-mono uppercase"
+                      />
+                      <p className="text-xs text-muted-foreground text-center">{emecId.length}/11 characters</p>
                     </div>
-
-                    <Tabs defaultValue="emec" className="w-full">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="emec">EMEC ID</TabsTrigger>
-                        <TabsTrigger value="email">Email</TabsTrigger>
-                      </TabsList>
-
-                      <TabsContent value="emec" className="space-y-4 mt-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="emecId" className="flex items-center gap-2">
-                            <CreditCard className="w-4 h-4" />
-                            EMEC ID
-                          </Label>
-                          <Input
-                            id="emecId"
-                            value={emecId}
-                            onChange={(e) => handleEmecIdChange(e.target.value)}
-                            placeholder="e.g., KOT2025A001"
-                            maxLength={11}
-                            className="text-center text-lg tracking-widest font-mono uppercase"
-                          />
-                          <p className="text-xs text-muted-foreground text-center">{emecId.length}/11 characters</p>
-                        </div>
-
-                        {foundUser && (
-                          <div className="p-4 rounded-lg bg-success/10 border border-success/30 animate-fade-in">
-                            <div className="flex items-center gap-3">
-                              <CheckCircle2 className="w-6 h-6 text-success" />
-                              <div>
-                                <p className="font-semibold text-success">{foundUser.name}</p>
-                                <div className="flex items-center gap-2 mt-1">
-                                  <Badge variant="outline" className="capitalize">{foundUser.role}</Badge>
-                                  {foundUser.isVerified && (
-                                    <Badge className="bg-success/20 text-success border-success/30">✓ Verified</Badge>
-                                  )}
-                                </div>
-                              </div>
+                    {foundUser && (
+                      <div className="p-4 rounded-lg bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 animate-fade-in">
+                        <div className="flex items-center gap-3">
+                          <CheckCircle2 className="w-6 h-6 text-green-600" />
+                          <div>
+                            <p className="font-semibold text-green-700 dark:text-green-400">{foundUser.name}</p>
+                            <div className="flex items-center gap-2 mt-1">
+                              <Badge variant="outline" className="capitalize">{foundUser.role}</Badge>
+                              {foundUser.isVerified && <Badge className="bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-400 border-green-300">✓ Verified</Badge>}
                             </div>
                           </div>
-                        )}
-
-                        <div className="space-y-2">
-                          <Label htmlFor="emec-password" className="flex items-center gap-2">
-                            <Lock className="w-4 h-4" />
-                            Password
-                          </Label>
-                          <div className="relative">
-                            <Input
-                              id="emec-password"
-                              type={showPassword ? 'text' : 'password'}
-                              value={password}
-                              onChange={(e) => setPassword(e.target.value)}
-                              placeholder="Enter your password"
-                              className="pr-12"
-                              onKeyDown={(e) => e.key === 'Enter' && handleEmecLogin()}
-                            />
-                            <button
-                              type="button"
-                              onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
-                            >
-                              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                            </button>
-                          </div>
                         </div>
-
-                        <Button
-                          onClick={handleEmecLogin}
-                          disabled={!emecId || !password || isLoading}
-                          className="w-full h-12 text-lg"
-                        >
-                          {isLoading ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              Verifying...
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <Shield className="w-5 h-5" />
-                              Secure Login
-                            </span>
-                          )}
-                        </Button>
-                      </TabsContent>
-
-                      <TabsContent value="email" className="space-y-4 mt-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="login-email" className="flex items-center gap-2">
-                            <Mail className="w-4 h-4" />
-                            Email
-                          </Label>
-                          <Input
-                            id="login-email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                            placeholder="you@example.com"
-                          />
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="login-password" className="flex items-center gap-2">
-                            <Lock className="w-4 h-4" />
-                            Password
-                          </Label>
-                          <Input
-                            id="login-password"
-                            type={showPassword ? 'text' : 'password'}
-                            value={password}
-                            onChange={(e) => setPassword(e.target.value)}
-                            placeholder="Enter your password"
-                            onKeyDown={(e) => e.key === 'Enter' && handleEmailLogin()}
-                          />
-                        </div>
-
-                        <Button
-                          onClick={handleEmailLogin}
-                          disabled={!email || !password || isLoading}
-                          className="w-full h-12 text-lg"
-                        >
-                          {isLoading ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="w-5 h-5 animate-spin" />
-                              Signing In...
-                            </span>
-                          ) : (
-                            <span className="flex items-center gap-2">
-                              <Mail className="w-5 h-5" />
-                              Sign In with Email
-                            </span>
-                          )}
-                        </Button>
-                      </TabsContent>
-                    </Tabs>
-
-                    {error && (
-                      <p className="text-destructive text-sm text-center animate-fade-in">{error}</p>
+                      </div>
                     )}
+                    <div className="space-y-2">
+                      <Label htmlFor="emec-password" className="flex items-center gap-2">
+                        <Lock className="w-4 h-4" /> Password
+                      </Label>
+                      <Input
+                        id="emec-password" type={showPassword ? 'text' : 'password'}
+                        value={password} onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Enter your password" className="pr-12"
+                        onKeyDown={(e) => e.key === 'Enter' && handleEmecLogin()}
+                      />
+                    </div>
+                    <Button onClick={handleEmecLogin} disabled={!emecId || !password || isLoading} className="w-full h-12 text-lg">
+                      {isLoading ? (
+                        <span className="flex items-center gap-2"><Loader2 className="w-5 h-5 animate-spin" />Verifying...</span>
+                      ) : (
+                        <span className="flex items-center gap-2"><Shield className="w-5 h-5" />Demo Login</span>
+                      )}
+                    </Button>
                   </TabsContent>
                 </Tabs>
 
-                {/* Forgot Password Link */}
-                <button
-                  onClick={() => setShowRecovery(true)}
-                  className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-2"
-                >
-                  <KeyRound className="w-4 h-4" />
-                  Forgot password?
+                {error && <p className="text-destructive text-sm text-center animate-fade-in">{error}</p>}
+
+                {/* Sign Up Button */}
+                <div className="border-t pt-4">
+                  <Button variant="outline" onClick={() => setAuthMode('signup')} className="w-full h-11 gap-2">
+                    <User className="w-4 h-4" />
+                    Create New Account
+                  </Button>
+                </div>
+
+                {/* Forgot Password */}
+                <button onClick={() => setShowRecovery(true)}
+                  className="w-full text-center text-sm text-primary hover:underline flex items-center justify-center gap-2">
+                  <KeyRound className="w-4 h-4" /> Forgot password?
                 </button>
 
-                {/* Encryption Badge */}
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
                   <Lock className="w-4 h-4" />
-                  <span>256-bit encryption (simulated for demo)</span>
+                  <span>256-bit encrypted & RLS protected</span>
                 </div>
               </CardContent>
             </Card>
@@ -620,78 +374,18 @@ export function EnhancedLoginPage() {
             <p>Developed by Jacob Johnson & Barack Hussein, Mbita High School</p>
             <div className="flex items-center justify-center gap-4 pt-2">
               <Badge variant="outline" className="text-xs">
-                <Shield className="w-3 h-3 mr-1" />
-                Secure
+                <Shield className="w-3 h-3 mr-1" /> Secure
               </Badge>
               <Badge variant="outline" className="text-xs">
-                <Info className="w-3 h-3 mr-1" />
-                Demo Mode
+                <Info className="w-3 h-3 mr-1" /> Production Ready
               </Badge>
             </div>
           </footer>
         </div>
       </main>
 
-      {/* Consent Dialog for Sample Data */}
-      <Dialog open={showConsentDialog} onOpenChange={setShowConsentDialog}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-primary" />
-              Your EMEC ID is Ready!
-            </DialogTitle>
-            <DialogDescription>
-              Your unique health identifier has been generated
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* EMEC ID Display */}
-            <div className="p-4 rounded-lg bg-primary/10 border border-primary/30 text-center">
-              <p className="text-xs text-muted-foreground mb-1">Your EMEC ID</p>
-              <p className="text-2xl font-mono font-bold text-primary tracking-widest">{newUserEmecId}</p>
-            </div>
-
-            {/* Explanation */}
-            <div className="p-3 rounded-lg bg-muted/50 text-sm">
-              <p className="text-muted-foreground">
-                <Info className="w-4 h-4 inline mr-1" />
-                This ID helps organize and secure your health information inside the app. It is not a government-issued ID.
-              </p>
-            </div>
-
-            {/* Sample Data Consent */}
-            <div className="flex items-start space-x-3 p-3 rounded-lg border border-border">
-              <Checkbox 
-                id="consent" 
-                checked={consentGiven}
-                onCheckedChange={(checked) => setConsentGiven(!!checked)}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <label htmlFor="consent" className="text-sm font-medium cursor-pointer">
-                  Load sample health data for demo
-                </label>
-                <p className="text-xs text-muted-foreground">
-                  This will add example health records, medications, and appointments to demonstrate the app's features during presentations.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button onClick={handleConsentComplete} className="w-full gap-2">
-              <Database className="w-4 h-4" />
-              Continue to Dashboard
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       {/* Account Recovery Modal */}
-      <AccountRecovery 
-        isOpen={showRecovery} 
-        onClose={() => setShowRecovery(false)} 
-      />
+      <AccountRecovery isOpen={showRecovery} onClose={() => setShowRecovery(false)} />
     </div>
   );
 }

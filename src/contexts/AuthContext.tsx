@@ -26,16 +26,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLiveUser, setIsLiveUser] = useState(false);
   const [auditLog, setAuditLog] = useState<AuditLogEntry[]>([]);
 
+  // Helper to wait for profile creation by trigger
+  const fetchProfileWithRetry = async (userId: string, maxRetries = 8): Promise<any> => {
+    for (let i = 0; i < maxRetries; i++) {
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      if (profile) return profile;
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+    return null;
+  };
+
   // Listen for Supabase auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session?.user && !currentUser?.id?.startsWith('demo-') && !currentUser?.id?.startsWith('local-')) {
-        // Fetch profile for the live user
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
+      if (session?.user) {
+        const profile = await fetchProfileWithRetry(session.user.id);
 
         if (profile) {
           const liveUser: User = {
@@ -44,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             email: session.user.email,
             role: (profile.account_type as UserRole) || 'adult',
             emecId: profile.emec_id,
-            password: '', // Not stored client-side for live users
+            password: '',
             profilePicture: profile.avatar_url || '/placeholder.svg',
             createdAt: profile.created_at,
             isVerified: !!session.user.email_confirmed_at,
@@ -62,11 +71,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // Check existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('user_id', session.user.id)
-          .single();
+        const profile = await fetchProfileWithRetry(session.user.id);
 
         if (profile) {
           const liveUser: User = {
@@ -85,7 +90,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           setIsLiveUser(true);
         }
       } else {
-        // Fall back to demo saved auth
         const savedAuth = localStorage.getItem(STORAGE_KEY);
         if (savedAuth) {
           try { setCurrentUser(JSON.parse(savedAuth)); } catch {}

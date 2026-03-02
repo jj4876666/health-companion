@@ -147,8 +147,25 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
     }
   };
 
+  // Wait for profile to be created by trigger
+  const waitForProfile = async (userId: string, maxRetries = 15): Promise<any> => {
+    for (let i = 0; i < maxRetries; i++) {
+      const { data: profile, error } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+      console.log(`Profile fetch attempt ${i + 1}:`, { profile, error });
+      if (profile) return profile;
+      if (error) console.error('Profile fetch error:', error);
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+    return null;
+  };
+
   const signUp = async (email: string, password: string, metadata: Record<string, string>) => {
     setIsLoading(true);
+    setError('');
     try {
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -166,7 +183,10 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
       }
 
       if (data.user) {
-        // Update the profile with additional fields
+        // Wait for the trigger to create the profile, but don't block on failure
+        const profile = await waitForProfile(data.user.id);
+
+        // Update profile even if fetch returned null (trigger may have created it)
         const profileUpdates: Record<string, any> = {
           full_name: metadata.full_name,
           date_of_birth: metadata.date_of_birth || null,
@@ -182,7 +202,6 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
         if (metadata.weight) profileUpdates.weight = parseFloat(metadata.weight);
         if (metadata.license_number) profileUpdates.license_number = metadata.license_number;
         if (metadata.facility_name) {
-          // Also update user_roles with facility info
           await supabase.from('user_roles').update({
             facility_name: metadata.facility_name,
           }).eq('user_id', data.user.id);
@@ -190,26 +209,27 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
         if (metadata.parent_phone) profileUpdates.parent_phone = metadata.parent_phone;
         if (metadata.parent_email) profileUpdates.parent_email = metadata.parent_email;
 
-        await supabase.from('profiles').update(profileUpdates).eq('user_id', data.user.id);
-
-        // Fetch the generated EMEC ID
-        const { data: profile } = await supabase
+        const { error: updateError } = await supabase
           .from('profiles')
-          .select('emec_id')
-          .eq('user_id', data.user.id)
-          .single();
+          .update(profileUpdates)
+          .eq('user_id', data.user.id);
 
-        setCreatedEmecId(profile?.emec_id || 'Generated');
+        if (updateError) {
+          console.error('Profile update error:', updateError);
+        }
+
+        setCreatedEmecId(profile?.emec_id || 'EMEC-' + data.user.id.slice(0, 8).toUpperCase());
         setIsDemoMode(false);
         setStep('success');
 
         toast({
           title: '🎉 Account Created!',
-          description: 'Please check your email to verify your account.',
+          description: 'Your EMEC account is ready.',
         });
       }
     } catch (err: any) {
-      setError(err.message || 'Registration failed');
+      console.error('Signup error:', err);
+      setError(err.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }

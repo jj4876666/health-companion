@@ -25,7 +25,17 @@ export function AdultDashboard() {
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const adult = (currentUser as AdultUser) || demoAdult;
+  // For live users, currentUser won't have demo-specific fields, so merge with defaults
+  const adultDefaults: Partial<AdultUser> = {
+    age: 0,
+    bloodGroup: 'N/A',
+    medicalConditions: [],
+    medications: [],
+    allergies: [],
+    emergencyContact: { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
+    mealPlan: undefined,
+  };
+  const adult: AdultUser = { ...adultDefaults, ...(currentUser || demoAdult) } as AdultUser;
   // Demo: no pending changes in simplified context
   const myPendingChanges: any[] = [];
 

@@ -43,6 +43,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Listen for Supabase auth state changes
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      // Skip auto-setting user while signup form is showing its success screen
+      if (sessionStorage.getItem('signup_in_progress')) {
+        return;
+      }
+
       if (session?.user) {
         const profile = await fetchProfileWithRetry(session.user.id);
 

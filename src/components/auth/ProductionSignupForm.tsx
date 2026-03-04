@@ -147,26 +147,13 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
     }
   };
 
-  // Wait for profile to be created by trigger
-  const waitForProfile = async (userId: string, maxRetries = 15): Promise<any> => {
-    for (let i = 0; i < maxRetries; i++) {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('user_id', userId)
-        .maybeSingle();
-      console.log(`Profile fetch attempt ${i + 1}:`, { profile, error });
-      if (profile) return profile;
-      if (error) console.error('Profile fetch error:', error);
-      await new Promise(resolve => setTimeout(resolve, 600));
-    }
-    return null;
-  };
-
   const signUp = async (email: string, password: string, metadata: Record<string, string>) => {
     setIsLoading(true);
     setError('');
     try {
+      // Set flag to prevent AuthContext from auto-navigating
+      sessionStorage.setItem('signup_in_progress', 'true');
+
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
         password,
@@ -177,16 +164,21 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
       });
 
       if (signUpError) {
+        sessionStorage.removeItem('signup_in_progress');
         setError(signUpError.message);
         setIsLoading(false);
         return;
       }
 
       if (data.user) {
-        // Wait for the trigger to create the profile, but don't block on failure
-        const profile = await waitForProfile(data.user.id);
+        // One quick profile fetch (no retry loop) just to grab the EMEC ID
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('emec_id')
+          .eq('user_id', data.user.id)
+          .maybeSingle();
 
-        // Update profile even if fetch returned null (trigger may have created it)
+        // Fire-and-forget profile update — don't block the UI
         const profileUpdates: Record<string, any> = {
           full_name: metadata.full_name,
           date_of_birth: metadata.date_of_birth || null,
@@ -201,26 +193,24 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
         if (metadata.height) profileUpdates.height = parseFloat(metadata.height);
         if (metadata.weight) profileUpdates.weight = parseFloat(metadata.weight);
         if (metadata.license_number) profileUpdates.license_number = metadata.license_number;
-        if (metadata.facility_name) {
-          await supabase.from('user_roles').update({
-            facility_name: metadata.facility_name,
-          }).eq('user_id', data.user.id);
-        }
         if (metadata.parent_phone) profileUpdates.parent_phone = metadata.parent_phone;
         if (metadata.parent_email) profileUpdates.parent_email = metadata.parent_email;
 
-        const { error: updateError } = await supabase
-          .from('profiles')
-          .update(profileUpdates)
-          .eq('user_id', data.user.id);
+        // Fire updates in background
+        supabase.from('profiles').update(profileUpdates).eq('user_id', data.user.id).then(({ error: updateError }) => {
+          if (updateError) console.error('Profile update error:', updateError);
+        });
 
-        if (updateError) {
-          console.error('Profile update error:', updateError);
+        if (metadata.facility_name) {
+          supabase.from('user_roles').update({ facility_name: metadata.facility_name }).eq('user_id', data.user.id).then(({ error }) => {
+            if (error) console.error('Role update error:', error);
+          });
         }
 
         setCreatedEmecId(profile?.emec_id || 'EMEC-' + data.user.id.slice(0, 8).toUpperCase());
         setIsDemoMode(false);
         setStep('success');
+        setIsLoading(false);
 
         toast({
           title: '🎉 Account Created!',
@@ -229,8 +219,8 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
       }
     } catch (err: any) {
       console.error('Signup error:', err);
+      sessionStorage.removeItem('signup_in_progress');
       setError(err.message || 'Registration failed. Please try again.');
-    } finally {
       setIsLoading(false);
     }
   };
@@ -311,7 +301,10 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
               {accountType === 'child' && ' Parent approval is required before the account becomes active.'}
             </AlertDescription>
           </Alert>
-          <Button onClick={() => navigate('/dashboard')} className="w-full h-12 text-lg gap-2">
+          <Button onClick={() => {
+            sessionStorage.removeItem('signup_in_progress');
+            navigate('/dashboard');
+          }} className="w-full h-12 text-lg gap-2">
             <Heart className="w-5 h-5" />
             Go to Dashboard
           </Button>

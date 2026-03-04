@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemo } from '@/contexts/DemoContext';
+import { useAuth } from '@/contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -60,6 +61,7 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
   const [error, setError] = useState('');
   const [createdEmecId, setCreatedEmecId] = useState('');
   const { setIsDemoMode } = useDemo();
+  const { loadSessionUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -301,8 +303,9 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
               {accountType === 'child' && ' Parent approval is required before the account becomes active.'}
             </AlertDescription>
           </Alert>
-          <Button onClick={() => {
+          <Button onClick={async () => {
             sessionStorage.removeItem('signup_in_progress');
+            await loadSessionUser();
             navigate('/dashboard');
           }} className="w-full h-12 text-lg gap-2">
             <Heart className="w-5 h-5" />

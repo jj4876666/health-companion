@@ -10,13 +10,14 @@ const AUDIT_KEY = 'emec_audit_v1';
 interface AuthContextType {
   currentUser: User | null;
   isAuthenticated: boolean;
-  isLiveUser: boolean; // true if using real Supabase auth
+  isLiveUser: boolean;
   login: (role: UserRole, pin: string) => boolean;
   loginWithEmecId: (emecId: string, password: string) => boolean;
   logout: () => void;
   switchAccount: (role: UserRole, pin: string) => boolean;
   registerUser: (payload: { name: string; email?: string; phone?: string; password: string; role?: UserRole; }) => User;
   addAuditEntry: (entry: Omit<AuditLogEntry, 'id' | 'timestamp'>) => void;
+  loadSessionUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,7 +42,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   // Listen for Supabase auth state changes
+  // Shared helper to build a live user from a session + profile
+  const buildLiveUser = (session: any, profile: any): User => ({
+    id: session.user.id,
+    name: profile.full_name || session.user.email || 'User',
+    email: session.user.email,
+    role: (profile.account_type as UserRole) || 'adult',
+    emecId: profile.emec_id,
+    password: '',
+    profilePicture: profile.avatar_url || '/placeholder.svg',
+    createdAt: profile.created_at,
+    isVerified: !!session.user.email_confirmed_at,
+    verificationDate: session.user.email_confirmed_at || undefined,
+  });
+
+  // Called by signup form after clearing the signup_in_progress flag
+  const loadSessionUser = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const profile = await fetchProfileWithRetry(session.user.id);
+      if (profile) {
+        setCurrentUser(buildLiveUser(session, profile));
+        setIsLiveUser(true);
+      }
+    }
+  };
+
   useEffect(() => {
+    // Always clear stale signup flag on mount — the signup form sets it fresh when needed
+    sessionStorage.removeItem('signup_in_progress');
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       // Skip auto-setting user while signup form is showing its success screen
       if (sessionStorage.getItem('signup_in_progress')) {
@@ -50,21 +80,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       if (session?.user) {
         const profile = await fetchProfileWithRetry(session.user.id);
-
         if (profile) {
-          const liveUser: User = {
-            id: session.user.id,
-            name: profile.full_name || session.user.email || 'User',
-            email: session.user.email,
-            role: (profile.account_type as UserRole) || 'adult',
-            emecId: profile.emec_id,
-            password: '',
-            profilePicture: profile.avatar_url || '/placeholder.svg',
-            createdAt: profile.created_at,
-            isVerified: !!session.user.email_confirmed_at,
-            verificationDate: session.user.email_confirmed_at || undefined,
-          };
-          setCurrentUser(liveUser);
+          setCurrentUser(buildLiveUser(session, profile));
           setIsLiveUser(true);
         }
       } else if (!session && isLiveUser) {
@@ -77,21 +94,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (session?.user) {
         const profile = await fetchProfileWithRetry(session.user.id);
-
         if (profile) {
-          const liveUser: User = {
-            id: session.user.id,
-            name: profile.full_name || session.user.email || 'User',
-            email: session.user.email,
-            role: (profile.account_type as UserRole) || 'adult',
-            emecId: profile.emec_id,
-            password: '',
-            profilePicture: profile.avatar_url || '/placeholder.svg',
-            createdAt: profile.created_at,
-            isVerified: !!session.user.email_confirmed_at,
-            verificationDate: session.user.email_confirmed_at || undefined,
-          };
-          setCurrentUser(liveUser);
+          setCurrentUser(buildLiveUser(session, profile));
           setIsLiveUser(true);
         }
       } else {
@@ -202,7 +206,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const value: AuthContextType = {
     currentUser, isAuthenticated: !!currentUser, isLiveUser,
-    login, loginWithEmecId, logout, switchAccount, registerUser, addAuditEntry,
+    login, loginWithEmecId, logout, switchAccount, registerUser, addAuditEntry, loadSessionUser,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

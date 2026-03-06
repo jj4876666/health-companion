@@ -7,6 +7,7 @@ import { AdminDashboard } from '@/components/dashboards/AdminDashboard';
 import { AdultDashboard } from '@/components/dashboards/AdultDashboard';
 import { NewUserDashboard } from '@/components/dashboards/NewUserDashboard';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { ChildUser } from '@/types/emec';
 
 export default function Dashboard() {
@@ -43,13 +44,15 @@ export default function Dashboard() {
       case 'admin':
         return <AdminDashboard />;
       default:
-        return <ChildDashboard />;
+        return <AdultDashboard />;
     }
   };
 
   return (
-    <DashboardLayout>
-      {renderDashboard()}
-    </DashboardLayout>
+    <ErrorBoundary>
+      <DashboardLayout>
+        {renderDashboard()}
+      </DashboardLayout>
+    </ErrorBoundary>
   );
 }

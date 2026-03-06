@@ -173,12 +173,17 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
       }
 
       if (data.user) {
-        // One quick profile fetch (no retry loop) just to grab the EMEC ID
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('emec_id')
-          .eq('user_id', data.user.id)
-          .maybeSingle();
+        // Retry profile fetch a few times to allow the trigger to complete
+        let profile: { emec_id: string } | null = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+          const { data: p } = await supabase
+            .from('profiles')
+            .select('emec_id')
+            .eq('user_id', data.user.id)
+            .maybeSingle();
+          if (p?.emec_id) { profile = p; break; }
+          await new Promise(r => setTimeout(r, 800));
+        }
 
         // Fire-and-forget profile update — don't block the UI
         const profileUpdates: Record<string, any> = {

@@ -34,8 +34,18 @@ export function AdultDashboard() {
     allergies: [],
     emergencyContact: { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
     mealPlan: undefined,
+    pendingChanges: [],
   };
-  const adult: AdultUser = { ...adultDefaults, ...(currentUser || demoAdult) } as AdultUser;
+  const merged = { ...adultDefaults, ...(currentUser || demoAdult) };
+  // Ensure arrays are never undefined after merge
+  const adult: AdultUser = {
+    ...merged,
+    medicalConditions: merged.medicalConditions ?? [],
+    medications: merged.medications ?? [],
+    allergies: merged.allergies ?? [],
+    emergencyContact: merged.emergencyContact ?? { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
+    pendingChanges: merged.pendingChanges ?? [],
+  } as AdultUser;
   // Demo: no pending changes in simplified context
   const myPendingChanges: any[] = [];
 

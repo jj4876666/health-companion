@@ -43,18 +43,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Listen for Supabase auth state changes
   // Shared helper to build a live user from a session + profile
-  const buildLiveUser = (session: any, profile: any): User => ({
-    id: session.user.id,
-    name: profile.full_name || session.user.email || 'User',
-    email: session.user.email,
-    role: (profile.account_type as UserRole) || 'adult',
-    emecId: profile.emec_id,
-    password: '',
-    profilePicture: profile.avatar_url || '/placeholder.svg',
-    createdAt: profile.created_at,
-    isVerified: !!session.user.email_confirmed_at,
-    verificationDate: session.user.email_confirmed_at || undefined,
-  });
+  const buildLiveUser = (session: any, profile: any): User => {
+    // Compute age from date_of_birth
+    let age = 25; // default
+    if (profile.date_of_birth) {
+      const dob = new Date(profile.date_of_birth);
+      const today = new Date();
+      age = today.getFullYear() - dob.getFullYear();
+      const m = today.getMonth() - dob.getMonth();
+      if (m < 0 || (m === 0 && today.getDate() < dob.getDate())) age--;
+      if (age < 0) age = 0;
+    }
+
+    return {
+      id: session.user.id,
+      name: profile.full_name || session.user.email || 'User',
+      email: session.user.email,
+      role: (profile.account_type as UserRole) || 'adult',
+      emecId: profile.emec_id,
+      password: '',
+      profilePicture: profile.avatar_url || '/placeholder.svg',
+      createdAt: profile.created_at,
+      isVerified: !!session.user.email_confirmed_at,
+      verificationDate: session.user.email_confirmed_at || undefined,
+      // Extended fields for dashboards
+      age,
+      bloodGroup: profile.blood_group || 'Unknown',
+      allergies: [],
+      medicalConditions: [],
+      medications: [],
+      completedQuizzes: [],
+      points: 0,
+      parentId: profile.parent_user_id || '',
+      emergencyContact: profile.emergency_contact || { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
+      restrictions: { sensitiveContent: age < 13, requiresParentApproval: age < 18 },
+    } as any;
+  };
 
   // Called by signup form after clearing the signup_in_progress flag
   const loadSessionUser = async () => {

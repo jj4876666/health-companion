@@ -25,7 +25,21 @@ export function ChildDashboard() {
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('home');
   
-  const child = (currentUser as ChildUser) || demoChild;
+  const childDefaults: Partial<ChildUser> = {
+    age: 8,
+    bloodGroup: 'Unknown',
+    allergies: [],
+    parentId: '',
+    points: 250,
+    completedQuizzes: [],
+    restrictions: { sensitiveContent: true, requiresParentApproval: true },
+  };
+  const merged = { ...childDefaults, ...(currentUser || demoChild) };
+  const child: ChildUser = {
+    ...merged,
+    allergies: merged.allergies ?? [],
+    completedQuizzes: merged.completedQuizzes ?? [],
+  } as ChildUser;
   const totalPoints = child.points || 250;
   const nextReward = 500;
   const progress = (totalPoints / nextReward) * 100;

@@ -26,7 +26,21 @@ export function TeenDashboard() {
   const [activeTab, setActiveTab] = useState('home');
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   
-  const teen = (currentUser as ChildUser) || demoTeen;
+  const teenDefaults: Partial<ChildUser> = {
+    age: 15,
+    bloodGroup: 'Unknown',
+    allergies: [],
+    parentId: '',
+    points: 480,
+    completedQuizzes: [],
+    restrictions: { sensitiveContent: false, requiresParentApproval: true },
+  };
+  const merged = { ...teenDefaults, ...(currentUser || demoTeen) };
+  const teen: ChildUser = {
+    ...merged,
+    allergies: merged.allergies ?? [],
+    completedQuizzes: merged.completedQuizzes ?? [],
+  } as ChildUser;
   const totalPoints = points || teen.points || 480;
   const nextReward = 1000;
   const progress = (totalPoints / nextReward) * 100;

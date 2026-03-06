@@ -30,7 +30,7 @@ export default function Dashboard() {
     // Check if child is actually a teen (age 13-17)
     if (currentUser.role === 'child') {
       const childUser = currentUser as ChildUser;
-      if (childUser.age >= 13) {
+      if ((childUser.age ?? 0) >= 13) {
         return <TeenDashboard />;
       }
       return <ChildDashboard />;

@@ -110,10 +110,10 @@ export function AdultDashboard() {
         </div>
       </div>
 
-      {/* Demo Label */}
-      <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-center">
-        <p className="text-sm text-warning-foreground font-medium">
-          Demo Data – Editable for Presentation
+      {/* Status Label */}
+      <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
+        <p className="text-sm text-muted-foreground font-medium">
+          {isLiveUser ? '📋 New Account – Records will appear here once updated by a Health Officer' : 'Demo Data – Editable for Presentation'}
         </p>
       </div>
 

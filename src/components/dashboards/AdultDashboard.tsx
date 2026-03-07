@@ -23,10 +23,25 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AdultDashboard() {
   const { isDemoMode } = useDemo();
-  const { currentUser, addAuditEntry } = useAuth();
+  const { currentUser, isLiveUser, addAuditEntry } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const [profileId, setProfileId] = useState<string | null>(null);
   
+  // Resolve profile.id for live users (needed for medical_updates)
+  useEffect(() => {
+    if (isLiveUser && currentUser?.id) {
+      supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setProfileId(data.id);
+        });
+    }
+  }, [isLiveUser, currentUser?.id]);
+
   // For live users, currentUser won't have demo-specific fields, so merge with defaults
   const adultDefaults: Partial<AdultUser> = {
     age: 0,

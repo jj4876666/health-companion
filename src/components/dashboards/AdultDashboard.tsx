@@ -169,6 +169,10 @@ export function AdultDashboard() {
 
         {/* Enhanced Patient Records Tab */}
         <TabsContent value="records" className="space-y-4 mt-4">
+          {/* Live medical updates from health officers (realtime) */}
+          {isLiveUser && profileId && (
+            <LiveMedicalUpdates profileId={profileId} />
+          )}
           <EnhancedPatientRecords patientEmecId={adult.emecId} />
         </TabsContent>
 

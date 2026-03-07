@@ -297,7 +297,7 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {adult.medications.map((med, index) => (
+                {adult.medications.length > 0 ? adult.medications.map((med, index) => (
                   <div key={index} className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Pill className="w-5 h-5 text-primary" />
@@ -307,7 +307,9 @@ export function AdultDashboard() {
                       <p className="text-sm text-muted-foreground">Prescribed medication</p>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No medications prescribed yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>

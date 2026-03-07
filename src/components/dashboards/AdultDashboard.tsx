@@ -326,11 +326,13 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
-                {adult.allergies.map((allergy) => (
+                {adult.allergies.length > 0 ? adult.allergies.map((allergy) => (
                   <Badge key={allergy} variant="destructive" className="text-base py-1 px-3">
                     {allergy}
                   </Badge>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No allergies recorded yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>

@@ -42,28 +42,26 @@ export function AdultDashboard() {
     }
   }, [isLiveUser, currentUser?.id]);
 
-  // For live users, currentUser won't have demo-specific fields, so merge with defaults
-  const adultDefaults: Partial<AdultUser> = {
+  // For live users, show completely empty records. Only use demo data in demo mode.
+  const emptyDefaults: Partial<AdultUser> = {
     age: 0,
-    bloodGroup: 'N/A',
+    bloodGroup: '',
     medicalConditions: [],
     medications: [],
     allergies: [],
-    emergencyContact: { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
+    emergencyContact: { name: '', phone: '', relationship: '' },
     mealPlan: undefined,
     pendingChanges: [],
   };
-  const merged = { ...adultDefaults, ...(currentUser || demoAdult) };
-  // Ensure arrays are never undefined after merge
+  const baseUser = isLiveUser ? { ...emptyDefaults, ...(currentUser || {}) } : { ...emptyDefaults, ...(currentUser || demoAdult) };
   const adult: AdultUser = {
-    ...merged,
-    medicalConditions: merged.medicalConditions ?? [],
-    medications: merged.medications ?? [],
-    allergies: merged.allergies ?? [],
-    emergencyContact: merged.emergencyContact ?? { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
-    pendingChanges: merged.pendingChanges ?? [],
+    ...baseUser,
+    medicalConditions: baseUser.medicalConditions ?? [],
+    medications: baseUser.medications ?? [],
+    allergies: baseUser.allergies ?? [],
+    emergencyContact: baseUser.emergencyContact ?? { name: '', phone: '', relationship: '' },
+    pendingChanges: baseUser.pendingChanges ?? [],
   } as AdultUser;
-  // Demo: no pending changes in simplified context
   const myPendingChanges: any[] = [];
 
   return (

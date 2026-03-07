@@ -42,28 +42,26 @@ export function AdultDashboard() {
     }
   }, [isLiveUser, currentUser?.id]);
 
-  // For live users, currentUser won't have demo-specific fields, so merge with defaults
-  const adultDefaults: Partial<AdultUser> = {
+  // For live users, show completely empty records. Only use demo data in demo mode.
+  const emptyDefaults: Partial<AdultUser> = {
     age: 0,
-    bloodGroup: 'N/A',
+    bloodGroup: '',
     medicalConditions: [],
     medications: [],
     allergies: [],
-    emergencyContact: { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
+    emergencyContact: { name: '', phone: '', relationship: '' },
     mealPlan: undefined,
     pendingChanges: [],
   };
-  const merged = { ...adultDefaults, ...(currentUser || demoAdult) };
-  // Ensure arrays are never undefined after merge
+  const baseUser = isLiveUser ? { ...emptyDefaults, ...(currentUser || {}) } : { ...emptyDefaults, ...(currentUser || demoAdult) };
   const adult: AdultUser = {
-    ...merged,
-    medicalConditions: merged.medicalConditions ?? [],
-    medications: merged.medications ?? [],
-    allergies: merged.allergies ?? [],
-    emergencyContact: merged.emergencyContact ?? { name: 'Not set', phone: 'Not set', relationship: 'Not set' },
-    pendingChanges: merged.pendingChanges ?? [],
+    ...baseUser,
+    medicalConditions: baseUser.medicalConditions ?? [],
+    medications: baseUser.medications ?? [],
+    allergies: baseUser.allergies ?? [],
+    emergencyContact: baseUser.emergencyContact ?? { name: '', phone: '', relationship: '' },
+    pendingChanges: baseUser.pendingChanges ?? [],
   } as AdultUser;
-  // Demo: no pending changes in simplified context
   const myPendingChanges: any[] = [];
 
   return (
@@ -112,10 +110,10 @@ export function AdultDashboard() {
         </div>
       </div>
 
-      {/* Demo Label */}
-      <div className="p-3 rounded-lg bg-warning/10 border border-warning/30 text-center">
-        <p className="text-sm text-warning-foreground font-medium">
-          Demo Data – Editable for Presentation
+      {/* Status Label */}
+      <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
+        <p className="text-sm text-muted-foreground font-medium">
+          {isLiveUser ? '📋 New Account – Records will appear here once updated by a Health Officer' : 'Demo Data – Editable for Presentation'}
         </p>
       </div>
 
@@ -258,11 +256,13 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {adult.medicalConditions.map((condition) => (
+                {adult.medicalConditions.length > 0 ? adult.medicalConditions.map((condition) => (
                   <Badge key={condition} variant="secondary" className="text-base py-1 px-3">
                     {condition}
                   </Badge>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No medical conditions recorded yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -297,7 +297,7 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {adult.medications.map((med, index) => (
+                {adult.medications.length > 0 ? adult.medications.map((med, index) => (
                   <div key={index} className="p-3 rounded-lg bg-muted/50 flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-primary/20 flex items-center justify-center">
                       <Pill className="w-5 h-5 text-primary" />
@@ -307,7 +307,9 @@ export function AdultDashboard() {
                       <p className="text-sm text-muted-foreground">Prescribed medication</p>
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No medications prescribed yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -324,11 +326,13 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2 mb-4">
-                {adult.allergies.map((allergy) => (
+                {adult.allergies.length > 0 ? adult.allergies.map((allergy) => (
                   <Badge key={allergy} variant="destructive" className="text-base py-1 px-3">
                     {allergy}
                   </Badge>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No allergies recorded yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>

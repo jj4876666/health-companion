@@ -256,11 +256,13 @@ export function AdultDashboard() {
             </CardHeader>
             <CardContent>
               <div className="flex flex-wrap gap-2">
-                {adult.medicalConditions.map((condition) => (
+                {adult.medicalConditions.length > 0 ? adult.medicalConditions.map((condition) => (
                   <Badge key={condition} variant="secondary" className="text-base py-1 px-3">
                     {condition}
                   </Badge>
-                ))}
+                )) : (
+                  <p className="text-muted-foreground text-sm">No medical conditions recorded yet.</p>
+                )}
               </div>
             </CardContent>
           </Card>

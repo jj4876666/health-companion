@@ -301,6 +301,57 @@ export type Database = {
           },
         ]
       }
+      medical_updates: {
+        Row: {
+          created_at: string
+          data: Json
+          facility_name: string | null
+          id: string
+          officer_id: string | null
+          officer_name: string | null
+          patient_id: string
+          title: string
+          update_type: string
+        }
+        Insert: {
+          created_at?: string
+          data?: Json
+          facility_name?: string | null
+          id?: string
+          officer_id?: string | null
+          officer_name?: string | null
+          patient_id: string
+          title: string
+          update_type: string
+        }
+        Update: {
+          created_at?: string
+          data?: Json
+          facility_name?: string | null
+          id?: string
+          officer_id?: string | null
+          officer_name?: string | null
+          patient_id?: string
+          title?: string
+          update_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_updates_officer_id_fkey"
+            columns: ["officer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_updates_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       medication_reminders: {
         Row: {
           created_at: string

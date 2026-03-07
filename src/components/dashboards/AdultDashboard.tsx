@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +13,8 @@ import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { DailyTargets } from '@/components/targets/DailyTargets';
 import { EnhancedPatientRecords } from '@/components/records/EnhancedPatientRecords';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
+import { LiveMedicalUpdates } from '@/components/records/LiveMedicalUpdates';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
   Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target, Bot

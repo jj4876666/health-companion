@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -13,6 +13,8 @@ import { AllergyChecker } from '@/components/allergy/AllergyChecker';
 import { DailyTargets } from '@/components/targets/DailyTargets';
 import { EnhancedPatientRecords } from '@/components/records/EnhancedPatientRecords';
 import { EmbeddedAIChat } from '@/components/chat/EmbeddedAIChat';
+import { LiveMedicalUpdates } from '@/components/records/LiveMedicalUpdates';
+import { supabase } from '@/integrations/supabase/client';
 import { 
   User, Heart, Shield, AlertTriangle, Activity, BookOpen, 
   Phone, FileText, Check, X, Clock, Pill, Utensils, CreditCard, Stethoscope, Target, Bot
@@ -21,10 +23,25 @@ import { useToast } from '@/hooks/use-toast';
 
 export function AdultDashboard() {
   const { isDemoMode } = useDemo();
-  const { currentUser, addAuditEntry } = useAuth();
+  const { currentUser, isLiveUser, addAuditEntry } = useAuth();
   const { t } = useLanguage();
   const { toast } = useToast();
+  const [profileId, setProfileId] = useState<string | null>(null);
   
+  // Resolve profile.id for live users (needed for medical_updates)
+  useEffect(() => {
+    if (isLiveUser && currentUser?.id) {
+      supabase
+        .from('profiles')
+        .select('id')
+        .eq('user_id', currentUser.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          if (data) setProfileId(data.id);
+        });
+    }
+  }, [isLiveUser, currentUser?.id]);
+
   // For live users, currentUser won't have demo-specific fields, so merge with defaults
   const adultDefaults: Partial<AdultUser> = {
     age: 0,
@@ -152,6 +169,10 @@ export function AdultDashboard() {
 
         {/* Enhanced Patient Records Tab */}
         <TabsContent value="records" className="space-y-4 mt-4">
+          {/* Live medical updates from health officers (realtime) */}
+          {isLiveUser && profileId && (
+            <LiveMedicalUpdates profileId={profileId} />
+          )}
           <EnhancedPatientRecords patientEmecId={adult.emecId} />
         </TabsContent>
 

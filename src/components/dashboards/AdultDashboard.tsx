@@ -111,11 +111,20 @@ export function AdultDashboard() {
       </div>
 
       {/* Status Label */}
-      <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
-        <p className="text-sm text-muted-foreground font-medium">
-          {isLiveUser ? '📋 New Account – Records will appear here once updated by a Health Officer' : 'Demo Data – Editable for Presentation'}
-        </p>
-      </div>
+      {isLiveUser && (
+        <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-center">
+          <p className="text-sm text-primary font-medium">
+            🏥 Live Patient Account — Your medical records are managed by your Health Officer
+          </p>
+        </div>
+      )}
+      {!isLiveUser && (
+        <div className="p-3 rounded-lg bg-muted/50 border border-border text-center">
+          <p className="text-sm text-muted-foreground font-medium">
+            Demo Data – Editable for Presentation
+          </p>
+        </div>
+      )}
 
       {/* Info about pending changes - demo placeholder */}
       {myPendingChanges.length > 0 && (

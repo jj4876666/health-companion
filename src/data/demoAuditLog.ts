@@ -51,7 +51,7 @@ export const demoAuditLog: AuditLogEntry[] = [
     userRole: 'admin',
     action: 'REQUEST_UPDATE',
     target: 'Kevin Otieno',
-    details: 'Requested blood group update: O+ → A+',
+    details: 'Requested blood group update: B+ → A+',
     facilityName: 'Mbita Sub-County Hospital',
   },
 ];

@@ -94,6 +94,76 @@ export default function Games() {
   const [fallingItems, setFallingItems] = useState<FallingItem[]>([]);
   const [catchGameActive, setCatchGameActive] = useState(false);
 
+  // Catch Game Loop
+  useEffect(() => {
+    if (!catchGameActive || activeGame !== 'catch') return;
+
+    const spawnInterval = setInterval(() => {
+      const isHealthy = Math.random() > 0.4;
+      const foods = isHealthy ? healthyFoods : unhealthyFoods;
+      const newItem: FallingItem = {
+        id: Date.now(),
+        emoji: foods[Math.floor(Math.random() * foods.length)],
+        isHealthy,
+        x: Math.random() * 80 + 10,
+        y: 0,
+      };
+      setFallingItems(prev => [...prev, newItem]);
+    }, 1500);
+
+    const moveInterval = setInterval(() => {
+      setFallingItems(prev => {
+        const updated = prev.map(item => ({ ...item, y: item.y + 5 }));
+        
+        updated.forEach(item => {
+          if (item.y >= 85 && item.y < 90) {
+            const caught = Math.abs(item.x - basketPosition) < 15;
+            if (caught) {
+              if (item.isHealthy) {
+                setCatchScore(s => s + 10);
+              } else {
+                setCatchLives(l => l - 1);
+              }
+            }
+          }
+        });
+
+        return updated.filter(item => item.y < 100);
+      });
+    }, 100);
+
+    return () => {
+      clearInterval(spawnInterval);
+      clearInterval(moveInterval);
+    };
+  }, [catchGameActive, activeGame, basketPosition]);
+
+  // End catch game when lives run out
+  useEffect(() => {
+    if (catchLives <= 0 && activeGame === 'catch') {
+      setCatchGameActive(false);
+      setTotalPoints(prev => prev + catchScore);
+      addPoints(catchScore, 'Nutrition Catch Game');
+      setTimeout(() => setActiveGame(null), 2000);
+    }
+  }, [catchLives, activeGame, catchScore, addPoints]);
+
+  // Keyboard controls for catch game
+  useEffect(() => {
+    if (activeGame !== 'catch') return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') {
+        setBasketPosition(prev => Math.max(10, prev - 10));
+      } else if (e.key === 'ArrowRight') {
+        setBasketPosition(prev => Math.min(90, prev + 10));
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [activeGame]);
+
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
@@ -203,76 +273,6 @@ export default function Games() {
     setCatchGameActive(true);
     setActiveGame('catch');
   };
-
-  // Catch Game Loop
-  useEffect(() => {
-    if (!catchGameActive || activeGame !== 'catch') return;
-
-    const spawnInterval = setInterval(() => {
-      const isHealthy = Math.random() > 0.4;
-      const foods = isHealthy ? healthyFoods : unhealthyFoods;
-      const newItem: FallingItem = {
-        id: Date.now(),
-        emoji: foods[Math.floor(Math.random() * foods.length)],
-        isHealthy,
-        x: Math.random() * 80 + 10,
-        y: 0,
-      };
-      setFallingItems(prev => [...prev, newItem]);
-    }, 1500);
-
-    const moveInterval = setInterval(() => {
-      setFallingItems(prev => {
-        const updated = prev.map(item => ({ ...item, y: item.y + 5 }));
-        
-        updated.forEach(item => {
-          if (item.y >= 85 && item.y < 90) {
-            const caught = Math.abs(item.x - basketPosition) < 15;
-            if (caught) {
-              if (item.isHealthy) {
-                setCatchScore(s => s + 10);
-              } else {
-                setCatchLives(l => l - 1);
-              }
-            }
-          }
-        });
-
-        return updated.filter(item => item.y < 100);
-      });
-    }, 100);
-
-    return () => {
-      clearInterval(spawnInterval);
-      clearInterval(moveInterval);
-    };
-  }, [catchGameActive, activeGame, basketPosition]);
-
-  // End catch game when lives run out
-  useEffect(() => {
-    if (catchLives <= 0 && activeGame === 'catch') {
-      setCatchGameActive(false);
-      setTotalPoints(prev => prev + catchScore);
-      addPoints(catchScore, 'Nutrition Catch Game');
-      setTimeout(() => setActiveGame(null), 2000);
-    }
-  }, [catchLives, activeGame, catchScore, addPoints]);
-
-  // Keyboard controls for catch game
-  useEffect(() => {
-    if (activeGame !== 'catch') return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'ArrowLeft') {
-        setBasketPosition(prev => Math.max(10, prev - 10));
-      } else if (e.key === 'ArrowRight') {
-        setBasketPosition(prev => Math.min(90, prev + 10));
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeGame]);
 
   const games = [
     {

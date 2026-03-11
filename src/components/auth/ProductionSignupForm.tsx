@@ -173,20 +173,22 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
       }
 
       if (data.user) {
-        // Retry profile fetch a few times to allow the trigger to complete
+        // OPTIMIZED: Reduced retry delay from 800ms to 200ms for faster signup
+        // Progressive delay for profile creation
         let profile: { emec_id: string } | null = null;
-        for (let attempt = 0; attempt < 5; attempt++) {
+        for (let attempt = 0; attempt < 4; attempt++) {
           const { data: p } = await supabase
             .from('profiles')
             .select('emec_id')
             .eq('user_id', data.user.id)
             .maybeSingle();
           if (p?.emec_id) { profile = p; break; }
-          await new Promise(r => setTimeout(r, 800));
+          // Progressive delay: 100ms, 200ms, 300ms, 400ms (max 1s total)
+          await new Promise(r => setTimeout(r, 100 + (attempt * 100)));
         }
 
         // Fire-and-forget profile update — don't block the UI
-        const profileUpdates: Record<string, any> = {
+        const profileUpdates: Record<string, string | null> = {
           full_name: metadata.full_name,
           date_of_birth: metadata.date_of_birth || null,
           gender: metadata.gender || null,
@@ -197,8 +199,8 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
         if (metadata.emergency_contact) {
           profileUpdates.emergency_contact = JSON.parse(metadata.emergency_contact);
         }
-        if (metadata.height) profileUpdates.height = parseFloat(metadata.height);
-        if (metadata.weight) profileUpdates.weight = parseFloat(metadata.weight);
+        if (metadata.height) profileUpdates.height = metadata.height;
+        if (metadata.weight) profileUpdates.weight = metadata.weight;
         if (metadata.license_number) profileUpdates.license_number = metadata.license_number;
         if (metadata.parent_phone) profileUpdates.parent_phone = metadata.parent_phone;
         if (metadata.parent_email) profileUpdates.parent_email = metadata.parent_email;
@@ -224,10 +226,11 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
           description: 'Your EMEC account is ready.',
         });
       }
-    } catch (err: any) {
+    } catch (err) {
       console.error('Signup error:', err);
       sessionStorage.removeItem('signup_in_progress');
-      setError(err.message || 'Registration failed. Please try again.');
+      const errorMessage = err instanceof Error ? err.message : 'Registration failed. Please try again.';
+      setError(errorMessage);
       setIsLoading(false);
     }
   };

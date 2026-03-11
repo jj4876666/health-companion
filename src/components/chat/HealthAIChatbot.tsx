@@ -26,8 +26,7 @@ import {
   Apple,
   Trash2
 } from 'lucide-react';
-
-type SpeechRecognitionType = any;
+import { SpeechRecognitionType, SpeechRecognitionEvent, WindowWithSpeechRecognition } from '@/types/speech';
 
 const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-ai-chat`;
 
@@ -55,12 +54,19 @@ const getInitialMessage = (): Message => ({
   timestamp: new Date()
 });
 
+interface SavedMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: string;
+}
+
 const loadMessages = (): Message[] => {
   try {
     const saved = localStorage.getItem(CHAT_STORAGE_KEY);
     if (saved) {
-      const parsed = JSON.parse(saved);
-      return parsed.map((m: any) => ({
+      const parsed: SavedMessage[] = JSON.parse(saved);
+      return parsed.map((m) => ({
         ...m,
         timestamp: new Date(m.timestamp)
       }));
@@ -104,25 +110,28 @@ export function HealthAIChatbot() {
 
   useEffect(() => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognition();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
+      const win = window as unknown as WindowWithSpeechRecognition;
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        recognitionRef.current = new SpeechRecognition();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInputMessage(transcript);
-        setIsListening(false);
-      };
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = event.results[0][0].transcript;
+          setInputMessage(transcript);
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
   }, [language]);
 

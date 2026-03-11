@@ -68,7 +68,7 @@ export function EnhancedPremiumSection() {
   };
 
   const handleActivateTrial = () => {
-    activatePremium('trial' as any);
+    activatePremium({ name: 'trial', duration: 7 });
     setShowPremiumDialog(false);
   };
 

@@ -82,7 +82,7 @@ export function DemoControls() {
   // Handle account switching with premium state
   const handleAccountSwitch = (accountType: string) => {
     // Map account type to role
-    const roleMap: Record<string, any> = {
+    const roleMap: Record<string, 'child' | 'adult' | 'parent' | 'admin'> = {
       child: 'child',
       teen: 'child',
       adult: 'adult',

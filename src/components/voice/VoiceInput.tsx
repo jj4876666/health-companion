@@ -4,9 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { Mic, MicOff, Volume2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-
-// Use any for SpeechRecognition to avoid TypeScript issues
-type SpeechRecognitionType = any;
+import { SpeechRecognitionType } from '@/types/speech';
 
 interface VoiceInputProps {
   onTranscript: (text: string) => void;

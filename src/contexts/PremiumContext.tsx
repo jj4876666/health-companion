@@ -1,18 +1,30 @@
 import React, { createContext, useContext } from 'react';
 
+interface PremiumPlan {
+  name: string;
+  duration: number;
+  price?: number;
+}
+
+interface PremiumFeature {
+  id: string;
+  name: string;
+  description: string;
+  enabled: boolean;
+}
+
 type PremiumContextType = {
   isPremium: boolean;
   premiumExpiry: string | null;
   planType: string | null;
-  activatePremium: (plan?: any) => void;
+  activatePremium: (plan?: PremiumPlan) => void;
   deactivatePremium: () => void;
   daysRemaining: number;
-  features: any[];
+  features: PremiumFeature[];
   resetPremium: () => void;
   setIsPremiumUser?: (val: boolean) => void;
   isDemo?: boolean;
 };
-
 const defaultValue: PremiumContextType = {
   isPremium: true, // Premium features are enabled by default (paid gating removed)
   premiumExpiry: null,

@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { useAIChat } from '@/hooks/useAIChat';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SpeechRecognitionType, SpeechRecognitionEvent, WindowWithSpeechRecognition } from '@/types/speech';
 import { 
   Bot, Send, Mic, MicOff, Volume2, VolumeX, 
   Sparkles, AlertCircle, Loader2, Trash2, X
@@ -39,7 +40,7 @@ export function EmbeddedAIChat({
   const [autoSpeak, setAutoSpeak] = useState(settings.voiceGuidance);
   
   const scrollRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -50,22 +51,24 @@ export function EmbeddedAIChat({
 
   // Initialize speech recognition
   useEffect(() => {
-    const windowWithSpeech = window as any;
+    const win = window as unknown as WindowWithSpeechRecognition;
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionClass = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognitionClass();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
+      const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognitionClass) {
+        recognitionRef.current = new SpeechRecognitionClass();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
-      };
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onerror = () => setIsListening(false);
-      recognitionRef.current.onend = () => setIsListening(false);
+        recognitionRef.current.onerror = () => setIsListening(false);
+        recognitionRef.current.onend = () => setIsListening(false);
+      }
     }
   }, [language]);
 

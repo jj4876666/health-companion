@@ -8,11 +8,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useDemo } from '@/contexts/DemoContext';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
+import { SpeechRecognitionType, SpeechRecognitionEvent, WindowWithSpeechRecognition } from '@/types/speech';
 import { 
   Bot, Send, Mic, MicOff, X, Minimize2, Maximize2,
   Volume2, VolumeX, Sparkles, AlertCircle, Loader2, MessageCircle
 } from 'lucide-react';
-
 interface Message {
   role: 'user' | 'assistant';
   content: string;
@@ -131,7 +131,7 @@ export function FloatingAIAssistant() {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [autoSpeak, setAutoSpeak] = useState(settings.voiceGuidance);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-ai-chat`;
 
@@ -155,27 +155,29 @@ export function FloatingAIAssistant() {
 
   // Initialize speech recognition
   useEffect(() => {
-    const windowWithSpeech = window as any;
+    const win = window as unknown as WindowWithSpeechRecognition;
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionClass = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognitionClass();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
+      const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognitionClass) {
+        recognitionRef.current = new SpeechRecognitionClass();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognitionRef.current.onresult = (event: any) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
-      };
+        recognitionRef.current.onresult = (event: SpeechRecognitionEvent) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
   }, [language]);
 

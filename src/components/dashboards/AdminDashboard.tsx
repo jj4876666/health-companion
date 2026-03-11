@@ -86,7 +86,7 @@ export function AdminDashboard() {
   // Patient lookup state
   const [patientEmecId, setPatientEmecId] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<User | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [activeCategory, setActiveCategory] = useState('vitals');
   
@@ -114,7 +114,8 @@ export function AdminDashboard() {
     }
 
     setIsVerifying(true);
-    await new Promise(resolve => setTimeout(resolve, 800));
+    // OPTIMIZED: Reduced delay from 800ms to 200ms for faster verification
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     const patient = getUserByEmecId(patientEmecId);
     if (patient) {

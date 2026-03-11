@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SpeechRecognitionType, SpeechRecognitionEvent, WindowWithSpeechRecognition } from '@/types/speech';
 import { 
   Bot, Send, Mic, MicOff, AlertCircle, Loader2, 
   Stethoscope, MapPin, Sparkles, Volume2
@@ -28,7 +29,7 @@ export function EnhancedHealthAIChatbot({ userAge }: EnhancedHealthAIChatbotProp
   const [isLoading, setIsLoading] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const recognitionRef = useRef<any>(null);
+  const recognitionRef = useRef<SpeechRecognitionType | null>(null);
 
   const CHAT_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/health-ai-chat`;
 
@@ -40,32 +41,34 @@ export function EnhancedHealthAIChatbot({ userAge }: EnhancedHealthAIChatbotProp
   }, [messages]);
 
   useEffect(() => {
-    const windowWithSpeech = window as any;
+    const win = window as unknown as WindowWithSpeechRecognition;
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognitionClass = windowWithSpeech.SpeechRecognition || windowWithSpeech.webkitSpeechRecognition;
-      recognitionRef.current = new SpeechRecognitionClass();
-      recognitionRef.current.continuous = false;
-      recognitionRef.current.interimResults = false;
-      recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
+      const SpeechRecognitionClass = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognitionClass) {
+        recognitionRef.current = new SpeechRecognitionClass();
+        recognitionRef.current.continuous = false;
+        recognitionRef.current.interimResults = false;
+        recognitionRef.current.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
 
-      recognitionRef.current.onresult = (event) => {
-        const transcript = event.results[0][0].transcript;
-        setInput(transcript);
-        setIsListening(false);
-      };
+        recognitionRef.current.onresult = (event) => {
+          const transcript = event.results[0][0].transcript;
+          setInput(transcript);
+          setIsListening(false);
+        };
 
-      recognitionRef.current.onerror = () => {
-        setIsListening(false);
-        toast({
-          title: 'Voice Recognition Error',
-          description: 'Could not understand. Please try again.',
-          variant: 'destructive',
-        });
-      };
+        recognitionRef.current.onerror = () => {
+          setIsListening(false);
+          toast({
+            title: 'Voice Recognition Error',
+            description: 'Could not understand. Please try again.',
+            variant: 'destructive',
+          });
+        };
 
-      recognitionRef.current.onend = () => {
-        setIsListening(false);
-      };
+        recognitionRef.current.onend = () => {
+          setIsListening(false);
+        };
+      }
     }
   }, [language, toast]);
 

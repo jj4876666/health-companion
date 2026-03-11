@@ -94,8 +94,7 @@ export function EnhancedLoginPage() {
     if (emecId.length !== 11) { setError('EMEC ID must be 11 characters'); return; }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
+    // OPTIMIZED: Removed artificial delay for instant demo login
     const success = loginWithEmecId(emecId, password);
     
     if (success) {

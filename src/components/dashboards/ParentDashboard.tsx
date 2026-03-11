@@ -46,7 +46,7 @@ export function ParentDashboard() {
   };
 
   const handleViewAsChild = (child: ChildUser) => {
-    setSelectedAgeCategory(getAgeCategory(child.age) as any);
+    setSelectedAgeCategory(getAgeCategory(child.age) as 'infant' | 'child' | 'teen' | 'adult');
   };
 
   const getContentAccessSummary = (age: number) => {

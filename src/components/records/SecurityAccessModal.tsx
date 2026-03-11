@@ -8,6 +8,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useAuth } from '@/contexts/AuthContext';
+import { AdminUser } from '@/types/emec';
 import { useToast } from '@/hooks/use-toast';
 import { 
   Lock, Shield, KeyRound, Fingerprint, AlertTriangle, 
@@ -88,7 +89,7 @@ export function SecurityAccessModal({
         action: 'ACCESS_GRANTED',
         target: `Patient ${patientEmecId}`,
         details: 'Consent code and PIN verified successfully',
-        facilityName: (currentUser as any)?.facilityName,
+        facilityName: (currentUser as AdminUser)?.facilityName,
       });
 
       setIsVerifying(false);
@@ -105,7 +106,7 @@ export function SecurityAccessModal({
         action: 'ACCESS_DENIED',
         target: `Patient ${patientEmecId}`,
         details: `Invalid credentials (Attempt ${newAttempts}/${MAX_ATTEMPTS})`,
-        facilityName: (currentUser as any)?.facilityName,
+        facilityName: (currentUser as AdminUser)?.facilityName,
       });
 
       if (newAttempts >= MAX_ATTEMPTS) {
@@ -143,7 +144,7 @@ export function SecurityAccessModal({
       action: 'EMERGENCY_OVERRIDE',
       target: `Patient ${patientEmecId}`,
       details: `Emergency access granted. Reason: ${emergencyReason}`,
-      facilityName: (currentUser as any)?.facilityName,
+      facilityName: (currentUser as AdminUser)?.facilityName,
     });
 
     toast({

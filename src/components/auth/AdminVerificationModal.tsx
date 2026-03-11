@@ -47,8 +47,8 @@ export function AdminVerificationModal({
     setIsLoading(true);
     setError('');
 
-    // Simulate verification delay
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // OPTIMIZED: Reduced delay from 1500ms to 300ms for faster admin verification
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     // Demo verification - accept the demo credentials
     if (

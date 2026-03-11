@@ -61,7 +61,7 @@ export function PointsProvider({ children }: { children: ReactNode }) {
         const parsed = JSON.parse(saved);
         setPoints(parsed.points || 0);
         setTotalEarned(parsed.totalEarned || 0);
-        setPointsHistory((parsed.history || []).map((h: any) => ({
+        setPointsHistory((parsed.history || []).map((h: { id: string; amount: number; reason: string; timestamp: string }) => ({
           ...h,
           timestamp: new Date(h.timestamp)
         })));

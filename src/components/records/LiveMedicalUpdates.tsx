@@ -8,11 +8,15 @@ import {
   Stethoscope, Syringe, RefreshCw
 } from 'lucide-react';
 
+interface MedicalUpdateData {
+  [key: string]: string | number | boolean;
+}
+
 interface MedicalUpdate {
   id: string;
   update_type: string;
   title: string;
-  data: any;
+  data: MedicalUpdateData;
   officer_name: string | null;
   facility_name: string | null;
   created_at: string;
@@ -58,10 +62,10 @@ export function LiveMedicalUpdates({ profileId }: Props) {
       .subscribe();
 
     return () => { supabase.removeChannel(channel); };
-  }, [profileId]);
+  }, [profileId, fetchUpdates]);
 
   const getIcon = (type: string) => {
-    const icons: Record<string, any> = {
+    const icons: Record<string, typeof Activity> = {
       vitals: Activity,
       blood_sugar: Activity,
       medication: Pill,

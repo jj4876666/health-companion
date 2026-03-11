@@ -62,7 +62,16 @@ export function AdultDashboard() {
     emergencyContact: baseUser.emergencyContact ?? { name: '', phone: '', relationship: '' },
     pendingChanges: baseUser.pendingChanges ?? [],
   } as AdultUser;
-  const myPendingChanges: any[] = [];
+  
+  interface PendingChange {
+    id: string;
+    field: string;
+    oldValue: string;
+    newValue: string;
+    status: string;
+  }
+  
+  const myPendingChanges: PendingChange[] = [];
 
   return (
     <div className="p-4 md:p-6 space-y-6 max-w-6xl mx-auto">

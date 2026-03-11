@@ -5,7 +5,14 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { usePremium } from "@/contexts/PremiumContext";
 
-const navItems = [
+interface NavItem {
+  name: string;
+  path: string;
+  icon: typeof Home;
+  premium?: boolean;
+}
+
+const navItems: NavItem[] = [
   { name: "Home", path: "/dashboard", icon: Home },
   { name: "Education", path: "/education", icon: BookOpen },
   { name: "Consultation", path: "/consultation", icon: Video },
@@ -22,7 +29,6 @@ export function Navigation() {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const { isPremium } = usePremium();
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-card/80 backdrop-blur-lg border-b border-border">
       <div className="container mx-auto px-4">
@@ -39,7 +45,7 @@ export function Navigation() {
             {navItems.map((item) => {
               const Icon = item.icon;
               const isActive = location.pathname === item.path;
-              const showPremiumBadge = (item as any).premium && !isPremium;
+              const showPremiumBadge = item.premium && !isPremium;
               return (
                 <Link key={item.path} to={item.path}>
                   <Button
@@ -78,7 +84,7 @@ export function Navigation() {
               {navItems.map((item) => {
                 const Icon = item.icon;
                 const isActive = location.pathname === item.path;
-                const showPremiumBadge = (item as any).premium && !isPremium;
+                const showPremiumBadge = item.premium && !isPremium;
                 return (
                   <Link key={item.path} to={item.path} onClick={() => setIsOpen(false)}>
                     <Button

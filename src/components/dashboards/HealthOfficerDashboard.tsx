@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
+import { AdminUser } from '@/types/emec';
+// DATABASE ROUTING: Import database router for demo/production separation
+import { isDemoUser, getDatabaseClient, getDemoStorageKey } from '@/integrations/supabase/databaseRouter';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -30,11 +33,15 @@ interface LivePatient {
   created_at: string;
 }
 
+interface MedicalUpdateData {
+  [key: string]: string | number | boolean;
+}
+
 interface MedicalUpdate {
   id: string;
   update_type: string;
   title: string;
-  data: any;
+  data: MedicalUpdateData;
   officer_name: string | null;
   facility_name: string | null;
   created_at: string;
@@ -58,37 +65,94 @@ export function HealthOfficerDashboard() {
   const [saving, setSaving] = useState(false);
 
   const officerName = currentUser?.name || 'Health Officer';
-  const facilityName = (currentUser as any)?.facilityName || 'EMEC Facility';
+  const facilityName = (currentUser as AdminUser)?.facilityName || 'EMEC Facility';
 
-  // Fetch all patients
+  // DATABASE ROUTING: Fetch all patients
+  // Demo users: Load from localStorage
+  // Production users: Load from Supabase
   const fetchPatients = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('id, user_id, full_name, emec_id, account_type, blood_group, gender, date_of_birth, phone, created_at')
-      .order('created_at', { ascending: false });
     
-    if (error) {
-      console.error('Error fetching patients:', error);
-      toast({ title: 'Error', description: 'Failed to load patients', variant: 'destructive' });
+    const dbClient = getDatabaseClient(currentUser);
+    
+    if (!dbClient) {
+      // DEMO DATABASE: Load demo patients from localStorage
+      const demoPatients: LivePatient[] = [
+        {
+          id: 'demo-patient-1',
+          user_id: 'demo-user-1',
+          full_name: 'Demo Patient 1',
+          emec_id: 'DEM2025P001',
+          account_type: 'adult',
+          blood_group: 'O+',
+          gender: 'Male',
+          date_of_birth: '1990-01-01',
+          phone: '+254700000001',
+          created_at: new Date().toISOString()
+        },
+        {
+          id: 'demo-patient-2',
+          user_id: 'demo-user-2',
+          full_name: 'Demo Patient 2',
+          emec_id: 'DEM2025P002',
+          account_type: 'child',
+          blood_group: 'A+',
+          gender: 'Female',
+          date_of_birth: '2015-06-15',
+          phone: '+254700000002',
+          created_at: new Date().toISOString()
+        }
+      ];
+      setPatients(demoPatients);
+      console.log('[DB ROUTER] Loaded demo patients from localStorage');
     } else {
-      setPatients(data || []);
+      // PRODUCTION DATABASE: Load from Supabase
+      const { data, error } = await dbClient
+        .from('profiles')
+        .select('id, user_id, full_name, emec_id, account_type, blood_group, gender, date_of_birth, phone, created_at')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching patients:', error);
+        toast({ title: 'Error', description: 'Failed to load patients', variant: 'destructive' });
+      } else {
+        setPatients(data || []);
+        console.log('[DB ROUTER] Loaded production patients from Supabase');
+      }
     }
     setLoading(false);
   };
 
-  // Fetch updates for selected patient
+  // DATABASE ROUTING: Fetch updates for selected patient
+  // Demo users: Load from localStorage
+  // Production users: Load from Supabase
   const fetchPatientUpdates = async (patientId: string) => {
-    const { data, error } = await supabase
-      .from('medical_updates')
-      .select('*')
-      .eq('patient_id', patientId)
-      .order('created_at', { ascending: false });
+    const dbClient = getDatabaseClient(currentUser);
     
-    if (error) {
-      console.error('Error fetching updates:', error);
+    if (!dbClient) {
+      // DEMO DATABASE: Load demo updates from localStorage
+      const storageKey = getDemoStorageKey(currentUser!, `patient_updates_${patientId}`);
+      const savedUpdates = localStorage.getItem(storageKey);
+      if (savedUpdates) {
+        setPatientUpdates(JSON.parse(savedUpdates));
+      } else {
+        setPatientUpdates([]);
+      }
+      console.log('[DB ROUTER] Loaded demo patient updates from localStorage');
     } else {
-      setPatientUpdates(data || []);
+      // PRODUCTION DATABASE: Load from Supabase
+      const { data, error } = await dbClient
+        .from('medical_updates')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching updates:', error);
+      } else {
+        setPatientUpdates(data || []);
+        console.log('[DB ROUTER] Loaded production patient updates from Supabase');
+      }
     }
   };
 
@@ -179,6 +243,9 @@ export function HealthOfficerDashboard() {
     }
   };
 
+  // DATABASE ROUTING: Save medical update
+  // Demo users: Save to localStorage
+  // Production users: Save to Supabase
   const handleSaveUpdate = async () => {
     if (!selectedPatient) return;
     if (!formTitle.trim()) {
@@ -187,23 +254,52 @@ export function HealthOfficerDashboard() {
     }
 
     setSaving(true);
-    const { error } = await supabase.from('medical_updates').insert({
-      patient_id: selectedPatient.id,
-      update_type: updateType,
-      title: formTitle,
-      data: formData,
-      officer_name: officerName,
-      facility_name: facilityName,
-    });
-
-    if (error) {
-      console.error('Error saving update:', error);
-      toast({ title: 'Error', description: 'Failed to save update. Make sure you are logged in as a health officer.', variant: 'destructive' });
-    } else {
-      toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records` });
+    const dbClient = getDatabaseClient(currentUser);
+    
+    if (!dbClient) {
+      // DEMO DATABASE: Save to localStorage
+      const newUpdate: MedicalUpdate = {
+        id: `demo-update-${Date.now()}`,
+        update_type: updateType,
+        title: formTitle,
+        data: formData,
+        officer_name: officerName,
+        facility_name: facilityName,
+        created_at: new Date().toISOString(),
+      };
+      
+      const storageKey = getDemoStorageKey(currentUser!, `patient_updates_${selectedPatient.id}`);
+      const existingUpdates = localStorage.getItem(storageKey);
+      const updates = existingUpdates ? JSON.parse(existingUpdates) : [];
+      updates.unshift(newUpdate);
+      localStorage.setItem(storageKey, JSON.stringify(updates));
+      
+      toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records (demo)` });
       setFormTitle('');
       setFormData({});
       fetchPatientUpdates(selectedPatient.id);
+      console.log('[DB ROUTER] Saved medical update to demo database (localStorage)');
+    } else {
+      // PRODUCTION DATABASE: Save to Supabase
+      const { error } = await dbClient.from('medical_updates').insert({
+        patient_id: selectedPatient.id,
+        update_type: updateType,
+        title: formTitle,
+        data: formData,
+        officer_name: officerName,
+        facility_name: facilityName,
+      });
+
+      if (error) {
+        console.error('Error saving update:', error);
+        toast({ title: 'Error', description: 'Failed to save update. Make sure you are logged in as a health officer.', variant: 'destructive' });
+      } else {
+        toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records` });
+        setFormTitle('');
+        setFormData({});
+        fetchPatientUpdates(selectedPatient.id);
+        console.log('[DB ROUTER] Saved medical update to production database (Supabase)');
+      }
     }
     setSaving(false);
   };

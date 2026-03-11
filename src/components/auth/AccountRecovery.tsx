@@ -37,7 +37,8 @@ export function AccountRecovery({ isOpen, onClose }: AccountRecoveryProps) {
   const handleIdentify = async () => {
     setError('');
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // OPTIMIZED: Reduced delay from 1000ms to 200ms for faster recovery
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     // Check if it's a child account (demo: starts with K or F for Kevin/Faith)
     const isChild = emecId.toUpperCase().startsWith('K') || emecId.toUpperCase().startsWith('F');
@@ -65,7 +66,8 @@ export function AccountRecovery({ isOpen, onClose }: AccountRecoveryProps) {
   const handleVerifyOtp = async () => {
     setError('');
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
+    // OPTIMIZED: Reduced delay from 1000ms to 200ms for faster OTP verification
+    await new Promise(resolve => setTimeout(resolve, 200));
 
     if (otp === generatedOtp || otp === DEMO_OTP) {
       setIsLoading(false);
@@ -90,7 +92,8 @@ export function AccountRecovery({ isOpen, onClose }: AccountRecoveryProps) {
     }
 
     setIsLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1500));
+    // OPTIMIZED: Reduced delay from 1500ms to 300ms for faster password reset
+    await new Promise(resolve => setTimeout(resolve, 300));
 
     toast({
       title: '✅ Password Reset Successful',

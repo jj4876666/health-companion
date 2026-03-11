@@ -474,7 +474,7 @@ export function EnhancedPatientRecords({ isNewPatient = false, patientEmecId, co
                               </div>
                             </div>
                             <div className="flex items-center gap-2">
-                              <Badge variant={getEventTypeColor(event.type) as any}>{event.type}</Badge>
+                              <Badge variant={getEventTypeColor(event.type) as "default" | "secondary" | "destructive" | "outline"}>{event.type}</Badge>
                               <Badge variant="outline" className="font-mono text-xs">{event.date}</Badge>
                             </div>
                           </div>

@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PageLayout } from '@/components/layout/PageLayout';
 import { useAccessibility } from '@/contexts/AccessibilityContext';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { SpeechRecognitionType, SpeechRecognitionEvent, WindowWithSpeechRecognition } from '@/types/speech';
 import { 
   Eye, Type, Volume2, VolumeX, Mic, MousePointer2, RotateCcw, Check, 
   Accessibility, Ear, Hand, Brain, Palette, Focus, Keyboard, 
@@ -62,17 +63,20 @@ export default function AccessibilityPage() {
 
   const handleTestSTT = () => {
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
-      const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
-      const recognition = new SpeechRecognition();
-      recognition.continuous = false;
-      recognition.interimResults = false;
-      recognition.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
-      recognition.onresult = (event: any) => {
-        setTestText(event.results[0][0].transcript);
-        announceToScreenReader(`You said: ${event.results[0][0].transcript}`);
-      };
-      recognition.start();
-      announceToScreenReader('Listening for speech input');
+      const win = window as unknown as WindowWithSpeechRecognition;
+      const SpeechRecognition = win.SpeechRecognition || win.webkitSpeechRecognition;
+      if (SpeechRecognition) {
+        const recognition: SpeechRecognitionType = new SpeechRecognition();
+        recognition.continuous = false;
+        recognition.interimResults = false;
+        recognition.lang = language === 'sw' ? 'sw-KE' : language === 'fr' ? 'fr-FR' : 'en-US';
+        recognition.onresult = (event: SpeechRecognitionEvent) => {
+          setTestText(event.results[0][0].transcript);
+          announceToScreenReader(`You said: ${event.results[0][0].transcript}`);
+        };
+        recognition.start();
+        announceToScreenReader('Listening for speech input');
+      }
     }
   };
 
@@ -432,7 +436,7 @@ export default function AccessibilityPage() {
                           key={mode.id}
                           variant={settings.colorBlindMode === mode.id ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => updateSetting('colorBlindMode', mode.id as any)}
+                          onClick={() => updateSetting('colorBlindMode', mode.id as 'none' | 'protanopia' | 'deuteranopia' | 'tritanopia')}
                           className="justify-start"
                           aria-pressed={settings.colorBlindMode === mode.id}
                         >

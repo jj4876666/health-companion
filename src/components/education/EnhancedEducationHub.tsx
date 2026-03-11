@@ -434,7 +434,11 @@ export function EnhancedEducationHub({ ageCategory }: EnhancedEducationHubProps)
                             variant="outline"
                             onClick={(e) => {
                               e.stopPropagation();
-                              isSpeaking ? stopSpeaking() : speak(section.content[lang]);
+                              if (isSpeaking) {
+                                stopSpeaking();
+                              } else {
+                                speak(section.content[lang]);
+                              }
                             }}
                             className="gap-2 rounded-xl"
                           >

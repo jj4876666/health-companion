@@ -13,7 +13,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Gamepad2, Star, Trophy, Lock, CheckCircle, XCircle, 
   ArrowRight, ArrowLeft, Sparkles, Brain, Heart, Shield, Apple,
-  Calendar, Infinity, Zap, Target, Clock, Award
+  Calendar, Infinity as InfinityIcon, Zap, Target, Clock, Award
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -55,7 +55,7 @@ export default function Quizzes() {
   
   // Endless mode state
   const [isEndlessMode, setIsEndlessMode] = useState(false);
-  const [endlessQuestions, setEndlessQuestions] = useState<any[]>([]);
+  const [endlessQuestions, setEndlessQuestions] = useState<QuizQuestion[]>([]);
   const [endlessScore, setEndlessScore] = useState(0);
   const [endlessStreak, setEndlessStreak] = useState(0);
   const [showAnswerFeedback, setShowAnswerFeedback] = useState(false);
@@ -191,7 +191,7 @@ export default function Quizzes() {
             </Button>
             <div className="flex items-center gap-4">
               <Badge className="bg-purple-500 text-white">
-                <Infinity className="w-3 h-3 mr-1" />
+                <InfinityIcon className="w-3 h-3 mr-1" />
                 Endless
               </Badge>
               <div className="flex items-center gap-2">
@@ -448,7 +448,7 @@ export default function Quizzes() {
               <span className="text-xs">{t('quiz.intermediate')}</span>
             </TabsTrigger>
             <TabsTrigger value="endless" className="flex flex-col gap-1 py-3">
-              <Infinity className="w-4 h-4" />
+              <InfinityIcon className="w-4 h-4" />
               <span className="text-xs">{t('quiz.endless')}</span>
             </TabsTrigger>
           </TabsList>
@@ -595,7 +595,7 @@ export default function Quizzes() {
             <Card className="border-0 shadow-elegant overflow-hidden">
               <div className="bg-gradient-to-br from-purple-500 to-pink-500 p-6 text-white">
                 <div className="flex items-center gap-3 mb-4">
-                  <Infinity className="w-10 h-10" />
+                  <InfinityIcon className="w-10 h-10" />
                   <div>
                     <h3 className="text-2xl font-bold">{t('quiz.endless')}</h3>
                     <p className="text-white/80">No points, just learning!</p>
@@ -622,7 +622,7 @@ export default function Quizzes() {
                   </div>
                 </div>
                 <Button onClick={startEndlessMode} className="w-full bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600" size="lg">
-                  <Infinity className="w-5 h-5 mr-2" />
+                  <InfinityIcon className="w-5 h-5 mr-2" />
                   Start Endless Mode
                 </Button>
                 <p className="text-xs text-center text-muted-foreground">

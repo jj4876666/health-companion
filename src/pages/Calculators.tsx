@@ -110,7 +110,7 @@ const Calculators = () => {
     }
 
     // Base: 30-35ml per kg of body weight
-    let baseWater = w * 33;
+    const baseWater = w * 33;
 
     // Activity level multiplier
     const activityMultipliers: Record<string, number> = {

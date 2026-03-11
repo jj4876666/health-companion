@@ -11,7 +11,7 @@ export const DEMO_EMEC_IDS = {
 
 // Demo passwords
 export const DEMO_PASSWORDS = {
-  child: 'kevin2025',
+  child: 'kevin2026',
   teen: 'faith2025',
   adult: 'james2025',
   parent: 'grace2025',

@@ -11,6 +11,8 @@ import { PremiumProvider } from "@/contexts/PremiumContext";
 import { PointsProvider } from "@/contexts/PointsContext";
 import { DemoProvider } from "@/contexts/DemoContext";
 import { AccessibilityProvider } from "@/contexts/AccessibilityContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
+import { BackgroundWrapper } from "@/components/layout/BackgroundWrapper";
 import { SplashScreen } from "@/components/splash/SplashScreen";
 import { EnhancedLoginPage } from "@/components/auth/EnhancedLoginPage";
 import Premium from "./pages/Premium";
@@ -75,7 +77,15 @@ function AppRoutes() {
 }
 
 const App = () => {
-  const [showSplash, setShowSplash] = useState(true);
+  // OPTIMIZED: Show splash screen only once per session
+  const [showSplash, setShowSplash] = useState(() => {
+    return !sessionStorage.getItem('splash_shown');
+  });
+
+  const handleSplashComplete = () => {
+    sessionStorage.setItem('splash_shown', 'true');
+    setShowSplash(false);
+  };
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -85,26 +95,30 @@ const App = () => {
             <PremiumProvider>
               <PointsProvider>
                 <DemoProvider>
-                  <AccessibilityProvider>
-                    <TooltipProvider>
-                      <Toaster />
-                      <Sonner />
-                      {showSplash ? (
-                        <SplashScreen onComplete={() => setShowSplash(false)} />
-                      ) : (
-                        <BrowserRouter>
-                          <SkipLink />
-                          <ReadingGuide />
-                          <main id="main-content">
-                            <AppRoutes />
-                          </main>
-                          <DemoControls />
-                          <FloatingAIAssistant />
-                          <AccessibilityToolbar />
-                        </BrowserRouter>
-                      )}
-                    </TooltipProvider>
-                  </AccessibilityProvider>
+                  <ThemeProvider>
+                    <BackgroundWrapper>
+                      <AccessibilityProvider>
+                        <TooltipProvider>
+                          <Toaster />
+                          <Sonner />
+                          {showSplash ? (
+                            <SplashScreen onComplete={handleSplashComplete} />
+                          ) : (
+                            <BrowserRouter>
+                              <SkipLink />
+                              <ReadingGuide />
+                              <main id="main-content">
+                                <AppRoutes />
+                              </main>
+                              <DemoControls />
+                              <FloatingAIAssistant />
+                              <AccessibilityToolbar />
+                            </BrowserRouter>
+                          )}
+                        </TooltipProvider>
+                      </AccessibilityProvider>
+                    </BackgroundWrapper>
+                  </ThemeProvider>
                 </DemoProvider>
               </PointsProvider>
             </PremiumProvider>

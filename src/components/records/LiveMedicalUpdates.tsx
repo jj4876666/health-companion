@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { medicalUpdateEmitter } from '@/utils/medicalUpdateEvents';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -29,40 +30,76 @@ interface Props {
 export function LiveMedicalUpdates({ profileId }: Props) {
   const [updates, setUpdates] = useState<MedicalUpdate[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isDemo, setIsDemo] = useState(false);
 
   const fetchUpdates = async () => {
-    const { data } = await supabase
-      .from('medical_updates')
-      .select('*')
-      .eq('patient_id', profileId)
-      .order('created_at', { ascending: false });
-    setUpdates(data || []);
-    setLoading(false);
+    // Check if this is a demo account
+    const isDemoAccount = profileId.startsWith('demo-') || profileId.startsWith('EMEC-');
+    setIsDemo(isDemoAccount);
+
+    if (isDemoAccount) {
+      // For demo accounts, load from localStorage
+      const recordsKey = `records_${profileId}`;
+      const storedRecords = localStorage.getItem(recordsKey);
+      if (storedRecords) {
+        try {
+          const records = JSON.parse(storedRecords);
+          const medicalUpdates = records.medicalUpdates || [];
+          setUpdates(medicalUpdates);
+        } catch (error) {
+          console.error('[MEDICAL UPDATES] Error loading demo updates:', error);
+        }
+      }
+      setLoading(false);
+    } else {
+      // For production accounts, load from Supabase
+      const { data } = await supabase
+        .from('medical_updates')
+        .select('*')
+        .eq('patient_id', profileId)
+        .order('created_at', { ascending: false });
+      setUpdates(data as MedicalUpdate[] || []);
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
     if (!profileId) return;
     fetchUpdates();
 
-    // Realtime subscription
-    const channel = supabase
-      .channel(`medical_updates_${profileId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'medical_updates',
-          filter: `patient_id=eq.${profileId}`,
-        },
-        (payload) => {
-          setUpdates(prev => [payload.new as MedicalUpdate, ...prev]);
-        }
-      )
-      .subscribe();
+    // Check if this is a demo account
+    const isDemoAccount = profileId.startsWith('demo-') || profileId.startsWith('EMEC-');
 
-    return () => { supabase.removeChannel(channel); };
-  }, [profileId, fetchUpdates]);
+    if (isDemoAccount) {
+      // For demo accounts, subscribe to event-based updates
+      console.log('[MEDICAL UPDATES] Subscribing to demo updates for:', profileId);
+      const unsubscribe = medicalUpdateEmitter.subscribe(profileId, (event) => {
+        console.log('[MEDICAL UPDATES] Received update event:', event);
+        setUpdates(prev => [event.update, ...prev]);
+      });
+
+      return unsubscribe;
+    } else {
+      // For production accounts, use Supabase realtime subscription
+      const channel = supabase
+        .channel(`medical_updates_${profileId}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'medical_updates',
+            filter: `patient_id=eq.${profileId}`,
+          },
+          (payload) => {
+            setUpdates(prev => [payload.new as MedicalUpdate, ...prev]);
+          }
+        )
+        .subscribe();
+
+      return () => { supabase.removeChannel(channel); };
+    }
+  }, [profileId]);
 
   const getIcon = (type: string) => {
     const icons: Record<string, typeof Activity> = {

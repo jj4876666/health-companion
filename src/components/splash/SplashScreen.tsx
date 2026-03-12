@@ -9,10 +9,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [stage, setStage] = useState<'logo' | 'tagline' | 'features' | 'fade'>('logo');
 
   useEffect(() => {
-    const timer1 = setTimeout(() => setStage('tagline'), 600);
-    const timer2 = setTimeout(() => setStage('features'), 1400);
-    const timer3 = setTimeout(() => setStage('fade'), 2800);
-    const timer4 = setTimeout(() => onComplete(), 3500);
+    // OPTIMIZED: Reduced splash screen time from 3.5s to 1.5s
+    const timer1 = setTimeout(() => setStage('tagline'), 300);
+    const timer2 = setTimeout(() => setStage('features'), 700);
+    const timer3 = setTimeout(() => setStage('fade'), 1200);
+    const timer4 = setTimeout(() => onComplete(), 1500);
 
     return () => {
       clearTimeout(timer1);
@@ -155,7 +156,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       {/* Loading Bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
         <div 
-          className="h-full bg-white transition-all duration-[3000ms] ease-out"
+          className="h-full bg-white transition-all duration-[1500ms] ease-out"
           style={{ width: stage === 'logo' ? '0%' : stage === 'tagline' ? '33%' : stage === 'features' ? '66%' : '100%' }}
         />
       </div>

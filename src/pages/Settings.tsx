@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { useApp } from '@/contexts/AppContext';
+import { useTheme, colorSchemes } from '@/contexts/ThemeContext';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { 
   Settings as SettingsIcon, Moon, Sun, Globe, Mic, MicOff, 
-  Bell, RefreshCcw, LogOut, User, Shield, Palette, Volume2, Scale
+  Bell, RefreshCcw, LogOut, User, Shield, Palette, Volume2, Scale, Check
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
@@ -20,6 +21,7 @@ export default function Settings() {
   const { currentUser, isAuthenticated, logout } = useAuth();
   const { language, setLanguage, t } = useLanguage();
   const { resetDemoData } = useApp();
+  const { backgroundColor, setBackgroundColor, resetBackgroundColor } = useTheme();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -117,6 +119,65 @@ export default function Settings() {
                 </div>
               </div>
               <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
+            </div>
+
+            {/* Background Color Picker */}
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-medium">Background Color</Label>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    resetBackgroundColor();
+                    toast({
+                      title: "Reset to Default",
+                      description: "Background color has been reset",
+                    });
+                  }}
+                >
+                  Reset
+                </Button>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Choose a background color that suits your preference. All colors maintain text clarity.
+              </p>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                {colorSchemes.map((scheme) => (
+                  <button
+                    key={scheme.id}
+                    onClick={() => {
+                      console.log('[SETTINGS] Changing background to:', scheme.id, scheme.name);
+                      setBackgroundColor(scheme.id);
+                      toast({
+                        title: "Background Updated",
+                        description: `Changed to ${scheme.name}`,
+                      });
+                    }}
+                    className={`relative p-4 rounded-lg border-2 transition-all hover:scale-105 ${
+                      backgroundColor === scheme.id
+                        ? 'border-primary ring-2 ring-primary/20'
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    style={{ backgroundColor: scheme.preview }}
+                  >
+                    <div className="flex flex-col items-center gap-2">
+                      <div
+                        className="w-12 h-12 rounded-full border-2 border-border"
+                        style={{ backgroundColor: scheme.preview }}
+                      />
+                      <span className="text-xs font-medium text-foreground">
+                        {scheme.name}
+                      </span>
+                      {backgroundColor === scheme.id && (
+                        <div className="absolute top-2 right-2 w-5 h-5 rounded-full bg-primary flex items-center justify-center">
+                          <Check className="w-3 h-3 text-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  </button>
+                ))}
+              </div>
             </div>
           </CardContent>
         </Card>

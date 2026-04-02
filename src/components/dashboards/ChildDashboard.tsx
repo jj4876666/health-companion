@@ -34,7 +34,7 @@ export function ChildDashboard() {
     completedQuizzes: [],
     restrictions: { sensitiveContent: true, requiresParentApproval: true },
   };
-  const merged = { ...childDefaults, ...(currentUser || demoChild) };
+  const merged = { ...childDefaults, ...(currentUser || {}) };
   const child: ChildUser = {
     ...merged,
     allergies: merged.allergies ?? [],

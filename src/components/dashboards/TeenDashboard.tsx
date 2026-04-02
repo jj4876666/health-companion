@@ -35,7 +35,7 @@ export function TeenDashboard() {
     completedQuizzes: [],
     restrictions: { sensitiveContent: false, requiresParentApproval: true },
   };
-  const merged = { ...teenDefaults, ...(currentUser || demoTeen) };
+  const merged = { ...teenDefaults, ...(currentUser || {}) };
   const teen: ChildUser = {
     ...merged,
     allergies: merged.allergies ?? [],

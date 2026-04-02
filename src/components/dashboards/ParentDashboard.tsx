@@ -29,7 +29,7 @@ export function ParentDashboard() {
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const parent = (currentUser as ParentUser) || demoParent;
+  const parent = (currentUser as ParentUser) || { linkedChildren: [], pendingApprovals: [] } as unknown as ParentUser;
   const linkedChildren = getChildrenFromIds(parent.linkedChildren || ['child-001']);
   const pendingApprovals = parent.pendingApprovals?.filter(a => a.status === 'pending') || [];
 

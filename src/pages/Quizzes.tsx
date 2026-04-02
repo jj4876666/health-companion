@@ -215,7 +215,7 @@ export default function Quizzes() {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary" className="text-xs capitalize">
-                  {question?.category}
+                  {(question as any)?.category || 'health'}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   Q{currentQuestionIndex + 1}

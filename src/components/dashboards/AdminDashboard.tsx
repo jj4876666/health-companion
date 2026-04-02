@@ -86,7 +86,7 @@ export function AdminDashboard() {
   // Patient lookup state
   const [patientEmecId, setPatientEmecId] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
-  const [selectedPatient, setSelectedPatient] = useState<User | null>(null);
+  const [selectedPatient, setSelectedPatient] = useState<UserType | null>(null);
   const [isVerifying, setIsVerifying] = useState(false);
   const [activeCategory, setActiveCategory] = useState('vitals');
   

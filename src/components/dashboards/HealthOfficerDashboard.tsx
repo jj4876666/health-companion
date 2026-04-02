@@ -1,10 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AdminUser } from '@/types/emec';
-// DATABASE ROUTING: Import database router for demo/production separation
-import { getDatabaseClient, getDemoStorageKey } from '@/integrations/supabase/databaseRouter';
-import { medicalUpdateEmitter } from '@/utils/medicalUpdateEvents';
-// AUDIT LOG: Import audit logger for tracking all actions
+import { supabase } from '@/integrations/supabase/client';
 import { auditLogger, getActionFromUpdateType, type AuditLogEntry } from '@/utils/healthOfficerAuditLog';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,19 +18,6 @@ import {
   AlertTriangle, ClipboardList, Building2,
   ShieldCheck, Plus, Save, History, Activity, Users, RefreshCw, FileCheck
 } from 'lucide-react';
-
-interface LocalStorageUser {
-  id?: string;
-  emecId: string;
-  name?: string;
-  role?: string;
-  bloodGroup?: string;
-  gender?: string;
-  dateOfBirth?: string;
-  phone?: string;
-  email?: string;
-  createdAt?: string;
-}
 
 interface LivePatient {
   id: string;
@@ -71,10 +55,9 @@ export function HealthOfficerDashboard() {
   const [patientUpdates, setPatientUpdates] = useState<MedicalUpdate[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [loading, setLoading] = useState(false); // OPTIMIZED: Start with false for instant demo load
+  const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('patients');
 
-  // Form states
   const [updateType, setUpdateType] = useState('vitals');
   const [formTitle, setFormTitle] = useState('');
   const [formData, setFormData] = useState<Record<string, string>>({});
@@ -83,113 +66,10 @@ export function HealthOfficerDashboard() {
   const officerName = currentUser?.name || 'Health Officer';
   const facilityName = (currentUser as AdminUser)?.facilityName || 'EMEC Facility';
 
-  // DATABASE ROUTING: Fetch all patients
-  // Demo Health Officer: Load ALL accounts (demo + newly created from localStorage + production from Supabase)
-  // Production Health Officer: Load from Supabase only
+  // Fetch all patients from Supabase
   const fetchPatients = async () => {
-    const dbClient = getDatabaseClient(currentUser);
-    
-    if (!dbClient) {
-      // DEMO HEALTH OFFICER: Load ALL accounts
-      const allPatients: LivePatient[] = [];
-      
-      // 1. Add hardcoded demo patients
-      const demoPatients: LivePatient[] = [
-        {
-          id: 'demo-patient-1',
-          user_id: 'demo-user-1',
-          full_name: 'Kevin Otieno (Demo Child)',
-          emec_id: 'KOT2025A001',
-          account_type: 'child',
-          blood_group: 'O+',
-          gender: 'Male',
-          date_of_birth: '2015-01-01',
-          phone: '+254700000001',
-          created_at: '2025-01-01T00:00:00Z'
-        },
-        {
-          id: 'demo-patient-2',
-          user_id: 'demo-user-2',
-          full_name: 'James Mwangi (Demo Adult)',
-          emec_id: 'AJM2025B002',
-          account_type: 'adult',
-          blood_group: 'A+',
-          gender: 'Male',
-          date_of_birth: '1990-01-01',
-          phone: '+254700000002',
-          created_at: '2025-01-01T00:00:00Z'
-        }
-      ];
-      allPatients.push(...demoPatients);
-      
-      // 2. Load newly created accounts from localStorage
-      const authKey = localStorage.getItem('emec_auth_v1');
-      if (authKey) {
-        try {
-          const users = JSON.parse(authKey);
-          // If it's an array, add all; if single user, add it
-          const userArray: LocalStorageUser[] = Array.isArray(users) ? users : [users];
-          
-          userArray.forEach((user: LocalStorageUser) => {
-            // Skip if already in demo patients
-            if (!allPatients.find(p => p.emec_id === user.emecId)) {
-              allPatients.push({
-                id: user.id || `local-${user.emecId}`,
-                user_id: user.id || `local-${user.emecId}`,
-                full_name: user.name || 'Unknown',
-                emec_id: user.emecId || 'UNKNOWN',
-                account_type: user.role || 'adult',
-                blood_group: user.bloodGroup || 'Unknown',
-                gender: user.gender || 'Unknown',
-                date_of_birth: user.dateOfBirth || user.createdAt || new Date().toISOString(),
-                phone: user.phone || user.email || 'N/A',
-                created_at: user.createdAt || new Date().toISOString()
-              });
-            }
-          });
-        } catch (e) {
-          console.error('Error parsing localStorage users:', e);
-        }
-      }
-      
-      // 3. Scan all localStorage keys for additional users
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('user_') || key.startsWith('new_user_') || key.startsWith('records_'))) {
-          try {
-            const data = localStorage.getItem(key);
-            if (data) {
-              const userData = JSON.parse(data);
-              if (userData.emecId && !allPatients.find(p => p.emec_id === userData.emecId)) {
-                allPatients.push({
-                  id: userData.id || key,
-                  user_id: userData.id || key,
-                  full_name: userData.name || userData.full_name || 'Unknown User',
-                  emec_id: userData.emecId || 'UNKNOWN',
-                  account_type: userData.role || userData.account_type || 'adult',
-                  blood_group: userData.bloodGroup || userData.blood_group || 'Unknown',
-                  gender: userData.gender || 'Unknown',
-                  date_of_birth: userData.dateOfBirth || userData.date_of_birth || new Date().toISOString(),
-                  phone: userData.phone || userData.email || 'N/A',
-                  created_at: userData.createdAt || userData.created_at || new Date().toISOString()
-                });
-              }
-            }
-          } catch (e) {
-            // Skip invalid entries
-          }
-        }
-      }
-      
-      setPatients(allPatients);
-      setLoading(false);
-      console.log(`[DB ROUTER] Loaded ${allPatients.length} patients (demo + localStorage)`);
-      return;
-    }
-    
-    // PRODUCTION DATABASE: Load from Supabase
     setLoading(true);
-    const { data, error } = await dbClient
+    const { data, error } = await supabase
       .from('profiles')
       .select('id, user_id, full_name, emec_id, account_type, blood_group, gender, date_of_birth, phone, created_at')
       .order('created_at', { ascending: false });
@@ -199,32 +79,12 @@ export function HealthOfficerDashboard() {
       toast({ title: 'Error', description: 'Failed to load patients', variant: 'destructive' });
     } else {
       setPatients(data || []);
-      console.log('[DB ROUTER] Loaded production patients from Supabase');
     }
     setLoading(false);
   };
 
-  // DATABASE ROUTING: Fetch updates for selected patient
-  // Demo users: Load from localStorage (instant)
-  // Production users: Load from Supabase
   const fetchPatientUpdates = async (patientId: string) => {
-    const dbClient = getDatabaseClient(currentUser);
-    
-    if (!dbClient) {
-      // DEMO DATABASE: Load demo updates instantly
-      const storageKey = getDemoStorageKey(currentUser!, `patient_updates_${patientId}`);
-      const savedUpdates = localStorage.getItem(storageKey);
-      if (savedUpdates) {
-        setPatientUpdates(JSON.parse(savedUpdates));
-      } else {
-        setPatientUpdates([]);
-      }
-      console.log('[DB ROUTER] Loaded demo patient updates instantly');
-      return;
-    }
-    
-    // PRODUCTION DATABASE: Load from Supabase
-    const { data, error } = await dbClient
+    const { data, error } = await supabase
       .from('medical_updates')
       .select('*')
       .eq('patient_id', patientId)
@@ -234,31 +94,25 @@ export function HealthOfficerDashboard() {
       console.error('Error fetching updates:', error);
     } else {
       setPatientUpdates(data as MedicalUpdate[] || []);
-      console.log('[DB ROUTER] Loaded production patient updates from Supabase');
     }
   };
 
   useEffect(() => {
     fetchPatients();
-    // Load audit logs
     loadAuditLogs();
   }, []);
 
-  // When patient selected, fetch their updates
   useEffect(() => {
     if (selectedPatient) {
       fetchPatientUpdates(selectedPatient.id);
     }
   }, [selectedPatient]);
 
-  // Load audit logs
   const loadAuditLogs = () => {
     const logs = auditLogger.getAllLogs();
     setAuditLogs(logs);
-    console.log('[AUDIT LOG] Loaded', logs.length, 'audit entries');
   };
 
-  // Filter patients
   const filteredPatients = patients.filter(p => 
     p.full_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.emec_id.toLowerCase().includes(searchTerm.toLowerCase())
@@ -334,9 +188,7 @@ export function HealthOfficerDashboard() {
     }
   };
 
-  // DATABASE ROUTING: Save medical update
-  // Demo users: Save to localStorage
-  // Production users: Save to Supabase
+  // Save medical update to Supabase
   const handleSaveUpdate = async () => {
     if (!selectedPatient) return;
     if (!formTitle.trim()) {
@@ -345,29 +197,21 @@ export function HealthOfficerDashboard() {
     }
 
     setSaving(true);
-    const dbClient = getDatabaseClient(currentUser);
-    
-    if (!dbClient) {
-      // DEMO DATABASE: Save to localStorage
-      const newUpdate: MedicalUpdate = {
-        id: `demo-update-${Date.now()}`,
-        update_type: updateType,
-        title: formTitle,
-        data: formData,
-        officer_name: officerName,
-        facility_name: facilityName,
-        created_at: new Date().toISOString(),
-      };
-      
-      const storageKey = getDemoStorageKey(currentUser!, `patient_updates_${selectedPatient.id}`);
-      const existingUpdates = localStorage.getItem(storageKey);
-      const updates = existingUpdates ? JSON.parse(existingUpdates) : [];
-      updates.unshift(newUpdate);
-      localStorage.setItem(storageKey, JSON.stringify(updates));
-      
-      // AUDIT LOG: Log the action
+    const { error } = await supabase.from('medical_updates').insert({
+      patient_id: selectedPatient.id,
+      update_type: updateType,
+      title: formTitle,
+      data: formData,
+      officer_name: officerName,
+      facility_name: facilityName,
+    });
+
+    if (error) {
+      console.error('Error saving update:', error);
+      toast({ title: 'Error', description: 'Failed to save update. Make sure you are logged in as a health officer.', variant: 'destructive' });
+    } else {
       auditLogger.log({
-        officerId: currentUser?.id || 'demo-officer',
+        officerId: currentUser?.id || '',
         officerName: officerName,
         facilityName: facilityName,
         action: getActionFromUpdateType(updateType),
@@ -377,38 +221,12 @@ export function HealthOfficerDashboard() {
         updateTitle: formTitle,
         updateData: formData,
       });
-      
-      // REAL-TIME SYNC: Emit event for demo accounts so patient sees update immediately
-      medicalUpdateEmitter.emit(selectedPatient.id, newUpdate);
-      console.log('[MEDICAL UPDATE] Emitted real-time update for demo patient:', selectedPatient.id);
-      
-      toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records (demo)` });
+
+      toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records` });
       setFormTitle('');
       setFormData({});
       fetchPatientUpdates(selectedPatient.id);
-      loadAuditLogs(); // Reload audit logs
-      console.log('[DB ROUTER] Saved medical update to demo database (localStorage)');
-    } else {
-      // PRODUCTION DATABASE: Save to Supabase
-      const { error } = await dbClient.from('medical_updates').insert({
-        patient_id: selectedPatient.id,
-        update_type: updateType,
-        title: formTitle,
-        data: formData,
-        officer_name: officerName,
-        facility_name: facilityName,
-      });
-
-      if (error) {
-        console.error('Error saving update:', error);
-        toast({ title: 'Error', description: 'Failed to save update. Make sure you are logged in as a health officer.', variant: 'destructive' });
-      } else {
-        toast({ title: 'Update Saved', description: `${formTitle} has been added to ${selectedPatient.full_name}'s records` });
-        setFormTitle('');
-        setFormData({});
-        fetchPatientUpdates(selectedPatient.id);
-        console.log('[DB ROUTER] Saved medical update to production database (Supabase)');
-      }
+      loadAuditLogs();
     }
     setSaving(false);
   };
@@ -546,7 +364,6 @@ export function HealthOfficerDashboard() {
         <TabsContent value="selected" className="space-y-4 mt-4">
           {selectedPatient && (
             <>
-              {/* Patient Info Card */}
               <Card className="border-2 border-primary/20">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between">
@@ -581,7 +398,6 @@ export function HealthOfficerDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Add New Update Form */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -597,9 +413,7 @@ export function HealthOfficerDashboard() {
                     <div>
                       <Label>Update Type</Label>
                       <Select value={updateType} onValueChange={(v) => { setUpdateType(v); setFormData({}); }}>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
                         <SelectContent>
                           {updateTypeOptions.map(opt => (
                             <SelectItem key={opt.value} value={opt.value}>
@@ -614,11 +428,7 @@ export function HealthOfficerDashboard() {
                     </div>
                     <div>
                       <Label>Title</Label>
-                      <Input
-                        value={formTitle}
-                        onChange={(e) => setFormTitle(e.target.value)}
-                        placeholder="e.g. Routine checkup vitals"
-                      />
+                      <Input value={formTitle} onChange={(e) => setFormTitle(e.target.value)} placeholder="e.g. Routine checkup vitals" />
                     </div>
                   </div>
 
@@ -630,8 +440,7 @@ export function HealthOfficerDashboard() {
                           <Textarea
                             value={formData[field.key] || ''}
                             onChange={(e) => setFormData(prev => ({ ...prev, [field.key]: e.target.value }))}
-                            placeholder={field.placeholder}
-                            rows={3}
+                            placeholder={field.placeholder} rows={3}
                           />
                         ) : (
                           <Input
@@ -651,7 +460,6 @@ export function HealthOfficerDashboard() {
                 </CardContent>
               </Card>
 
-              {/* Update History */}
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
@@ -720,7 +528,7 @@ export function HealthOfficerDashboard() {
                 <Badge variant="secondary" className="ml-auto">{auditLogs.length} entries</Badge>
               </CardTitle>
               <CardDescription>
-                Complete immutable record of all Health Officer actions. Records are append-only and cannot be edited or deleted.
+                Complete immutable record of all Health Officer actions.
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -751,7 +559,6 @@ export function HealthOfficerDashboard() {
                             {new Date(log.timestamp).toLocaleString()}
                           </Badge>
                         </div>
-                        
                         <div className="grid grid-cols-2 gap-2 mt-3 text-sm">
                           <div className="p-2 bg-muted/50 rounded">
                             <span className="text-muted-foreground">Officer: </span>
@@ -761,16 +568,7 @@ export function HealthOfficerDashboard() {
                             <span className="text-muted-foreground">Facility: </span>
                             <span className="font-medium">{log.facilityName}</span>
                           </div>
-                          <div className="p-2 bg-muted/50 rounded">
-                            <span className="text-muted-foreground">Patient ID: </span>
-                            <span className="font-medium font-mono text-xs">{log.patientId}</span>
-                          </div>
-                          <div className="p-2 bg-muted/50 rounded">
-                            <span className="text-muted-foreground">Update Type: </span>
-                            <span className="font-medium capitalize">{log.updateType.replace(/_/g, ' ')}</span>
-                          </div>
                         </div>
-
                         {Object.keys(log.updateData).length > 0 && (
                           <div className="mt-3 p-3 bg-muted/30 rounded border">
                             <p className="text-xs font-semibold text-muted-foreground mb-2">Update Data:</p>
@@ -786,7 +584,6 @@ export function HealthOfficerDashboard() {
                             </div>
                           </div>
                         )}
-
                         <div className="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
                           <ShieldCheck className="w-3 h-3" />
                           <span>Audit ID: {log.id}</span>
@@ -796,19 +593,6 @@ export function HealthOfficerDashboard() {
                   </div>
                 </ScrollArea>
               )}
-
-              <div className="mt-4 p-4 bg-muted/50 rounded-lg border">
-                <div className="flex items-start gap-3">
-                  <ShieldCheck className="w-5 h-5 text-primary mt-0.5" />
-                  <div className="flex-1">
-                    <p className="font-semibold text-sm">Audit Trail Integrity</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      All entries are immutable and timestamped. Health Officers can only ADD records, never edit or delete existing ones. 
-                      This ensures complete accountability and compliance with medical record-keeping standards.
-                    </p>
-                  </div>
-                </div>
-              </div>
             </CardContent>
           </Card>
         </TabsContent>

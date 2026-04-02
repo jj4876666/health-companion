@@ -40,8 +40,8 @@ export function VoiceInput({ onTranscript, onTranslate, placeholder, className }
         let finalTranscript = '';
         let interimTranscript = '';
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const result = event.results[i];
+        for (let i = (event as any).resultIndex; i < (event as any).results.length; i++) {
+          const result = (event as any).results[i];
           if (result.isFinal) {
             finalTranscript += result[0].transcript;
           } else {

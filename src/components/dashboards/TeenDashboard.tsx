@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { usePoints } from '@/contexts/PointsContext';
 import { ChildUser } from '@/types/emec';
-import { demoTeen } from '@/data/demoUsers';
+
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -35,7 +35,7 @@ export function TeenDashboard() {
     completedQuizzes: [],
     restrictions: { sensitiveContent: false, requiresParentApproval: true },
   };
-  const merged = { ...teenDefaults, ...(currentUser || demoTeen) };
+  const merged = { ...teenDefaults, ...(currentUser || {}) };
   const teen: ChildUser = {
     ...merged,
     allergies: merged.allergies ?? [],

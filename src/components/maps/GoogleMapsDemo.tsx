@@ -46,7 +46,7 @@ export function GoogleMapsDemo({ showFacilities = true, onSelectFacility, isEmer
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [mapStyle, setMapStyle] = useState<'default' | 'satellite' | 'terrain'>('default');
   const [showDirectionsPanel, setShowDirectionsPanel] = useState(false);
-  const navigationIntervalRef = useRef<NodeJS.Timeout | null>(null);
+  const navigationIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const [locationData, setLocationData] = useState({
     lat: -1.2921,

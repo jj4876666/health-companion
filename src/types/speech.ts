@@ -1,12 +1,7 @@
 // Speech Recognition types for Web Speech API
 export interface SpeechRecognitionEvent extends Event {
-  results: {
-    [index: number]: {
-      [index: number]: {
-        transcript: string;
-      };
-    };
-  };
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
 }
 
 export interface SpeechRecognitionErrorEvent extends Event {
@@ -19,12 +14,17 @@ export interface SpeechRecognitionType {
   lang: string;
   start: () => void;
   stop: () => void;
+  onstart: (() => void) | null;
+  abort: () => void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
   onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
+  addEventListener: typeof EventTarget.prototype.addEventListener;
+  dispatchEvent: typeof EventTarget.prototype.dispatchEvent;
+  removeEventListener: typeof EventTarget.prototype.removeEventListener;
 }
 
-export interface WindowWithSpeechRecognition extends Window {
+export interface WindowWithSpeechRecognition {
   SpeechRecognition?: new () => SpeechRecognitionType;
   webkitSpeechRecognition?: new () => SpeechRecognitionType;
 }

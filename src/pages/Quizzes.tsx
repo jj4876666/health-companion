@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { demoChild } from '@/data/demoUsers';
+
 
 const categoryIcons: Record<string, typeof Brain> = {
   health: Heart,
@@ -65,7 +65,7 @@ export default function Quizzes() {
     return <Navigate to="/login" replace />;
   }
 
-  const child = (currentUser as ChildUser) || demoChild;
+  const child = (currentUser as ChildUser) || { age: 9, completedQuizzes: [] } as unknown as ChildUser;
   const userAge = child.age || 9;
   const dailyQuiz = getDailyQuiz();
 
@@ -215,7 +215,7 @@ export default function Quizzes() {
             <CardHeader>
               <div className="flex items-center gap-2 mb-2">
                 <Badge variant="secondary" className="text-xs capitalize">
-                  {question?.category}
+                  {(question as any)?.category || 'health'}
                 </Badge>
                 <Badge variant="outline" className="text-xs">
                   Q{currentQuestionIndex + 1}

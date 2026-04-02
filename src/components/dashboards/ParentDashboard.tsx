@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDemo } from '@/contexts/DemoContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ParentUser, ChildUser } from '@/types/emec';
-import { demoParent, demoChild, demoTeen } from '@/data/demoUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,13 +18,9 @@ import {
   FileText, Heart, User, Stethoscope, Pill, Bot
 } from 'lucide-react';
 
-// Get child objects from IDs for demo
-const getChildrenFromIds = (ids: string[]): ChildUser[] => {
-  const childMap: Record<string, ChildUser> = {
-    'child-001': demoChild,
-    'teen-001': demoTeen,
-  };
-  return ids.map(id => childMap[id]).filter(Boolean);
+// Get child objects from IDs - returns empty for now (real data loaded from DB)
+const getChildrenFromIds = (_ids: string[]): ChildUser[] => {
+  return [];
 };
 
 export function ParentDashboard() {
@@ -34,7 +29,7 @@ export function ParentDashboard() {
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const parent = (currentUser as ParentUser) || demoParent;
+  const parent = (currentUser as ParentUser) || { linkedChildren: [], pendingApprovals: [] } as unknown as ParentUser;
   const linkedChildren = getChildrenFromIds(parent.linkedChildren || ['child-001']);
   const pendingApprovals = parent.pendingApprovals?.filter(a => a.status === 'pending') || [];
 

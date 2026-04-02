@@ -80,7 +80,7 @@ export default function Donations() {
 
   const handlePremiumSuccess = () => {
     if (showPremiumPayment) {
-      activatePremium(showPremiumPayment);
+      activatePremium(showPremiumPayment as any);
       setShowPremiumPayment(null);
     }
   };
@@ -237,7 +237,7 @@ export default function Donations() {
                   <div className="grid grid-cols-2 gap-3">
                     {features.map((feature) => (
                       <div key={feature.id} className="p-3 rounded-xl bg-primary/5 flex items-center gap-3">
-                        <span className="text-2xl">{feature.icon}</span>
+                        <span className="text-2xl">✨</span>
                         <div>
                           <p className="font-medium text-sm">{feature.name}</p>
                           <p className="text-xs text-muted-foreground">{feature.description}</p>

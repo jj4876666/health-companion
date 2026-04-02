@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { AdminUser } from '@/types/emec';
-import { demoAdmin, demoChild, demoAdult, getUserByEmecId, DEMO_EMEC_IDS } from '@/data/demoUsers';
+import { User as UserType } from '@/types/emec';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

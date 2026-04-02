@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useDemo } from '@/contexts/DemoContext';
 import { useLanguage } from '@/contexts/LanguageContext';
 import { ParentUser, ChildUser } from '@/types/emec';
-import { demoParent, demoChild, demoTeen } from '@/data/demoUsers';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';

@@ -12,8 +12,9 @@ import {
 } from 'lucide-react';
 
 interface AccountRecoveryProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  onClose?: () => void;
+  onBack?: () => void;
 }
 
 type Step = 'identify' | 'verify' | 'reset' | 'success' | 'child-pending';

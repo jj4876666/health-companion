@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { demoChild } from '@/data/demoUsers';
+
 
 const categoryIcons: Record<string, typeof Brain> = {
   health: Heart,

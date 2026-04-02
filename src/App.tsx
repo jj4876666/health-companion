@@ -17,7 +17,6 @@ import { SplashScreen } from "@/components/splash/SplashScreen";
 import { EnhancedLoginPage } from "@/components/auth/EnhancedLoginPage";
 import Premium from "./pages/Premium";
 import { FloatingAIAssistant } from "@/components/chat/FloatingAIAssistant";
-import { DemoControls } from "@/components/demo/DemoControls";
 import { SkipLink } from "@/components/accessibility/SkipLink";
 import { ReadingGuide } from "@/components/accessibility/ReadingGuide";
 import { AccessibilityToolbar } from "@/components/accessibility/AccessibilityToolbar";
@@ -39,13 +38,11 @@ import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
-// Protected Route wrapper
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
 }
 
-// Public Route wrapper (redirects to dashboard if already logged in)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <Navigate to="/dashboard" replace /> : <>{children}</>;
@@ -58,7 +55,7 @@ function AppRoutes() {
       <Route path="/login" element={<PublicRoute><EnhancedLoginPage /></PublicRoute>} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
-      <Route path="/premium" element={<Navigate to="/dashboard" replace />} /> {/* Premium disabled for demo */}
+      <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
       <Route path="/calculators" element={<ProtectedRoute><Calculators /></ProtectedRoute>} />
       <Route path="/first-aid" element={<ProtectedRoute><FirstAid /></ProtectedRoute>} />
       <Route path="/emergency" element={<ProtectedRoute><Emergency /></ProtectedRoute>} />
@@ -77,7 +74,6 @@ function AppRoutes() {
 }
 
 const App = () => {
-  // OPTIMIZED: Show splash screen only once per session
   const [showSplash, setShowSplash] = useState(() => {
     return !sessionStorage.getItem('splash_shown');
   });
@@ -110,7 +106,6 @@ const App = () => {
                               <main id="main-content">
                                 <AppRoutes />
                               </main>
-                              <DemoControls />
                               <FloatingAIAssistant />
                               <AccessibilityToolbar />
                             </BrowserRouter>

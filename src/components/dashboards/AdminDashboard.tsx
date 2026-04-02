@@ -80,7 +80,7 @@ export function AdminDashboard() {
   const { t } = useLanguage();
   const { toast } = useToast();
   
-  const admin = (currentUser as AdminUser) || demoAdmin;
+  const admin = (currentUser as AdminUser) || {} as AdminUser;
   const [isVerified] = useState(admin.isVerified);
   
   // Patient lookup state

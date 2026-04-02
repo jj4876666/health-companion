@@ -24,7 +24,7 @@ export interface SpeechRecognitionType {
   removeEventListener: typeof EventTarget.prototype.removeEventListener;
 }
 
-export interface WindowWithSpeechRecognition extends Window {
+export interface WindowWithSpeechRecognition {
   SpeechRecognition?: new () => SpeechRecognitionType;
   webkitSpeechRecognition?: new () => SpeechRecognitionType;
 }

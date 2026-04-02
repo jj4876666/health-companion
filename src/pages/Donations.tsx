@@ -80,7 +80,7 @@ export default function Donations() {
 
   const handlePremiumSuccess = () => {
     if (showPremiumPayment) {
-      activatePremium(showPremiumPayment);
+      activatePremium(showPremiumPayment as any);
       setShowPremiumPayment(null);
     }
   };

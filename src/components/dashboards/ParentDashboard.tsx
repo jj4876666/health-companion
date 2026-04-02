@@ -18,13 +18,9 @@ import {
   FileText, Heart, User, Stethoscope, Pill, Bot
 } from 'lucide-react';
 
-// Get child objects from IDs for demo
-const getChildrenFromIds = (ids: string[]): ChildUser[] => {
-  const childMap: Record<string, ChildUser> = {
-    'child-001': demoChild,
-    'teen-001': demoTeen,
-  };
-  return ids.map(id => childMap[id]).filter(Boolean);
+// Get child objects from IDs - returns empty for now (real data loaded from DB)
+const getChildrenFromIds = (_ids: string[]): ChildUser[] => {
+  return [];
 };
 
 export function ParentDashboard() {

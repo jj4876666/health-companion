@@ -65,7 +65,7 @@ export default function Quizzes() {
     return <Navigate to="/login" replace />;
   }
 
-  const child = (currentUser as ChildUser) || demoChild;
+  const child = (currentUser as ChildUser) || { age: 9, completedQuizzes: [] } as unknown as ChildUser;
   const userAge = child.age || 9;
   const dailyQuiz = getDailyQuiz();
 

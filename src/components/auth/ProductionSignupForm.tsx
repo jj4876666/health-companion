@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { format } from 'date-fns';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemo } from '@/contexts/DemoContext';
 import { useAuth } from '@/contexts/AuthContext';
@@ -10,10 +11,13 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 import {
   Heart, User, Users, Shield, Lock, Eye, EyeOff, CheckCircle2,
   UserCircle, AlertTriangle, Loader2, FileText, Building2, Copy,
-  Phone, Mail, Calendar, Ruler, Weight, UserPlus, ArrowLeft, ArrowRight
+  Phone, Mail, CalendarIcon, Ruler, Weight, UserPlus, ArrowLeft, ArrowRight
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 

@@ -459,8 +459,25 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
                 <Input value={childForm.childFullName} onChange={e => setChildForm({...childForm, childFullName: e.target.value})} placeholder="Child's name" />
               </div>
               <div className="space-y-1.5">
-                <Label><Calendar className="w-3.5 h-3.5 inline mr-1" />Date of Birth *</Label>
-                <Input type="date" value={childForm.dateOfBirth} onChange={e => setChildForm({...childForm, dateOfBirth: e.target.value})} />
+                <Label className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5" /> Date of Birth *</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !childForm.dateOfBirth && "text-muted-foreground")}>
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {childForm.dateOfBirth ? format(new Date(childForm.dateOfBirth), "PPP") : <span>Pick a date</span>}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={childForm.dateOfBirth ? new Date(childForm.dateOfBirth) : undefined}
+                      onSelect={(date) => setChildForm({...childForm, dateOfBirth: date ? format(date, 'yyyy-MM-dd') : ''})}
+                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
+                      initialFocus
+                      className={cn("p-3 pointer-events-auto")}
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
               <div className="space-y-1.5">
                 <Label>Gender *</Label>

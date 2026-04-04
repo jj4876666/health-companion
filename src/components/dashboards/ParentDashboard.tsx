@@ -64,7 +64,7 @@ export function ParentDashboard() {
   };
 
   const handleRejectRequest = (id: string) => {
-    toast({ title: 'Request rejected', description: 'Demo mode - change rejected' });
+    toast({ title: 'Request rejected', description: 'Change has been rejected' });
     addAuditEntry({
       userId: parent.id,
       userName: parent.name,

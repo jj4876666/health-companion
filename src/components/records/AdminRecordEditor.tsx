@@ -180,7 +180,7 @@ export function AdminRecordEditor({
       action: 'UPDATE_PATIENT_DATA',
       target: patientName,
       details: 'Updated patient basic information',
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     toast({

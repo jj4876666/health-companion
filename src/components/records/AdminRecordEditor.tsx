@@ -123,7 +123,7 @@ export function AdminRecordEditor({
       description: newRecord.description,
       date: new Date().toISOString(),
       addedBy: currentUser?.name || 'Health Officer',
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     };
 
     const updatedRecords = [record, ...records];

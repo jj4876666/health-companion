@@ -52,7 +52,7 @@ export function ParentDashboard() {
   };
 
   const handleApproveRequest = (id: string) => {
-    toast({ title: 'Request approved', description: 'Demo mode - change approved' });
+    toast({ title: 'Request approved', description: 'Change has been approved' });
     addAuditEntry({
       userId: parent.id,
       userName: parent.name,
@@ -64,7 +64,7 @@ export function ParentDashboard() {
   };
 
   const handleRejectRequest = (id: string) => {
-    toast({ title: 'Request rejected', description: 'Demo mode - change rejected' });
+    toast({ title: 'Request rejected', description: 'Change has been rejected' });
     addAuditEntry({
       userId: parent.id,
       userName: parent.name,
@@ -106,12 +106,6 @@ export function ParentDashboard() {
         </div>
       </div>
 
-      {/* Demo Label */}
-      <div className="text-center">
-        <Badge variant="outline" className="bg-warning/10 text-warning-foreground border-warning/30">
-          Demo Data – Editable for Presentation
-        </Badge>
-      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="children" className="w-full">

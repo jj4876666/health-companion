@@ -123,7 +123,7 @@ export function AdminRecordEditor({
       description: newRecord.description,
       date: new Date().toISOString(),
       addedBy: currentUser?.name || 'Health Officer',
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     };
 
     const updatedRecords = [record, ...records];
@@ -137,7 +137,7 @@ export function AdminRecordEditor({
       action: 'ADD_RECORD',
       target: patientName,
       details: `Added ${newRecord.type}: ${newRecord.title}`,
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     setNewRecord({ type: 'note', title: '', description: '' });
@@ -161,7 +161,7 @@ export function AdminRecordEditor({
       action: 'DELETE_RECORD',
       target: patientName,
       details: `Deleted record: ${record?.title}`,
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     toast({
@@ -180,7 +180,7 @@ export function AdminRecordEditor({
       action: 'UPDATE_PATIENT_DATA',
       target: patientName,
       details: 'Updated patient basic information',
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     toast({

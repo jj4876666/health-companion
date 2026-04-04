@@ -137,7 +137,7 @@ export function AdminRecordEditor({
       action: 'ADD_RECORD',
       target: patientName,
       details: `Added ${newRecord.type}: ${newRecord.title}`,
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     setNewRecord({ type: 'note', title: '', description: '' });

@@ -15,7 +15,7 @@ const productionConfig: ConfigType = {
     dataProtection: {
         healthcare: {
             encryptionEnabled: true,
-            encryptionKey: process.env.ENCRYPTION_KEY,
+            encryptionKey: import.meta.env.VITE_ENCRYPTION_KEY || 'default-key',
             accessControl: {
                 roles: ['admin', 'staff'],
                 permissions: ['read', 'write', 'delete'],

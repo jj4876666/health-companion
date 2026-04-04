@@ -161,7 +161,7 @@ export function AdminRecordEditor({
       action: 'DELETE_RECORD',
       target: patientName,
       details: `Deleted record: ${record?.title}`,
-      facilityName: 'EMEC Demo Facility',
+      facilityName: 'EMEC Facility',
     });
 
     toast({

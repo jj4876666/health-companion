@@ -52,7 +52,7 @@ export function ParentDashboard() {
   };
 
   const handleApproveRequest = (id: string) => {
-    toast({ title: 'Request approved', description: 'Demo mode - change approved' });
+    toast({ title: 'Request approved', description: 'Change has been approved' });
     addAuditEntry({
       userId: parent.id,
       userName: parent.name,

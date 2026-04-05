@@ -85,7 +85,7 @@ export function EnhancedLoginPage() {
     setIsLoading(true);
     setError('');
 
-    // Look up user's auth email by EMEC ID
+    // Look up user's email by EMEC ID via edge function or profiles+auth
     const { data: profile } = await supabase
       .from('profiles')
       .select('user_id, full_name')
@@ -98,9 +98,36 @@ export function EnhancedLoginPage() {
       return;
     }
 
-    // We need the user's email to sign in. Look up from auth via a workaround:
-    // Since we can't query auth.users directly, ask user to use email login
-    setError('Please use "Email" login tab with the email you registered with. EMEC ID lookup confirmed your account exists.');
+    // Call edge function to get user email by user_id
+    const { data: fnData, error: fnError } = await supabase.functions.invoke('get-user-email', {
+      body: { user_id: profile.user_id },
+    });
+
+    if (fnError || !fnData?.email) {
+      setError('Could not retrieve account email. Please use Email login tab.');
+      setIsLoading(false);
+      return;
+    }
+
+    // Now sign in with the retrieved email
+    const { data, error: loginError } = await supabase.auth.signInWithPassword({
+      email: fnData.email,
+      password: emecPassword,
+    });
+
+    if (loginError) {
+      setError('Invalid password. Please try again or use "Forgot Password".');
+      setIsLoading(false);
+      return;
+    }
+
+    if (data.user) {
+      toast({
+        title: "✓ Login Successful",
+        description: `Welcome back, ${profile.full_name}!`,
+      });
+      navigate('/dashboard');
+    }
     setIsLoading(false);
   };
 

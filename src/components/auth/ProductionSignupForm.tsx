@@ -180,15 +180,14 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
         // OPTIMIZED: Reduced retry delay from 800ms to 200ms for faster signup
         // Progressive delay for profile creation
         let profile: { emec_id: string } | null = null;
-        for (let attempt = 0; attempt < 4; attempt++) {
+        for (let attempt = 0; attempt < 3; attempt++) {
           const { data: p } = await supabase
             .from('profiles')
             .select('emec_id')
             .eq('user_id', data.user.id)
             .maybeSingle();
           if (p?.emec_id) { profile = p; break; }
-          // Progressive delay: 100ms, 200ms, 300ms, 400ms (max 1s total)
-          await new Promise(r => setTimeout(r, 100 + (attempt * 100)));
+          await new Promise(r => setTimeout(r, 50 + (attempt * 50)));
         }
 
         // Fire-and-forget profile update — don't block the UI

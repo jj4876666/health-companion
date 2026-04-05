@@ -9,11 +9,11 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
   const [stage, setStage] = useState<'logo' | 'tagline' | 'features' | 'fade'>('logo');
 
   useEffect(() => {
-    // OPTIMIZED: Reduced splash screen time from 3.5s to 1.5s
-    const timer1 = setTimeout(() => setStage('tagline'), 300);
-    const timer2 = setTimeout(() => setStage('features'), 700);
-    const timer3 = setTimeout(() => setStage('fade'), 1200);
-    const timer4 = setTimeout(() => onComplete(), 1500);
+    // OPTIMIZED: Ultra-fast splash - 800ms total
+    const timer1 = setTimeout(() => setStage('tagline'), 150);
+    const timer2 = setTimeout(() => setStage('features'), 350);
+    const timer3 = setTimeout(() => setStage('fade'), 600);
+    const timer4 = setTimeout(() => onComplete(), 800);
 
     return () => {
       clearTimeout(timer1);

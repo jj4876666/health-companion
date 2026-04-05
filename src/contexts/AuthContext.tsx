@@ -45,7 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }
 
-  const fetchProfileWithRetry = async (userId: string, maxRetries = 6): Promise<SupabaseProfile | null> => {
+  const fetchProfileWithRetry = async (userId: string, maxRetries = 4): Promise<SupabaseProfile | null> => {
     for (let i = 0; i < maxRetries; i++) {
       const { data: profile } = await supabase
         .from('profiles')
@@ -53,7 +53,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         .eq('user_id', userId)
         .maybeSingle();
       if (profile) return profile as unknown as SupabaseProfile;
-      await new Promise(resolve => setTimeout(resolve, 50 + (i * 50)));
+      await new Promise(resolve => setTimeout(resolve, 30 + (i * 30)));
     }
     return null;
   };

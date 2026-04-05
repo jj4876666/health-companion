@@ -156,7 +156,7 @@ export function SplashScreen({ onComplete }: SplashScreenProps) {
       {/* Loading Bar */}
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/20">
         <div 
-          className="h-full bg-white transition-all duration-[1500ms] ease-out"
+          className="h-full bg-white transition-all duration-[800ms] ease-out"
           style={{ width: stage === 'logo' ? '0%' : stage === 'tagline' ? '33%' : stage === 'features' ? '66%' : '100%' }}
         />
       </div>

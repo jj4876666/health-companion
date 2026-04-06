@@ -11,8 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Calendar as CalendarComponent } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DOBPicker } from '@/components/auth/DOBPicker';
 import { cn } from '@/lib/utils';
 import {
   Heart, User, Users, Shield, Lock, Eye, EyeOff, CheckCircle2,

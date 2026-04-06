@@ -355,24 +355,10 @@ export function ProductionSignupForm({ onBack }: { onBack: () => void }) {
               </div>
               <div className="space-y-1.5">
                 <Label className="flex items-center gap-1"><CalendarIcon className="w-3.5 h-3.5" /> Date of Birth *</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn("w-full justify-start text-left font-normal", !adultForm.dateOfBirth && "text-muted-foreground")}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {adultForm.dateOfBirth ? format(new Date(adultForm.dateOfBirth), "PPP") : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarComponent
-                      mode="single"
-                      selected={adultForm.dateOfBirth ? new Date(adultForm.dateOfBirth) : undefined}
-                      onSelect={(date) => setAdultForm({...adultForm, dateOfBirth: date ? format(date, 'yyyy-MM-dd') : ''})}
-                      disabled={(date) => date > new Date() || date < new Date("1900-01-01")}
-                      initialFocus
-                      className={cn("p-3 pointer-events-auto")}
-                    />
-                  </PopoverContent>
-                </Popover>
+                <DOBPicker
+                  value={adultForm.dateOfBirth}
+                  onChange={(d) => setAdultForm({...adultForm, dateOfBirth: d})}
+                />
               </div>
               <div className="space-y-1.5">
                 <Label>Gender *</Label>

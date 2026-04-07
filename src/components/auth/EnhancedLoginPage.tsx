@@ -124,6 +124,7 @@ export function EnhancedLoginPage() {
     }
 
     if (data.user) {
+      await loadSessionUser();
       toast({
         title: "✓ Login Successful",
         description: `Welcome back, ${profile.full_name}!`,

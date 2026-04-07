@@ -125,14 +125,13 @@ export function EnhancedLoginPage() {
     }
 
     if (data.user) {
-      await loadSessionUser();
-      toast({
-        title: "✓ Login Successful",
-        description: `Welcome back, ${profile.full_name}!`,
+      loadSessionUser().finally(() => {
+        toast({ title: "✓ Login Successful", description: `Welcome back, ${profile.full_name}!` });
+        navigate('/dashboard');
+        setIsLoading(false);
       });
-      navigate('/dashboard');
+      return;
     }
-    setIsLoading(false);
   };
 
   // Show production signup form

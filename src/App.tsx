@@ -35,6 +35,7 @@ import Pharmacy from "./pages/Pharmacy";
 import AccessibilityPage from "./pages/Accessibility";
 import HelpCenter from "./pages/HelpCenter";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 

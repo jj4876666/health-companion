@@ -30,6 +30,7 @@ export function EnhancedLoginPage() {
   const [showRecovery, setShowRecovery] = useState(false);
   
   const { language, t } = useLanguage();
+  const { loadSessionUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -68,11 +69,13 @@ export function EnhancedLoginPage() {
     }
 
     if (data.user) {
-      toast({
-        title: "✓ Login Successful",
-        description: `Welcome back!`,
+      // Load profile into context, then navigate
+      loadSessionUser().finally(() => {
+        toast({ title: "✓ Login Successful", description: `Welcome back!` });
+        navigate('/dashboard');
+        setIsLoading(false);
       });
-      navigate('/dashboard');
+      return;
     }
     setIsLoading(false);
   };
@@ -122,13 +125,13 @@ export function EnhancedLoginPage() {
     }
 
     if (data.user) {
-      toast({
-        title: "✓ Login Successful",
-        description: `Welcome back, ${profile.full_name}!`,
+      loadSessionUser().finally(() => {
+        toast({ title: "✓ Login Successful", description: `Welcome back, ${profile.full_name}!` });
+        navigate('/dashboard');
+        setIsLoading(false);
       });
-      navigate('/dashboard');
+      return;
     }
-    setIsLoading(false);
   };
 
   // Show production signup form

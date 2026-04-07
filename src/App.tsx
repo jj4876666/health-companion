@@ -35,6 +35,7 @@ import Pharmacy from "./pages/Pharmacy";
 import AccessibilityPage from "./pages/Accessibility";
 import HelpCenter from "./pages/HelpCenter";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -53,6 +54,7 @@ function AppRoutes() {
     <Routes>
       <Route path="/" element={<Navigate to="/login" replace />} />
       <Route path="/login" element={<PublicRoute><EnhancedLoginPage /></PublicRoute>} />
+      <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
       <Route path="/education" element={<ProtectedRoute><Education /></ProtectedRoute>} />
       <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />

@@ -30,6 +30,7 @@ export function EnhancedLoginPage() {
   const [showRecovery, setShowRecovery] = useState(false);
   
   const { language, t } = useLanguage();
+  const { loadSessionUser } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
 

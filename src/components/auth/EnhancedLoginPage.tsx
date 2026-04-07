@@ -69,12 +69,13 @@ export function EnhancedLoginPage() {
     }
 
     if (data.user) {
-      await loadSessionUser();
-      toast({
-        title: "✓ Login Successful",
-        description: `Welcome back!`,
+      // Load profile into context, then navigate
+      loadSessionUser().finally(() => {
+        toast({ title: "✓ Login Successful", description: `Welcome back!` });
+        navigate('/dashboard');
+        setIsLoading(false);
       });
-      navigate('/dashboard');
+      return;
     }
     setIsLoading(false);
   };
